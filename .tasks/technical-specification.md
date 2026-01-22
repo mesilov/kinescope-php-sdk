@@ -14,8 +14,19 @@
 - Предоставить удобный объектно-ориентированный интерфейс для работы с Kinescope API
 - Обеспечить типобезопасность и автодополнение в IDE
 - Упростить процесс аутентификации и обработки ошибок
-- Обеспечить поддержку **всех** операций Kinescope API (v1 и v2)
+- **Версия 1.0**: Поддержка read-only операций (GET методов) для базовых сервисов
 - Использовать современные PHP 8.4+ возможности (readonly, enums, named arguments, property hooks)
+
+### 1.4 Область действия версии 1.0
+Первая версия SDK реализует **только операции чтения** (GET методы) для следующих сервисов:
+- Videos - получение списка и информации о видео
+- Subtitles - получение субтитров видео
+- Annotations - получение аннотаций видео
+- Projects - получение списка и информации о проектах
+- Folders - получение списка и информации о папках
+- Playlists - получение плейлистов и их содержимого
+
+Операции записи (POST, PUT, PATCH, DELETE) и дополнительные сервисы будут добавлены в следующих версиях.
 
 ## 2. Техническая информация об API
 
@@ -49,226 +60,72 @@ Authorization: Bearer {api_key}
 
 ## 3. Требования к функциональности
 
-### 3.1 Полный список API модулей
+### 3.1 API модули версии 1.0
 
-#### 3.1.1 Videos (v1) - Управление видео
+> **Примечание**: Версия 1.0 SDK поддерживает только операции чтения (GET методы).
+> Дополнительные сервисы и методы записи будут добавлены в следующих версиях.
+
+#### 3.1.1 Videos (v1) - Получение видео
 | Метод | Endpoint | Описание |
 |-------|----------|----------|
 | GET | `/v1/videos` | Список видео с пагинацией и фильтрацией |
 | GET | `/v1/videos/{video_id}` | Получение информации о видео |
-| PATCH | `/v1/videos/{video_id}` | Обновление метаданных видео |
-| DELETE | `/v1/videos/{video_id}` | Удаление видео |
-| PUT | `/v1/videos/{video_id}/move` | Перемещение видео в другую папку/проект |
-| PUT | `/v1/videos/{video_id}/chapters` | Обновление глав видео |
-| POST | `/v1/videos/{video_id}/concat` | Склейка видео |
-| POST | `/v1/videos/{video_id}/cut` | Обрезка видео |
 
-#### 3.1.2 Posters - Постеры видео
+#### 3.1.2 Subtitles - Получение субтитров
 | Метод | Endpoint | Описание |
 |-------|----------|----------|
-| GET | `/v1/videos/{video_id}/posters` | Список постеров видео |
-| POST | `/v1/videos/{video_id}/posters` | Создание постера по времени |
-| GET | `/v1/videos/{video_id}/posters/{poster_id}` | Получение постера |
-| DELETE | `/v1/videos/{video_id}/posters/{poster_id}` | Удаление постера |
-| POST | `/v1/videos/{video_id}/posters/{poster_id}/active` | Установка активного постера |
+| GET | `/v1/videos/{video_id}/subtitles` | Список субтитров видео |
+| GET | `/v1/videos/{video_id}/subtitles/{subtitle_id}` | Получение конкретных субтитров |
 
-#### 3.1.3 Subtitles - Субтитры
+#### 3.1.3 Annotations - Получение аннотаций
 | Метод | Endpoint | Описание |
 |-------|----------|----------|
-| GET | `/v1/videos/{video_id}/subtitles` | Список субтитров |
-| POST | `/v1/videos/{video_id}/subtitles` | Добавление субтитров |
-| GET | `/v1/videos/{video_id}/subtitles/{subtitle_id}` | Получение субтитров |
-| PATCH | `/v1/videos/{video_id}/subtitles/{subtitle_id}` | Обновление субтитров |
-| DELETE | `/v1/videos/{video_id}/subtitles/{subtitle_id}` | Удаление субтитров |
-| PATCH | `/v1/videos/{video_id}/subtitles/reorder` | Изменение порядка субтитров |
-| POST | `/v1/videos/{video_id}/subtitles/{subtitle_id}/copy` | Копирование субтитров |
+| GET | `/v1/videos/{video_id}/annotations` | Список аннотаций видео |
+| GET | `/v1/videos/{video_id}/annotations/{annotation_id}` | Получение конкретной аннотации |
 
-#### 3.1.4 Annotations - Аннотации
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v1/videos/{video_id}/annotations` | Список аннотаций |
-| POST | `/v1/videos/{video_id}/annotations` | Добавление аннотации |
-| GET | `/v1/videos/{video_id}/annotations/{annotation_id}` | Получение аннотации |
-| PUT | `/v1/videos/{video_id}/annotations/{annotation_id}` | Обновление аннотации |
-| DELETE | `/v1/videos/{video_id}/annotations/{annotation_id}` | Удаление аннотации |
-
-#### 3.1.5 Projects - Проекты
+#### 3.1.4 Projects - Получение проектов
 | Метод | Endpoint | Описание |
 |-------|----------|----------|
 | GET | `/v1/projects` | Список проектов |
-| POST | `/v1/projects` | Создание проекта |
-| GET | `/v1/projects/{project_id}` | Получение проекта |
-| PUT | `/v1/projects/{project_id}` | Обновление проекта |
-| DELETE | `/v1/projects/{project_id}` | Удаление проекта |
+| GET | `/v1/projects/{project_id}` | Получение информации о проекте |
 
-#### 3.1.6 Folders - Папки
+#### 3.1.5 Folders - Получение папок
 | Метод | Endpoint | Описание |
 |-------|----------|----------|
 | GET | `/v1/projects/{project_id}/folders` | Список папок в проекте |
-| POST | `/v1/projects/{project_id}/folders` | Создание папки |
-| GET | `/v1/projects/{project_id}/folders/{folder_id}` | Получение папки |
-| PUT | `/v1/projects/{project_id}/folders/{folder_id}` | Обновление папки |
-| DELETE | `/v1/projects/{project_id}/folders/{folder_id}` | Удаление папки |
+| GET | `/v1/projects/{project_id}/folders/{folder_id}` | Получение информации о папке |
 
-#### 3.1.7 Analytics - Аналитика
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v1/analytics/overview` | Обзор аналитики |
-| GET | `/v1/analytics` | Кастомная аналитика с фильтрами |
-
-#### 3.1.8 Billing - Биллинг
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v1/billing/usage` | Использование ресурсов |
-
-#### 3.1.9 Additional Materials - Дополнительные материалы
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| POST | `/additional-material` | Загрузка материала |
-| GET | `/v1/additional-materials/{material_id}/link` | Получение ссылки на материал |
-| PUT | `/v1/additional-materials/{material_id}` | Обновление материала |
-| DELETE | `/v1/additional-materials/{material_id}` | Удаление материала |
-| PATCH | `/v1/additional-materials/reorder` | Изменение порядка материалов |
-
-#### 3.1.10 Access Tokens - Токены доступа
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v1/access-tokens` | Список токенов |
-| POST | `/v1/access-tokens` | Создание токена |
-| GET | `/v1/access-tokens/{token_id}` | Получение токена |
-| DELETE | `/v1/access-tokens/{token_id}` | Удаление токена |
-
-#### 3.1.11 Players - Плееры
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v1/players` | Список плееров |
-| POST | `/v1/players` | Создание плеера |
-| GET | `/v1/players/{player_id}` | Получение плеера |
-| PUT | `/v1/players/{player_id}` | Обновление плеера |
-| POST | `/v1/players/{player_id}/logo` | Установка логотипа плеера |
-| DELETE | `/v1/players/{player_id}/logo` | Удаление логотипа плеера |
-
-#### 3.1.12 File Requests - Запросы на файлы
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v1/file-requests` | Список запросов |
-| POST | `/v1/file-requests` | Создание запроса |
-| GET | `/v1/file-requests/{file_request_id}` | Получение запроса |
-| PUT | `/v1/file-requests/{file_request_id}` | Обновление запроса |
-| DELETE | `/v1/file-requests/{file_request_id}` | Удаление запроса |
-
-#### 3.1.13 DRM Auth - DRM авторизация
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v1/drm/auth` | Получение глобальных настроек DRM |
-| PUT | `/v1/drm/auth` | Обновление глобальных настроек DRM |
-| DELETE | `/v1/drm/auth` | Удаление глобальных настроек DRM |
-| GET | `/v1/drm/auth/{project_id}` | Получение настроек DRM для проекта |
-| PUT | `/v1/drm/auth/{project_id}` | Обновление настроек DRM для проекта |
-| DELETE | `/v1/drm/auth/{project_id}` | Удаление настроек DRM для проекта |
-
-#### 3.1.14 Privacy Domains - Домены приватности
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v1/privacy-domains` | Список доменов |
-| POST | `/v1/privacy-domains` | Создание домена |
-| PUT | `/v1/privacy-domains/{domain_id}` | Обновление домена |
-| DELETE | `/v1/privacy-domains/{domain_id}` | Удаление домена |
-
-#### 3.1.15 Tags - Теги
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v1/tags` | Список тегов |
-| POST | `/v1/tags` | Создание тега |
-| PUT | `/v1/tags/{tag_id}` | Обновление тега |
-| DELETE | `/v1/tags/{tag_id}` | Удаление тега |
-
-#### 3.1.16 Playlists - Плейлисты
+#### 3.1.6 Playlists - Получение плейлистов
 | Метод | Endpoint | Описание |
 |-------|----------|----------|
 | GET | `/v1/playlists` | Список плейлистов |
-| POST | `/v1/playlists` | Создание плейлиста |
-| GET | `/v1/playlists/{playlist_id}` | Получение плейлиста |
-| PATCH | `/v1/playlists/{playlist_id}` | Обновление плейлиста |
-| DELETE | `/v1/playlists/{playlist_id}` | Удаление плейлиста |
+| GET | `/v1/playlists/{playlist_id}` | Получение информации о плейлисте |
 | GET | `/v1/playlists/{playlist_id}/entities` | Список медиа в плейлисте |
-| POST | `/v1/playlists/{playlist_id}/entities` | Добавление медиа в плейлист |
-| DELETE | `/v1/playlists/{playlist_id}/entities` | Удаление медиа из плейлиста |
-| PUT | `/v1/playlists/{playlist_id}/entities/{media_id}/move` | Перемещение медиа в плейлисте |
 
-#### 3.1.17 Moderators - Модераторы
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v1/moderators` | Список модераторов |
-| POST | `/v1/moderators` | Добавление модератора |
-| GET | `/v1/moderators/{moderator_id}` | Получение модератора |
-| PUT | `/v1/moderators/{moderator_id}` | Обновление модератора |
-| DELETE | `/v1/moderators/{moderator_id}` | Удаление модератора |
+### 3.2 Сервисы, запланированные для будущих версий
 
-#### 3.1.18 Webhooks - Вебхуки
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v1/webhooks` | Список вебхуков |
-| POST | `/v1/webhooks` | Создание вебхука |
-| PUT | `/v1/webhooks/{webhook_id}` | Обновление вебхука |
-| DELETE | `/v1/webhooks/{webhook_id}` | Удаление вебхука |
+Следующие сервисы **не включены** в версию 1.0 и будут добавлены в последующих релизах:
 
-#### 3.1.19 CDN - Управление CDN
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v1/cdn/zones` | Список CDN зон |
-| POST | `/v1/cdn/zones` | Создание CDN зоны |
-| PUT | `/v1/cdn/zones/{zone_id}` | Обновление CDN зоны |
-| DELETE | `/v1/cdn/zones/{zone_id}` | Удаление CDN зоны |
+- **Posters** - управление постерами видео
+- **Analytics** - аналитика просмотров
+- **Billing** - информация о биллинге
+- **Additional Materials** - дополнительные материалы
+- **Access Tokens** - токены доступа
+- **Players** - управление плеерами
+- **File Requests** - запросы на файлы
+- **DRM Auth** - DRM авторизация
+- **Privacy Domains** - домены приватности
+- **Tags** - управление тегами
+- **Moderators** - управление модераторами
+- **Webhooks** - вебхуки
+- **CDN** - управление CDN зонами
+- **Upload** - загрузка видео
+- **Live Events** - прямые эфиры
+- **Restreams** - ретрансляции
+- **Dictionaries** - справочники
+- **Avatars** - аватары
 
-#### 3.1.20 Upload (v2) - Загрузка видео
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| POST | `/` | Загрузка видео (multipart, с заголовками X-Parent-ID, X-Video-Title и т.д.) |
-
-#### 3.1.21 Poster Upload (v2)
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| POST | `/v2/poster` | Загрузка постера |
-
-#### 3.1.22 Live Events (v2) - Прямые эфиры
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v2/live/events` | Список событий |
-| POST | `/v2/live/events` | Создание события |
-| GET | `/v2/live/events/{event_id}` | Получение события |
-| PUT | `/v2/live/events/{event_id}` | Обновление события |
-| DELETE | `/v2/live/events/{event_id}` | Удаление события |
-| GET | `/v2/live/events/{event_id}/videos` | Видео события |
-| PUT | `/v2/live/events/{event_id}/enable` | Включение события |
-| PUT | `/v2/live/events/{event_id}/complete` | Завершение события |
-| PUT | `/v2/live/events/{event_id}/move` | Перемещение события |
-| GET | `/v2/live/events/{event_id}/qos` | Качество обслуживания |
-| POST | `/v2/live/events/{event_id}/stream` | Планирование стрима |
-| PUT | `/v2/live/events/{event_id}/stream` | Обновление расписания стрима |
-| GET | `/v2/live/events/{event_id}/stream/{stream_id}/chat` | Чат стрима |
-
-#### 3.1.23 Restreams (v2) - Ретрансляции
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| POST | `/v2/live/events/{event_id}/restreams` | Создание ретрансляции |
-| GET | `/v2/live/events/{event_id}/restreams/{restream_id}` | Получение ретрансляции |
-| PUT | `/v2/live/events/{event_id}/restreams/{restream_id}` | Обновление ретрансляции |
-| DELETE | `/v2/live/events/{event_id}/restreams/{restream_id}` | Удаление ретрансляции |
-
-#### 3.1.24 Dictionaries - Справочники
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/v1/dictionaries/timezones` | Список часовых поясов |
-
-#### 3.1.25 Avatars - Аватары
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| POST | `/v1/avatar` | Загрузка аватара |
-| GET | `/v1/user/avatar/{avatar_id}` | Получение аватара пользователя |
-| GET | `/v1/workspace/avatar/{avatar_id}` | Получение аватара воркспейса |
-
-### 3.2 Обработка исключений
+### 3.3 Обработка исключений
 
 Иерархия исключений с маппингом HTTP кодов:
 ```
@@ -285,161 +142,95 @@ KinescopeException (базовое исключение)
 
 ## 4. Архитектура SDK
 
-### 4.1 Структура проекта
+### 4.1 Структура проекта (версия 1.0)
 
 ```
-src/
-├── Contracts/                          # Интерфейсы
-│   ├── ApiClientInterface.php          # Интерфейс HTTP клиента
-│   └── ServiceInterface.php            # Базовый интерфейс сервиса
-├── Core/                               # Ядро SDK
-│   ├── ApiClient.php                   # HTTP клиент с retry логикой
-│   ├── ApiClientFactory.php            # Фабрика с fluent builder
-│   ├── Credentials.php                 # Value object для API ключа
-│   ├── JsonDecoder.php                 # Декодер JSON ответов
-│   ├── Pagination.php                  # Value object пагинации
-│   └── ResponseHandler.php             # Обработчик ответов и маппинг ошибок
-├── Enum/                               # PHP 8.4 Enums
-│   ├── VideoStatus.php                 # pending, uploading, processing, done, error
-│   ├── PrivacyType.php                 # anywhere, custom, nowhere
-│   ├── EventType.php                   # one-time, recurring
-│   ├── CatalogType.php                 # vod, live
-│   ├── SubtitleLanguage.php            # Языки субтитров
-│   ├── WebhookEvent.php                # Типы webhook событий
-│   ├── PlayerWatermarkPosition.php     # Позиции водяного знака
-│   └── AnalyticsMetric.php             # Типы метрик аналитики
-├── Exception/                          # Иерархия исключений
-│   ├── KinescopeException.php          # Базовое исключение
-│   ├── AuthenticationException.php     # 401
-│   ├── PaymentRequiredException.php    # 402
-│   ├── ForbiddenException.php          # 403
-│   ├── NotFoundException.php           # 404
-│   ├── BadRequestException.php         # 400
-│   ├── ValidationException.php         # 422
-│   ├── RateLimitException.php          # 429
-│   └── NetworkException.php            # Сетевые ошибки
-├── Infrastructure/                     # Инфраструктурные утилиты
-│   └── Filesystem/
-│       ├── FileUploader.php            # Загрузка файлов с chunked upload
-│       └── FileValidator.php           # Валидация файлов (размер, тип)
-├── Services/                           # Сервисный слой
-│   ├── ServiceFactory.php              # Основная фабрика сервисов
-│   ├── AbstractService.php             # Базовый класс сервиса
-│   ├── Videos/
-│   │   ├── VideosService.php           # CRUD видео
-│   │   ├── PostersService.php          # Постеры видео
-│   │   ├── SubtitlesService.php        # Субтитры
-│   │   ├── AnnotationsService.php      # Аннотации
-│   │   └── ChaptersService.php         # Главы видео
-│   ├── Projects/
-│   │   └── ProjectsService.php         # Управление проектами
-│   ├── Folders/
-│   │   └── FoldersService.php          # Управление папками
-│   ├── Analytics/
-│   │   └── AnalyticsService.php        # Аналитика
-│   ├── Billing/
-│   │   └── BillingService.php          # Биллинг
-│   ├── Webhooks/
-│   │   └── WebhooksService.php         # Вебхуки
-│   ├── Players/
-│   │   └── PlayersService.php          # Плееры
-│   ├── Playlists/
-│   │   └── PlaylistsService.php        # Плейлисты
-│   ├── Live/
-│   │   ├── LiveEventsService.php       # Прямые эфиры
-│   │   └── RestreamsService.php        # Ретрансляции
-│   ├── AccessTokens/
-│   │   └── AccessTokensService.php     # Токены доступа
-│   ├── Drm/
-│   │   └── DrmAuthService.php          # DRM авторизация
-│   ├── Tags/
-│   │   └── TagsService.php             # Теги
-│   ├── PrivacyDomains/
-│   │   └── PrivacyDomainsService.php   # Домены приватности
-│   ├── Moderators/
-│   │   └── ModeratorsService.php       # Модераторы
-│   ├── Cdn/
-│   │   └── CdnService.php              # CDN зоны
-│   ├── FileRequests/
-│   │   └── FileRequestsService.php     # Запросы на файлы
-│   ├── AdditionalMaterials/
-│   │   └── AdditionalMaterialsService.php # Дополнительные материалы
-│   ├── Upload/
-│   │   └── UploadService.php           # Загрузка файлов (v2)
-│   ├── Dictionaries/
-│   │   └── DictionariesService.php     # Справочники (часовые пояса)
-│   └── Avatars/
-│       └── AvatarsService.php          # Управление аватарами
-└── DTO/                                # Data Transfer Objects (readonly)
-    ├── Video/
-    │   ├── VideoDTO.php                # Основная модель видео
-    │   ├── VideoListResult.php         # Результат списка видео
-    │   ├── PosterDTO.php               # Постер
-    │   ├── SubtitleDTO.php             # Субтитры
-    │   ├── AnnotationDTO.php           # Аннотация
-    │   ├── AssetDTO.php                # Ассет видео (качество)
-    │   └── ChapterDTO.php              # Глава видео
-    ├── Project/
-    │   ├── ProjectDTO.php              # Проект
-    │   └── ProjectListResult.php       # Результат списка проектов
-    ├── Folder/
-    │   ├── FolderDTO.php               # Папка
-    │   └── FolderListResult.php        # Результат списка папок
-    ├── Analytics/
-    │   ├── OverviewResult.php          # Обзор аналитики
-    │   └── CustomAnalyticsResult.php   # Кастомная аналитика
-    ├── Billing/
-    │   └── UsageResult.php             # Использование ресурсов
-    ├── Webhook/
-    │   ├── WebhookDTO.php              # Вебхук
-    │   └── WebhookListResult.php       # Список вебхуков
-    ├── Player/
-    │   ├── PlayerDTO.php               # Плеер
-    │   └── PlayerListResult.php        # Список плееров
-    ├── Playlist/
-    │   ├── PlaylistDTO.php             # Плейлист
-    │   ├── PlaylistListResult.php      # Список плейлистов
-    │   └── PlaylistEntityDTO.php       # Элемент плейлиста
-    ├── Live/
-    │   ├── EventDTO.php                # Событие трансляции
-    │   ├── EventListResult.php         # Список событий
-    │   ├── StreamDTO.php               # Стрим
-    │   ├── RestreamDTO.php             # Ретрансляция
-    │   └── QosDTO.php                  # Качество обслуживания
-    ├── AccessToken/
-    │   ├── AccessTokenDTO.php          # Токен доступа
-    │   └── AccessTokenListResult.php   # Список токенов
-    ├── Drm/
-    │   └── DrmAuthDTO.php              # DRM настройки
-    ├── Tag/
-    │   ├── TagDTO.php                  # Тег
-    │   └── TagListResult.php           # Список тегов
-    ├── PrivacyDomain/
-    │   ├── PrivacyDomainDTO.php        # Домен приватности
-    │   └── PrivacyDomainListResult.php # Список доменов
-    ├── Moderator/
-    │   ├── ModeratorDTO.php            # Модератор
-    │   └── ModeratorListResult.php     # Список модераторов
-    ├── Cdn/
-    │   ├── CdnZoneDTO.php              # CDN зона
-    │   └── CdnZoneListResult.php       # Список CDN зон
-    ├── FileRequest/
-    │   ├── FileRequestDTO.php          # Запрос на файл
-    │   └── FileRequestListResult.php   # Список запросов
-    ├── AdditionalMaterial/
-    │   ├── AdditionalMaterialDTO.php   # Дополнительный материал
-    │   └── AdditionalMaterialListResult.php # Список материалов
-    ├── Dictionary/
-    │   └── TimezoneDTO.php             # Часовой пояс
-    ├── Avatar/
-    │   └── AvatarDTO.php               # Аватар
-    └── Common/
-        ├── PaginatedResponse.php       # Базовый пагинированный ответ
-        ├── SuccessResult.php           # Результат успешной операции
-        └── MetaDTO.php                 # Метаданные ответа
+kinescope-php-sdk/
+├── docker/
+│   └── php-cli/
+│       ├── Dockerfile
+│       └── conf.d/
+│           └── php.ini
+├── src/
+│   ├── Contracts/                          # Интерфейсы
+│   │   ├── ApiClientInterface.php          # Интерфейс HTTP клиента
+│   │   └── ServiceInterface.php            # Базовый интерфейс сервиса
+│   ├── Core/                               # Ядро SDK
+│   │   ├── ApiClient.php                   # HTTP клиент с retry логикой
+│   │   ├── ApiClientFactory.php            # Фабрика с fluent builder
+│   │   ├── Credentials.php                 # Value object для API ключа
+│   │   ├── JsonDecoder.php                 # Декодер JSON ответов
+│   │   ├── Pagination.php                  # Value object пагинации
+│   │   └── ResponseHandler.php             # Обработчик ответов и маппинг ошибок
+│   ├── Enum/                               # PHP 8.4 Enums
+│   │   ├── VideoStatus.php                 # pending, uploading, processing, done, error
+│   │   ├── PrivacyType.php                 # anywhere, custom, nowhere
+│   │   ├── SubtitleLanguage.php            # Языки субтитров
+│   │   └── HttpMethod.php                  # HTTP методы
+│   ├── Exception/                          # Иерархия исключений
+│   │   ├── KinescopeException.php          # Базовое исключение
+│   │   ├── AuthenticationException.php     # 401
+│   │   ├── PaymentRequiredException.php    # 402
+│   │   ├── ForbiddenException.php          # 403
+│   │   ├── NotFoundException.php           # 404
+│   │   ├── BadRequestException.php         # 400
+│   │   ├── ValidationException.php         # 422
+│   │   ├── RateLimitException.php          # 429
+│   │   └── NetworkException.php            # Сетевые ошибки
+│   ├── Services/                           # Сервисный слой
+│   │   ├── ServiceFactory.php              # Основная фабрика сервисов
+│   │   ├── AbstractService.php             # Базовый класс сервиса
+│   │   ├── Videos/
+│   │   │   ├── VideosService.php           # Получение видео (list, get)
+│   │   │   ├── SubtitlesService.php        # Получение субтитров (list, get)
+│   │   │   └── AnnotationsService.php      # Получение аннотаций (list, get)
+│   │   ├── Projects/
+│   │   │   └── ProjectsService.php         # Получение проектов (list, get)
+│   │   ├── Folders/
+│   │   │   └── FoldersService.php          # Получение папок (list, get)
+│   │   └── Playlists/
+│   │       └── PlaylistsService.php        # Получение плейлистов (list, get, entities)
+│   └── DTO/                                # Data Transfer Objects (readonly)
+│       ├── Video/
+│       │   ├── VideoDTO.php                # Основная модель видео
+│       │   ├── VideoListResult.php         # Результат списка видео
+│       │   ├── SubtitleDTO.php             # Субтитры
+│       │   ├── SubtitleListResult.php      # Результат списка субтитров
+│       │   ├── AnnotationDTO.php           # Аннотация
+│       │   ├── AnnotationListResult.php    # Результат списка аннотаций
+│       │   └── AssetDTO.php                # Ассет видео (качество)
+│       ├── Project/
+│       │   ├── ProjectDTO.php              # Проект
+│       │   └── ProjectListResult.php       # Результат списка проектов
+│       ├── Folder/
+│       │   ├── FolderDTO.php               # Папка
+│       │   └── FolderListResult.php        # Результат списка папок
+│       ├── Playlist/
+│       │   ├── PlaylistDTO.php             # Плейлист
+│       │   ├── PlaylistListResult.php      # Список плейлистов
+│       │   └── PlaylistEntityDTO.php       # Элемент плейлиста
+│       └── Common/
+│           ├── PaginatedResponse.php       # Базовый пагинированный ответ
+│           └── MetaDTO.php                 # Метаданные ответа
+├── tests/
+│   ├── Unit/
+│   ├── Integration/
+│   ├── Fixtures/
+│   └── TestCase.php
+├── .env
+├── .env.local                              # (gitignored)
+├── .gitignore
+├── .php-cs-fixer.dist.php
+├── composer.json
+├── docker-compose.yaml
+├── Makefile
+├── phpstan.neon
+├── phpunit.xml
+├── rector.php
+└── README.md
 ```
 
-### 4.2 Пример использования SDK
+### 4.2 Пример использования SDK (версия 1.0)
 
 ```php
 <?php
@@ -448,8 +239,6 @@ use Kinescope\Services\ServiceFactory;
 use Kinescope\Core\Credentials;
 use Kinescope\Core\ApiClientFactory;
 use Kinescope\Enum\VideoStatus;
-use Kinescope\Enum\PrivacyType;
-use Kinescope\Enum\EventType;
 use Kinescope\Exception\KinescopeException;
 use Kinescope\Exception\NotFoundException;
 
@@ -472,9 +261,8 @@ $apiClient = ApiClientFactory::create()
 $factory = new ServiceFactory(apiClient: $apiClient);
 
 try {
-    // === Работа с видео ===
+    // === Получение списка видео ===
 
-    // Получение списка видео с пагинацией
     $videosList = $factory->videos()->list(
         page: 1,
         perPage: 20,
@@ -497,157 +285,98 @@ try {
         }
     }
 
-    // Получение конкретного видео
+    // === Получение конкретного видео ===
+
     $video = $factory->videos()->get('video-uuid');
     echo "Embed код: " . $video->embedCode . PHP_EOL;
+    echo "HLS ссылка: " . $video->hlsLink . PHP_EOL;
 
-    // Обновление метаданных видео
-    $factory->videos()->update('video-uuid', [
-        'title' => 'Обновленное название',
-        'description' => 'Новое описание',
-    ]);
+    // === Получение субтитров видео ===
 
-    // Перемещение видео
-    $factory->videos()->move('video-uuid', parentId: 'new-folder-uuid');
+    $subtitlesList = $factory->subtitles()->list('video-uuid');
 
-    // === Работа с постерами ===
+    foreach ($subtitlesList->getData() as $subtitle) {
+        echo sprintf(
+            "Субтитры: %s (%s)\n",
+            $subtitle->title,
+            $subtitle->language
+        );
+    }
 
-    // Создание постера из кадра видео
-    $poster = $factory->posters()->createFromTime('video-uuid', time: 10.5);
+    // Получение конкретных субтитров
+    $subtitle = $factory->subtitles()->get('video-uuid', 'subtitle-uuid');
+    echo "URL субтитров: " . $subtitle->url . PHP_EOL;
 
-    // Установка активного постера
-    $factory->posters()->setActive('video-uuid', 'poster-uuid');
+    // === Получение аннотаций видео ===
 
-    // === Работа с субтитрами ===
+    $annotationsList = $factory->annotations()->list('video-uuid');
 
-    // Добавление субтитров
-    $subtitle = $factory->subtitles()->upload(
-        videoId: 'video-uuid',
-        filePath: '/path/to/subtitles.vtt',
-        language: 'ru',
-        title: 'Русские субтитры'
-    );
+    foreach ($annotationsList->getData() as $annotation) {
+        echo sprintf(
+            "Аннотация: %s (время: %d сек)\n",
+            $annotation->title,
+            $annotation->time
+        );
+    }
 
-    // Изменение порядка субтитров
-    $factory->subtitles()->reorder('video-uuid', [
-        'subtitle-uuid-1',
-        'subtitle-uuid-2',
-    ]);
+    // === Получение списка проектов ===
 
-    // === Работа с проектами ===
+    $projectsList = $factory->projects()->list(page: 1, perPage: 10);
 
-    // Создание проекта
-    $project = $factory->projects()->create(
-        name: 'Новый проект',
-        privacyType: PrivacyType::CUSTOM,
-        privacyDomains: ['example.com', 'mysite.ru']
-    );
+    foreach ($projectsList->getData() as $project) {
+        echo sprintf(
+            "Проект: %s (ID: %s)\n",
+            $project->name,
+            $project->id
+        );
+    }
 
-    echo "Создан проект: " . $project->id . PHP_EOL;
+    // Получение конкретного проекта
+    $project = $factory->projects()->get('project-uuid');
+    echo "Проект: " . $project->name . PHP_EOL;
 
-    // Список проектов
-    $projects = $factory->projects()->list(page: 1, perPage: 10);
+    // === Получение папок проекта ===
 
-    // === Работа с папками ===
+    $foldersList = $factory->folders()->list('project-uuid');
 
-    // Создание папки в проекте
-    $folder = $factory->folders()->create(
-        projectId: $project->id,
-        name: 'Видео уроки'
-    );
+    foreach ($foldersList->getData() as $folder) {
+        echo sprintf(
+            "Папка: %s (ID: %s)\n",
+            $folder->name,
+            $folder->id
+        );
+    }
 
-    // === Загрузка видео (v2 API) ===
+    // Получение конкретной папки
+    $folder = $factory->folders()->get('project-uuid', 'folder-uuid');
+    echo "Папка: " . $folder->name . PHP_EOL;
 
-    // Простая загрузка
-    $uploadResult = $factory->upload()->uploadFile(
-        filePath: '/path/to/video.mp4',
-        title: 'Моё видео',
-        parentId: $folder->id
-    );
+    // === Получение плейлистов ===
 
-    echo "Загружено видео: " . $uploadResult->videoId . PHP_EOL;
+    $playlistsList = $factory->playlists()->list(page: 1, perPage: 10);
 
-    // Загрузка с прогрессом (chunked upload)
-    $factory->upload()->uploadFile(
-        filePath: '/path/to/large-video.mp4',
-        title: 'Большое видео',
-        parentId: $folder->id,
-        onProgress: function (int $uploaded, int $total) {
-            $percent = round($uploaded / $total * 100);
-            echo "Загружено: {$percent}%\r";
-        }
-    );
+    foreach ($playlistsList->getData() as $playlist) {
+        echo sprintf(
+            "Плейлист: %s (ID: %s)\n",
+            $playlist->title,
+            $playlist->id
+        );
+    }
 
-    // === Live события ===
+    // Получение конкретного плейлиста
+    $playlist = $factory->playlists()->get('playlist-uuid');
+    echo "Плейлист: " . $playlist->title . PHP_EOL;
 
-    // Создание прямой трансляции
-    $event = $factory->liveEvents()->create(
-        name: 'Прямой эфир',
-        type: EventType::ONE_TIME,
-        parentId: $project->id,
-        recordEnabled: true
-    );
+    // Получение медиа в плейлисте
+    $entities = $factory->playlists()->entities('playlist-uuid');
 
-    echo "RTMP URL: " . $event->rtmpUrl . PHP_EOL;
-    echo "Stream Key: " . $event->streamKey . PHP_EOL;
-
-    // Включение трансляции
-    $factory->liveEvents()->enable($event->id);
-
-    // Добавление ретрансляции на YouTube
-    $restream = $factory->restreams()->create(
-        eventId: $event->id,
-        name: 'YouTube',
-        rtmpUrl: 'rtmp://a.rtmp.youtube.com/live2',
-        streamKey: 'your-youtube-stream-key'
-    );
-
-    // Завершение трансляции
-    $factory->liveEvents()->complete($event->id);
-
-    // === Плейлисты ===
-
-    // Создание плейлиста
-    $playlist = $factory->playlists()->create(
-        title: 'Курс по PHP',
-        projectId: $project->id
-    );
-
-    // Добавление видео в плейлист
-    $factory->playlists()->addEntities($playlist->id, [
-        'video-uuid-1',
-        'video-uuid-2',
-    ]);
-
-    // === Вебхуки ===
-
-    // Создание вебхука
-    $webhook = $factory->webhooks()->create(
-        url: 'https://mysite.com/webhooks/kinescope',
-        events: ['video.created', 'video.transcoded', 'video.deleted']
-    );
-
-    // === Аналитика ===
-
-    // Обзор аналитики
-    $overview = $factory->analytics()->overview(
-        from: new \DateTimeImmutable('-30 days'),
-        to: new \DateTimeImmutable('now'),
-        projectId: $project->id
-    );
-
-    echo "Всего просмотров: " . $overview->views . PHP_EOL;
-    echo "Уникальных зрителей: " . $overview->uniqueViewers . PHP_EOL;
-
-    // === Биллинг ===
-
-    $usage = $factory->billing()->usage(
-        from: new \DateTimeImmutable('-30 days'),
-        to: new \DateTimeImmutable('now')
-    );
-
-    echo "Использовано хранилища: " . $usage->storageBytes . " байт" . PHP_EOL;
-    echo "Трафик: " . $usage->bandwidthBytes . " байт" . PHP_EOL;
+    foreach ($entities->getData() as $entity) {
+        echo sprintf(
+            "Медиа в плейлисте: %s (позиция: %d)\n",
+            $entity->title,
+            $entity->position
+        );
+    }
 
 } catch (NotFoundException $e) {
     echo "Ресурс не найден: " . $e->getMessage() . PHP_EOL;
@@ -668,8 +397,11 @@ try {
 final class ServiceFactory
 {
     private ?VideosService $videos = null;
+    private ?SubtitlesService $subtitles = null;
+    private ?AnnotationsService $annotations = null;
     private ?ProjectsService $projects = null;
-    // ... другие сервисы
+    private ?FoldersService $folders = null;
+    private ?PlaylistsService $playlists = null;
 
     public function __construct(
         private readonly Credentials|ApiClientInterface $credentialsOrClient
@@ -689,12 +421,30 @@ final class ServiceFactory
         return $this->videos ??= new VideosService($this->getApiClient());
     }
 
+    public function subtitles(): SubtitlesService
+    {
+        return $this->subtitles ??= new SubtitlesService($this->getApiClient());
+    }
+
+    public function annotations(): AnnotationsService
+    {
+        return $this->annotations ??= new AnnotationsService($this->getApiClient());
+    }
+
     public function projects(): ProjectsService
     {
         return $this->projects ??= new ProjectsService($this->getApiClient());
     }
 
-    // ... lazy инициализация других сервисов
+    public function folders(): FoldersService
+    {
+        return $this->folders ??= new FoldersService($this->getApiClient());
+    }
+
+    public function playlists(): PlaylistsService
+    {
+        return $this->playlists ??= new PlaylistsService($this->getApiClient());
+    }
 }
 ```
 
@@ -863,7 +613,7 @@ final class ResponseHandler
 
 ## 5. PHP Enums
 
-### 5.1 Полный список перечислений
+### 5.1 Перечисления версии 1.0
 
 ```php
 // VideoStatus - Статус видео
@@ -876,26 +626,12 @@ enum VideoStatus: string
     case ERROR = 'error';
 }
 
-// PrivacyType - Тип приватности
+// PrivacyType - Тип приватности проекта
 enum PrivacyType: string
 {
     case ANYWHERE = 'anywhere';      // Воспроизведение везде
     case CUSTOM = 'custom';          // Только на указанных доменах
     case NOWHERE = 'nowhere';        // Запрет воспроизведения
-}
-
-// EventType - Тип события трансляции
-enum EventType: string
-{
-    case ONE_TIME = 'one-time';      // Разовая трансляция
-    case RECURRING = 'recurring';    // Регулярная трансляция
-}
-
-// CatalogType - Тип каталога
-enum CatalogType: string
-{
-    case VOD = 'vod';                // Video on Demand
-    case LIVE = 'live';              // Live streaming
 }
 
 // SubtitleLanguage - Языки субтитров
@@ -914,40 +650,7 @@ enum SubtitleLanguage: string
     // ... другие языки по ISO 639-1
 }
 
-// WebhookEvent - Типы webhook событий
-enum WebhookEvent: string
-{
-    case VIDEO_CREATED = 'video.created';
-    case VIDEO_UPDATED = 'video.updated';
-    case VIDEO_DELETED = 'video.deleted';
-    case VIDEO_TRANSCODED = 'video.transcoded';
-    case VIDEO_FAILED = 'video.failed';
-    case LIVE_STARTED = 'live.started';
-    case LIVE_STOPPED = 'live.stopped';
-    case LIVE_RECORDING_READY = 'live.recording_ready';
-}
-
-// PlayerWatermarkPosition - Позиции водяного знака
-enum PlayerWatermarkPosition: string
-{
-    case TOP_LEFT = 'top-left';
-    case TOP_RIGHT = 'top-right';
-    case BOTTOM_LEFT = 'bottom-left';
-    case BOTTOM_RIGHT = 'bottom-right';
-    case CENTER = 'center';
-}
-
-// AnalyticsMetric - Типы метрик аналитики
-enum AnalyticsMetric: string
-{
-    case VIEWS = 'views';
-    case UNIQUE_VIEWERS = 'unique_viewers';
-    case WATCH_TIME = 'watch_time';
-    case AVERAGE_WATCH_TIME = 'avg_watch_time';
-    case ENGAGEMENT = 'engagement';
-}
-
-// HttpMethod - HTTP методы
+// HttpMethod - HTTP методы (внутреннее использование)
 enum HttpMethod: string
 {
     case GET = 'GET';
@@ -957,6 +660,9 @@ enum HttpMethod: string
     case DELETE = 'DELETE';
 }
 ```
+
+> **Примечание**: Дополнительные Enum (EventType, CatalogType, WebhookEvent и др.)
+> будут добавлены в следующих версиях SDK вместе с соответствующими сервисами.
 
 ## 6. Технические требования
 
@@ -1015,6 +721,241 @@ enum HttpMethod: string
 - `friendsofphp/php-cs-fixer` (^3.0) - форматирование кода
 - `php-http/mock-client` (^1.5) - мокирование HTTP клиента в тестах
 
+### 6.5 Docker-окружение разработки
+
+Разработка и тестирование SDK выполняется в Docker-контейнерах для обеспечения консистентного окружения.
+
+#### 6.5.1 Структура Docker
+
+```
+docker/
+└── php-cli/
+    ├── Dockerfile
+    └── conf.d/
+        └── php.ini
+docker-compose.yaml
+.env
+.env.local (не включается в репозиторий)
+```
+
+#### 6.5.2 Dockerfile (PHP 8.4 CLI)
+
+```dockerfile
+# Multi-stage build для PHP 8.4
+FROM mlocati/php-extension-installer:2.4 AS php-extension-installer
+FROM composer:2.8 AS composer
+
+FROM php:8.4-cli-bookworm AS dev-php
+
+ARG UID=1000
+ARG GID=1000
+
+COPY --from=php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+
+RUN apt-get update && apt-get install -y \
+    unzip \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN install-php-extensions \
+    bcmath \
+    intl \
+    pcntl \
+    opcache \
+    yaml \
+    zip \
+    curl \
+    mbstring \
+    xml \
+    dom \
+    fileinfo
+
+COPY conf.d/php.ini /usr/local/etc/php/conf.d/php.ini
+
+ENV COMPOSER_CACHE_DIR=/tmp/composer/cache
+
+WORKDIR /var/www/html
+
+RUN usermod -u ${UID} www-data && groupmod -g ${GID} www-data
+RUN mkdir -p /tmp/composer/cache && chown -R www-data:www-data /tmp/composer/cache
+
+USER www-data
+
+CMD ["php", "-a"]
+```
+
+#### 6.5.3 docker-compose.yaml
+
+```yaml
+services:
+  php-cli:
+    build:
+      context: ./docker/php-cli
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    volumes:
+      - ./:/var/www/html
+    working_dir: /var/www/html
+    env_file:
+      - .env
+      - .env.local
+    environment:
+      COMPOSER_CACHE_DIR: /tmp/composer/cache
+    networks:
+      - kinescope-network
+
+networks:
+  kinescope-network:
+    driver: bridge
+```
+
+#### 6.5.4 Файлы окружения
+
+`.env` (включается в репозиторий):
+```env
+# PHP container
+UID=1000
+GID=1000
+
+# Kinescope API (пустые значения, переопределяются в .env.local)
+KINESCOPE_API_KEY=
+```
+
+`.env.local` (не включается в репозиторий, добавить в .gitignore):
+```env
+KINESCOPE_API_KEY=your-api-key-here
+```
+
+### 6.6 Makefile
+
+Все операции выполняются через Makefile для стандартизации команд разработки.
+
+#### 6.6.1 Команды управления Docker
+
+| Команда | Описание |
+|---------|----------|
+| `make docker-init` | Инициализация: сборка образов + установка зависимостей |
+| `make docker-up` | Запуск контейнеров в фоновом режиме |
+| `make docker-down` | Остановка контейнеров |
+| `make docker-down-clear` | Остановка контейнеров и удаление volumes |
+| `make docker-restart` | Перезапуск контейнеров |
+| `make docker-rebuild` | Пересборка образов без кэша |
+
+#### 6.6.2 Команды Composer
+
+| Команда | Описание |
+|---------|----------|
+| `make composer-install` | Установка зависимостей |
+| `make composer-update` | Обновление зависимостей |
+| `make composer-dumpautoload` | Перегенерация autoload |
+| `make composer args="..."` | Произвольная команда Composer |
+
+#### 6.6.3 Команды проверки кода
+
+| Команда | Описание |
+|---------|----------|
+| `make lint-all` | Запуск всех линтеров |
+| `make lint-cs-fixer` | Проверка стиля кода (dry-run) |
+| `make lint-cs-fixer-fix` | Автоматическое исправление стиля |
+| `make lint-phpstan` | Статический анализ PHPStan |
+| `make lint-rector` | Проверка Rector (dry-run) |
+| `make lint-rector-fix` | Применение рефакторинга Rector |
+
+#### 6.6.4 Команды тестирования
+
+| Команда | Описание |
+|---------|----------|
+| `make test-unit` | Запуск unit-тестов |
+| `make test-integration` | Запуск интеграционных тестов |
+
+#### 6.6.5 Вспомогательные команды
+
+| Команда | Описание |
+|---------|----------|
+| `make php-cli-bash` | Доступ к shell контейнера PHP |
+| `make php-cli-root` | Root-доступ к контейнеру PHP |
+| `make clear-cache` | Очистка кэша и временных файлов |
+| `make show-env` | Показать переменные окружения |
+
+#### 6.6.6 Пример Makefile
+
+```makefile
+.PHONY: docker-init docker-up docker-down docker-restart docker-rebuild \
+        composer-install composer-update lint-all lint-cs-fixer lint-phpstan \
+        test-unit test-integration php-cli-bash clear-cache
+
+# Docker
+docker-init: docker-up composer-install
+
+docker-up:
+	docker compose up -d
+
+docker-down:
+	docker compose down
+
+docker-down-clear:
+	docker compose down -v
+
+docker-restart: docker-down docker-up
+
+docker-rebuild:
+	docker compose build --no-cache
+
+# Composer
+composer-install:
+	docker compose exec php-cli composer install
+
+composer-update:
+	docker compose exec php-cli composer update
+
+composer-dumpautoload:
+	docker compose exec php-cli composer dumpautoload
+
+composer:
+	docker compose exec php-cli composer $(args)
+
+# Linting
+lint-all: lint-cs-fixer lint-phpstan lint-rector
+
+lint-cs-fixer:
+	docker compose exec php-cli vendor/bin/php-cs-fixer fix --dry-run --diff
+
+lint-cs-fixer-fix:
+	docker compose exec php-cli vendor/bin/php-cs-fixer fix
+
+lint-phpstan:
+	docker compose exec php-cli vendor/bin/phpstan analyse --memory-limit=1G
+
+lint-rector:
+	docker compose exec php-cli vendor/bin/rector process --dry-run
+
+lint-rector-fix:
+	docker compose exec php-cli vendor/bin/rector process
+
+# Testing
+test-unit:
+	docker compose exec php-cli vendor/bin/phpunit --testsuite=unit
+
+test-integration:
+	docker compose exec php-cli vendor/bin/phpunit --testsuite=integration
+
+# Utils
+php-cli-bash:
+	docker compose exec php-cli bash
+
+php-cli-root:
+	docker compose exec -u root php-cli bash
+
+clear-cache:
+	docker compose exec php-cli rm -rf var/cache/*
+	docker compose exec php-cli rm -rf .phpunit.result.cache
+
+show-env:
+	docker compose exec php-cli env | sort
+```
+
 ## 7. Тестирование
 
 ### 7.1 Модульные тесты (Unit Tests)
@@ -1026,17 +967,102 @@ enum HttpMethod: string
 - Мокирование HTTP клиента через `php-http/mock-client`
 
 ### 7.2 Интеграционные тесты
-- Тесты с реальным API (через API ключ в env, опционально)
-- Тесты загрузки файлов
-- Тесты пагинации
-- E2E сценарии: создание проекта -> загрузка видео -> добавление субтитров
+
+Интеграционные тесты **обязательны** для каждого сервиса и запускаются с реальным API.
+
+#### 7.2.1 Требования к интеграционным тестам
+- Тесты требуют переменную окружения `KINESCOPE_API_KEY` с валидным API ключом
+- Тесты помечаются группой `@group integration` для возможности отдельного запуска
+- Тесты должны быть идемпотентными и не изменять состояние аккаунта
+- При отсутствии API ключа тесты пропускаются (`markTestSkipped`)
+
+#### 7.2.2 Обязательные интеграционные тесты
+
+| Сервис | Тестовый класс | Проверяемые методы |
+|--------|----------------|-------------------|
+| Videos | `VideosIntegrationTest` | `list()`, `get()` |
+| Subtitles | `SubtitlesIntegrationTest` | `list()`, `get()` |
+| Annotations | `AnnotationsIntegrationTest` | `list()`, `get()` |
+| Projects | `ProjectsIntegrationTest` | `list()`, `get()` |
+| Folders | `FoldersIntegrationTest` | `list()`, `get()` |
+| Playlists | `PlaylistsIntegrationTest` | `list()`, `get()`, `entities()` |
+
+#### 7.2.3 Проверки интеграционных тестов
+- Корректность маппинга JSON ответа в DTO
+- Правильность работы пагинации (page, perPage, total)
+- Обработка ошибок 401 (неверный ключ), 404 (не найдено)
+- Соответствие типов полей DTO ожидаемым значениям
+
+#### 7.2.4 Пример интеграционного теста
+```php
+<?php
+
+namespace Kinescope\Tests\Integration;
+
+use Kinescope\Services\ServiceFactory;
+use Kinescope\DTO\Video\VideoDTO;
+use Kinescope\DTO\Video\VideoListResult;
+use Kinescope\Exception\NotFoundException;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * @group integration
+ */
+class VideosIntegrationTest extends TestCase
+{
+    private ?ServiceFactory $factory = null;
+
+    protected function setUp(): void
+    {
+        $apiKey = getenv('KINESCOPE_API_KEY');
+        if ($apiKey === false || $apiKey === '') {
+            $this->markTestSkipped('KINESCOPE_API_KEY environment variable not set');
+        }
+        $this->factory = ServiceFactory::fromEnvironment();
+    }
+
+    public function testListVideosReturnsVideoListResult(): void
+    {
+        $result = $this->factory->videos()->list(page: 1, perPage: 5);
+
+        $this->assertInstanceOf(VideoListResult::class, $result);
+        $this->assertIsArray($result->getData());
+        $this->assertNotNull($result->getMeta());
+        $this->assertGreaterThanOrEqual(0, $result->getMeta()->total);
+    }
+
+    public function testGetVideoReturnsVideoDTO(): void
+    {
+        // Сначала получаем список, чтобы взять реальный ID
+        $list = $this->factory->videos()->list(page: 1, perPage: 1);
+
+        if (empty($list->getData())) {
+            $this->markTestSkipped('No videos available in account');
+        }
+
+        $videoId = $list->getData()[0]->id;
+        $video = $this->factory->videos()->get($videoId);
+
+        $this->assertInstanceOf(VideoDTO::class, $video);
+        $this->assertEquals($videoId, $video->id);
+        $this->assertNotEmpty($video->title);
+    }
+
+    public function testGetNonExistentVideoThrowsNotFoundException(): void
+    {
+        $this->expectException(NotFoundException::class);
+
+        $this->factory->videos()->get('non-existent-video-id');
+    }
+}
+```
 
 ### 7.3 Требования к покрытию
 - Минимальное покрытие кода: **80%**
 - Сервисы и Core компоненты: **90%+**
 - DTO классы: **100%** (простые, но важные)
 
-### 7.4 Структура тестов
+### 7.4 Структура тестов (версия 1.0)
 ```
 tests/
 ├── Unit/
@@ -1049,30 +1075,52 @@ tests/
 │   │   ├── ServiceFactoryTest.php
 │   │   ├── Videos/
 │   │   │   ├── VideosServiceTest.php
-│   │   │   ├── PostersServiceTest.php
-│   │   │   └── SubtitlesServiceTest.php
+│   │   │   ├── SubtitlesServiceTest.php
+│   │   │   └── AnnotationsServiceTest.php
 │   │   ├── Projects/
 │   │   │   └── ProjectsServiceTest.php
-│   │   └── ... (все сервисы)
+│   │   ├── Folders/
+│   │   │   └── FoldersServiceTest.php
+│   │   └── Playlists/
+│   │       └── PlaylistsServiceTest.php
 │   ├── DTO/
 │   │   ├── Video/
 │   │   │   ├── VideoDTOTest.php
-│   │   │   └── VideoListResultTest.php
-│   │   └── ... (все DTO)
+│   │   │   ├── VideoListResultTest.php
+│   │   │   ├── SubtitleDTOTest.php
+│   │   │   └── AnnotationDTOTest.php
+│   │   ├── Project/
+│   │   │   └── ProjectDTOTest.php
+│   │   ├── Folder/
+│   │   │   └── FolderDTOTest.php
+│   │   ├── Playlist/
+│   │   │   └── PlaylistDTOTest.php
+│   │   └── Common/
+│   │       ├── PaginatedResponseTest.php
+│   │       └── MetaDTOTest.php
 │   ├── Enum/
 │   │   ├── VideoStatusTest.php
-│   │   └── ... (все Enums)
+│   │   ├── PrivacyTypeTest.php
+│   │   └── SubtitleLanguageTest.php
 │   └── Exception/
 │       └── ExceptionsTest.php
 ├── Integration/
 │   ├── VideosIntegrationTest.php
+│   ├── SubtitlesIntegrationTest.php
+│   ├── AnnotationsIntegrationTest.php
 │   ├── ProjectsIntegrationTest.php
-│   ├── UploadIntegrationTest.php
-│   └── LiveEventsIntegrationTest.php
+│   ├── FoldersIntegrationTest.php
+│   └── PlaylistsIntegrationTest.php
 ├── Fixtures/
 │   ├── video_response.json
+│   ├── video_list_response.json
 │   ├── project_response.json
-│   └── ... (JSON фикстуры)
+│   ├── folder_response.json
+│   ├── playlist_response.json
+│   └── error_responses/
+│       ├── 401_unauthorized.json
+│       ├── 404_not_found.json
+│       └── 422_validation_error.json
 └── TestCase.php
 ```
 
@@ -1084,6 +1132,7 @@ namespace Kinescope\Tests\Unit\Services\Videos;
 
 use Kinescope\Services\Videos\VideosService;
 use Kinescope\DTO\Video\VideoDTO;
+use Kinescope\DTO\Video\VideoListResult;
 use Kinescope\Enum\VideoStatus;
 use Http\Mock\Client as MockClient;
 use Nyholm\Psr7\Response;
@@ -1098,6 +1147,36 @@ class VideosServiceTest extends TestCase
     {
         $this->mockClient = new MockClient();
         $this->service = new VideosService($this->createApiClient($this->mockClient));
+    }
+
+    public function testListVideosReturnsVideoListResult(): void
+    {
+        $responseBody = json_encode([
+            'data' => [
+                [
+                    'id' => '550e8400-e29b-41d4-a716-446655440000',
+                    'title' => 'Test Video',
+                    'status' => 'done',
+                    'duration' => 120,
+                    'created_at' => '2024-01-01T00:00:00Z',
+                    'updated_at' => '2024-01-01T00:00:00Z',
+                    'assets' => [],
+                ]
+            ],
+            'meta' => [
+                'total' => 1,
+                'page' => 1,
+                'per_page' => 20
+            ]
+        ]);
+
+        $this->mockClient->addResponse(new Response(200, [], $responseBody));
+
+        $result = $this->service->list(page: 1, perPage: 20);
+
+        $this->assertInstanceOf(VideoListResult::class, $result);
+        $this->assertCount(1, $result->getData());
+        $this->assertEquals(1, $result->getMeta()->total);
     }
 
     public function testGetVideoReturnsVideoDTO(): void
@@ -1286,69 +1365,100 @@ class VideosServiceTest extends TestCase
 - Автоматическая генерация CHANGELOG
 - Теги для релизов
 
-## 13. Этапы разработки
+## 13. Этапы разработки версии 1.0
 
-### Этап 1: Основа (Foundation)
+> **Примечание**: Версия 1.0 реализует только read-only операции для базовых сервисов.
+> Следующие этапы упрощены для достижения MVP.
+
+### Этап 1: Foundation (Основа)
 - [ ] Создание структуры проекта
 - [ ] Настройка Composer с зависимостями
+- [ ] Создание Docker-окружения:
+  - [ ] Dockerfile (PHP 8.4 CLI)
+  - [ ] docker-compose.yaml
+  - [ ] Файлы .env и .env.local.example
+- [ ] Создание Makefile со всеми командами разработки
 - [ ] Реализация Core компонентов:
-  - [ ] Credentials
-  - [ ] ApiClient
-  - [ ] ApiClientFactory
-  - [ ] ResponseHandler
-  - [ ] JsonDecoder
-  - [ ] Pagination
-- [ ] Реализация иерархии исключений
+  - [ ] `Credentials` - Value object для API ключа
+  - [ ] `ApiClient` - HTTP клиент с retry логикой
+  - [ ] `ApiClientFactory` - Fluent builder для клиента
+  - [ ] `ResponseHandler` - Обработка ответов и маппинг ошибок
+  - [ ] `JsonDecoder` - Декодирование JSON
+  - [ ] `Pagination` - Value object пагинации
+- [ ] Реализация иерархии исключений:
+  - [ ] `KinescopeException` (базовое)
+  - [ ] `AuthenticationException` (401)
+  - [ ] `PaymentRequiredException` (402)
+  - [ ] `ForbiddenException` (403)
+  - [ ] `NotFoundException` (404)
+  - [ ] `BadRequestException` (400)
+  - [ ] `ValidationException` (422)
+  - [ ] `RateLimitException` (429)
+  - [ ] `NetworkException`
+- [ ] Создание Enums: `VideoStatus`, `PrivacyType`, `SubtitleLanguage`, `HttpMethod`
 - [ ] Настройка PHPUnit с mock-client
 - [ ] Настройка PHPStan level 8
 - [ ] Настройка PHP CS Fixer
+- [ ] Unit тесты для Core компонентов
 
-### Этап 2: Основные сервисы (Core Services)
-- [ ] Реализация ServiceFactory
-- [ ] Реализация VideosService с DTO
-- [ ] Реализация ProjectsService с DTO
-- [ ] Реализация FoldersService с DTO
-- [ ] Создание всех Enums
-- [ ] Unit тесты для сервисов
-
-### Этап 3: Дополнительные сервисы (Additional Services)
-- [ ] PostersService
-- [ ] SubtitlesService
-- [ ] AnnotationsService
-- [ ] PlayersService
-- [ ] PlaylistsService
-- [ ] WebhooksService
-- [ ] TagsService
-- [ ] PrivacyDomainsService
-- [ ] ModeratorsService
-- [ ] CdnService
-- [ ] FileRequestsService
-- [ ] AdditionalMaterialsService
-- [ ] Unit тесты
-
-### Этап 4: Live и специальные функции
-- [ ] LiveEventsService
-- [ ] RestreamsService
-- [ ] UploadService (chunked upload)
-- [ ] AnalyticsService
-- [ ] BillingService
-- [ ] AccessTokensService
-- [ ] DrmAuthService
-- [ ] Unit тесты
-
-### Этап 5: Тестирование и документация
-- [ ] Интеграционные тесты
+### Этап 2: Core Services (Основные сервисы)
+- [ ] Реализация `ServiceFactory`
+- [ ] Реализация сервисов (только read-only операции):
+  - [ ] `VideosService` - `list()`, `get()`
+  - [ ] `SubtitlesService` - `list()`, `get()`
+  - [ ] `AnnotationsService` - `list()`, `get()`
+  - [ ] `ProjectsService` - `list()`, `get()`
+  - [ ] `FoldersService` - `list()`, `get()`
+  - [ ] `PlaylistsService` - `list()`, `get()`, `entities()`
+- [ ] Реализация DTO для каждого сервиса:
+  - [ ] `VideoDTO`, `VideoListResult`
+  - [ ] `SubtitleDTO`, `SubtitleListResult`
+  - [ ] `AnnotationDTO`, `AnnotationListResult`
+  - [ ] `ProjectDTO`, `ProjectListResult`
+  - [ ] `FolderDTO`, `FolderListResult`
+  - [ ] `PlaylistDTO`, `PlaylistListResult`, `PlaylistEntityDTO`
+  - [ ] `AssetDTO`, `MetaDTO`, `PaginatedResponse`
+- [ ] Unit тесты для всех сервисов и DTO
 - [ ] Достижение 80%+ покрытия кода
-- [ ] Написание документации
-- [ ] Примеры использования
-- [ ] README.md
 
-### Этап 6: Финализация
-- [ ] Настройка GitHub Actions CI/CD
-- [ ] Прохождение PHPStan level 8
-- [ ] Code style фиксы
-- [ ] Подготовка к релизу
-- [ ] Публикация на Packagist
+### Этап 3: Testing & Documentation (Тестирование и документация)
+- [ ] Интеграционные тесты для каждого сервиса:
+  - [ ] `VideosIntegrationTest`
+  - [ ] `SubtitlesIntegrationTest`
+  - [ ] `AnnotationsIntegrationTest`
+  - [ ] `ProjectsIntegrationTest`
+  - [ ] `FoldersIntegrationTest`
+  - [ ] `PlaylistsIntegrationTest`
+- [ ] Настройка GitHub Actions CI/CD:
+  - [ ] Запуск unit тестов при каждом push/PR
+  - [ ] Запуск PHPStan level 8
+  - [ ] Запуск PHP CS Fixer (check)
+  - [ ] Генерация отчетов о покрытии
+- [ ] Документация:
+  - [ ] README.md с примерами использования
+  - [ ] PHPDoc для всех публичных методов
+  - [ ] CHANGELOG.md
+- [ ] Финализация:
+  - [ ] Прохождение всех проверок CI
+  - [ ] Code style фиксы
+  - [ ] Подготовка к релизу v1.0.0
+  - [ ] Публикация на Packagist
+
+### Планы на следующие версии
+
+После выпуска v1.0 планируется добавление:
+
+**v1.1** - Операции записи для базовых сервисов:
+- Videos: update, delete, move
+- Projects: create, update, delete
+- Folders: create, update, delete
+- Playlists: create, update, delete, addEntities
+
+**v1.2** - Дополнительные сервисы:
+- Posters, Webhooks, Players, Tags
+
+**v2.0** - Расширенные возможности:
+- Upload, Live Events, Analytics, Billing
 
 ## 14. Поддержка и обновления
 
@@ -1380,5 +1490,5 @@ class VideosServiceTest extends TestCase
 
 **Дата создания**: 2026-01-19
 **Дата обновления**: 2026-01-22
-**Версия документа**: 2.0
-**Статус**: Updated
+**Версия документа**: 3.0
+**Статус**: Updated - Simplified for v1.0 (read-only operations only)
