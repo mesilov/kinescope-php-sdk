@@ -1,4 +1,50 @@
-/var/cache/*
-/var/logs/*
-.idea
+# Composer
+/vendor/
+composer.lock
 
+# IDE
+/.idea/
+/.vscode/
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+
+# PHPUnit
+/coverage/
+.phpunit.result.cache
+.phpunit.cache/
+
+# PHPStan
+.phpstan.cache/
+
+# PHP-CS-Fixer
+.php-cs-fixer.cache
+
+# Environment
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Build artifacts
+/build/
+/dist/
+
+# Log files
+*.log
+
+# Temporary files
+/var/
+/tmp/
+
+# Rector
+.rector.cache/
+
+# IDE test configurations
+phpunit.xml
