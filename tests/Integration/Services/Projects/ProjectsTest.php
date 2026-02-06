@@ -45,6 +45,9 @@ class ProjectsTest extends TestCase
     {
         $result = $this->service->list();
 
+        var_dump($result);
+
+
         $this->assertInstanceOf(ProjectListResult::class, $result);
 
         $data = $result->getData();
@@ -63,7 +66,7 @@ class ProjectsTest extends TestCase
         $this->assertLessThanOrEqual(1, count($data));
 
         $meta = $result->getMeta();
-        $this->assertSame(1, $meta->page);
+        $this->assertSame(1, $meta->pagination->page);
         $this->assertGreaterThanOrEqual(0, $meta->total);
     }
 
