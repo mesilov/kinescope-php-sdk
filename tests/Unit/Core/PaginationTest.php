@@ -15,7 +15,7 @@ class PaginationTest extends TestCase
 {
     public function testCreateWithDefaults(): void
     {
-        $pagination = Pagination::create();
+        $pagination = new Pagination();
 
         $this->assertEquals(1, $pagination->page);
         $this->assertEquals(20, $pagination->perPage);
@@ -23,7 +23,7 @@ class PaginationTest extends TestCase
 
     public function testCreateWithCustomValues(): void
     {
-        $pagination = Pagination::create(page: 5, perPage: 50);
+        $pagination = new Pagination(page: 5, perPage: 50);
 
         $this->assertEquals(5, $pagination->page);
         $this->assertEquals(50, $pagination->perPage);
@@ -34,7 +34,7 @@ class PaginationTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Page must be at least 1');
 
-        Pagination::create(page: 0);
+        new Pagination(page: 0);
     }
 
     public function testCreateThrowsOnNegativePage(): void
@@ -42,7 +42,7 @@ class PaginationTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Page must be at least 1');
 
-        Pagination::create(page: -1);
+        new Pagination(page: -1);
     }
 
     public function testCreateThrowsOnZeroPerPage(): void
@@ -50,7 +50,7 @@ class PaginationTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Items per page must be between 1 and 100');
 
-        Pagination::create(perPage: 0);
+        new Pagination(perPage: 0);
     }
 
     public function testCreateThrowsOnPerPageExceedingMax(): void
@@ -58,19 +58,19 @@ class PaginationTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Items per page must be between 1 and 100');
 
-        Pagination::create(perPage: 101);
+        new Pagination(perPage: 101);
     }
 
     public function testCreateAcceptsMinPerPage(): void
     {
-        $pagination = Pagination::create(perPage: 1);
+        $pagination = new Pagination(perPage: 1);
 
         $this->assertEquals(1, $pagination->perPage);
     }
 
     public function testCreateAcceptsMaxPerPage(): void
     {
-        $pagination = Pagination::create(perPage: 100);
+        $pagination = new Pagination(perPage: 100);
 
         $this->assertEquals(100, $pagination->perPage);
     }
@@ -85,7 +85,7 @@ class PaginationTest extends TestCase
 
     public function testNextPage(): void
     {
-        $pagination = Pagination::create(page: 3, perPage: 10);
+        $pagination = new Pagination(page: 3, perPage: 10);
         $next = $pagination->nextPage();
 
         $this->assertEquals(4, $next->page);
@@ -95,7 +95,7 @@ class PaginationTest extends TestCase
 
     public function testPreviousPage(): void
     {
-        $pagination = Pagination::create(page: 5, perPage: 15);
+        $pagination = new Pagination(page: 5, perPage: 15);
 
         $previous = $pagination->previousPage();
 
@@ -106,7 +106,7 @@ class PaginationTest extends TestCase
 
     public function testPreviousPageThrowsOnFirstPage(): void
     {
-        $pagination = Pagination::create(page: 1);
+        $pagination = new Pagination(page: 1);
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Already on first page');
@@ -116,7 +116,7 @@ class PaginationTest extends TestCase
 
     public function testWithPerPage(): void
     {
-        $pagination = Pagination::create(page: 3, perPage: 10);
+        $pagination = new Pagination(page: 3, perPage: 10);
 
         $modified = $pagination->withPerPage(50);
 
@@ -127,7 +127,7 @@ class PaginationTest extends TestCase
 
     public function testWithPage(): void
     {
-        $pagination = Pagination::create(page: 1, perPage: 20);
+        $pagination = new Pagination(page: 1, perPage: 20);
         $modified = $pagination->withPage(10);
 
         $this->assertEquals(10, $modified->page);
@@ -138,35 +138,35 @@ class PaginationTest extends TestCase
 
     public function testGetOffset(): void
     {
-        $pagination = Pagination::create(page: 3, perPage: 20);
+        $pagination = new Pagination(page: 3, perPage: 20);
 
         $this->assertEquals(40, $pagination->getOffset());
     }
 
     public function testGetOffsetOnFirstPage(): void
     {
-        $pagination = Pagination::create(page: 1, perPage: 20);
+        $pagination = new Pagination(page: 1, perPage: 20);
 
         $this->assertEquals(0, $pagination->getOffset());
     }
 
     public function testIsFirstPageTrue(): void
     {
-        $pagination = Pagination::create(page: 1);
+        $pagination = new Pagination(page: 1);
 
         $this->assertTrue($pagination->isFirstPage());
     }
 
     public function testIsFirstPageFalse(): void
     {
-        $pagination = Pagination::create(page: 2);
+        $pagination = new Pagination(page: 2);
 
         $this->assertFalse($pagination->isFirstPage());
     }
 
     public function testToQueryParams(): void
     {
-        $pagination = Pagination::create(page: 5, perPage: 30);
+        $pagination = new Pagination(page: 5, perPage: 30);
 
         $expected = [
             'page' => 5,

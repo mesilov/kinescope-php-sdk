@@ -13,10 +13,10 @@ use InvalidArgumentException;
  *
  * @example
  * // Create with defaults
- * $pagination = Pagination::create();
+ * $pagination = new Pagination();
  *
  * // Create with specific values
- * $pagination = Pagination::create(page: 2, perPage: 50);
+ * $pagination = new Pagination(page: 2, perPage: 50);
  *
  * // Convert to query parameters
  * $query = $pagination->toQueryParams();
@@ -46,29 +46,15 @@ final readonly class Pagination
     /**
      * Create a new Pagination instance.
      *
-     * @param int $page Current page number (1-indexed)
-     * @param int $perPage Number of items per page
-     */
-    private function __construct(
-        public int $page = 1,
-        public int $perPage = 20
-    ) {
-    }
-
-    /**
-     * Create pagination with specified parameters.
-     *
      * @param int $page Page number (must be >= 1)
      * @param int $perPage Items per page (must be between 1 and 100)
      *
-     * @return self
      * @throws InvalidArgumentException If parameters are out of valid range
-     *
      */
-    public static function create(
-        int $page = self::DEFAULT_PAGE,
-        int $perPage = self::DEFAULT_PER_PAGE
-    ): self {
+    public function __construct(
+        public int $page = self::DEFAULT_PAGE,
+        public int $perPage = self::DEFAULT_PER_PAGE
+    ) {
         if ($page < 1) {
             throw new InvalidArgumentException(
                 sprintf('Page must be at least 1, got %d', $page)
@@ -85,8 +71,6 @@ final readonly class Pagination
                 )
             );
         }
-
-        return new self($page, $perPage);
     }
 
     /**
@@ -98,7 +82,7 @@ final readonly class Pagination
      */
     public static function firstPage(int $perPage = self::DEFAULT_PER_PAGE): self
     {
-        return self::create(page: 1, perPage: $perPage);
+        return new self(page: 1, perPage: $perPage);
     }
 
     /**
@@ -114,9 +98,9 @@ final readonly class Pagination
     /**
      * Create a new Pagination for previous page.
      *
-     * @return self
      * @throws InvalidArgumentException If already on first page
      *
+     * @return self
      */
     public function previousPage(): self
     {
@@ -136,7 +120,7 @@ final readonly class Pagination
      */
     public function withPerPage(int $perPage): self
     {
-        return self::create(page: $this->page, perPage: $perPage);
+        return new self(page: $this->page, perPage: $perPage);
     }
 
     /**
@@ -148,7 +132,7 @@ final readonly class Pagination
      */
     public function withPage(int $page): self
     {
-        return self::create(page: $page, perPage: $this->perPage);
+        return new self(page: $page, perPage: $this->perPage);
     }
 
     /**
