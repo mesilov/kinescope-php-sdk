@@ -20,6 +20,7 @@
         "php-http/discovery": "^1.14",
         "php-http/httplug": "^2.2",
         "symfony/uid": "^5.4|^6.0|^7.0",
+        "symfony/filesystem": "^5.4|^6.0|^7.0",
         "symfony/mime": "^5.4|^6.0|^7.0"
     },
     "require-dev": {
