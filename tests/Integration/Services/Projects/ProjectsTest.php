@@ -45,8 +45,6 @@ class ProjectsTest extends TestCase
     {
         $result = $this->service->list();
 
-        var_dump($result);
-
         $this->assertInstanceOf(ProjectListResult::class, $result);
 
         $data = $result->getData();

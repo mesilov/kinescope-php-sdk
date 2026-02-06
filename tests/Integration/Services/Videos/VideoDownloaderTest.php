@@ -94,7 +94,7 @@ class VideoDownloaderTest extends TestCase
     protected function tearDown(): void
     {
         if (isset($this->tempDir) && $this->filesystem->exists($this->tempDir)) {
-            $this->filesystem->remove($this->tempDir);
+            //  $this->filesystem->remove($this->tempDir);
         }
 
         parent::tearDown();
@@ -132,7 +132,6 @@ class VideoDownloaderTest extends TestCase
     {
         $paths = $this->downloader->downloadFolder($this->folderId, $this->tempDir, QualityPreference::WORST);
 
-        $this->assertIsArray($paths);
         $this->assertNotEmpty($paths);
 
         foreach ($paths as $path) {

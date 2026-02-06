@@ -10,9 +10,7 @@ use Kinescope\Core\Credentials;
 use Kinescope\Services\Folders\FoldersService;
 use Kinescope\Services\Playlists\PlaylistsService;
 use Kinescope\Services\Projects\Projects;
-use Kinescope\Services\Videos\AnnotationsService;
-use Kinescope\Services\Videos\SubtitlesService;
-use Kinescope\Services\Videos\VideosService;
+use Kinescope\Services\Videos\Videos;
 use RuntimeException;
 
 /**
@@ -39,11 +37,7 @@ use RuntimeException;
  */
 final class ServiceFactory
 {
-    private ?VideosService $videos = null;
-
-    private ?SubtitlesService $subtitles = null;
-
-    private ?AnnotationsService $annotations = null;
+    private ?Videos $videos = null;
 
     private ?Projects $projects = null;
 
@@ -92,31 +86,11 @@ final class ServiceFactory
     /**
      * Get Videos service.
      *
-     * @return VideosService
+     * @return Videos
      */
-    public function videos(): VideosService
+    public function videos(): Videos
     {
-        return $this->videos ??= new VideosService($this->getApiClient());
-    }
-
-    /**
-     * Get Subtitles service.
-     *
-     * @return SubtitlesService
-     */
-    public function subtitles(): SubtitlesService
-    {
-        return $this->subtitles ??= new SubtitlesService($this->getApiClient());
-    }
-
-    /**
-     * Get Annotations service.
-     *
-     * @return AnnotationsService
-     */
-    public function annotations(): AnnotationsService
-    {
-        return $this->annotations ??= new AnnotationsService($this->getApiClient());
+        return $this->videos ??= new Videos($this->getApiClient());
     }
 
     /**

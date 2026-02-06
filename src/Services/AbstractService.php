@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Kinescope\Services;
 
 use Kinescope\Contracts\ApiClientInterface;
-use Kinescope\Contracts\ServiceInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -15,7 +14,7 @@ use Psr\Log\NullLogger;
  * Provides common functionality for interacting with API,
  * including request building and response handling.
  */
-abstract class AbstractService implements ServiceInterface
+abstract class AbstractService
 {
     /**
      * Create a new service instance.

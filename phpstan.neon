@@ -1,5 +1,6 @@
 includes:
     - vendor/phpstan/phpstan-strict-rules/rules.neon
+    - vendor/phpstan/phpstan-phpunit/extension.neon
 
 parameters:
     level: 8
@@ -13,7 +14,13 @@ parameters:
 
     treatPhpDocTypesAsCertain: false
 
-    ignoreErrors: []
+    ignoreErrors:
+        - identifier: staticMethod.dynamicCall
+          paths:
+              - tests/*
+        - identifier: method.alreadyNarrowedType
+          paths:
+              - tests/*
 
     tmpDir: .phpstan.cache
 

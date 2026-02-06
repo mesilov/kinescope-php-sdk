@@ -76,8 +76,7 @@ class ApiClientTest extends TestCase
         $projectId = $createResponse['data']['id'];
 
         try {
-            $deleteResponse = $this->client->delete('/v1/projects/' . $projectId);
-            $this->assertIsArray($deleteResponse);
+            $this->client->delete('/v1/projects/' . $projectId);
         } catch (Throwable $e) {
             $this->fail('Failed to delete project ' . $projectId . ': ' . $e->getMessage());
         }
