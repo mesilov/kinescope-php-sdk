@@ -6,6 +6,8 @@ namespace Kinescope\Services;
 
 use Kinescope\Contracts\ApiClientInterface;
 use Kinescope\Contracts\ServiceInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Abstract base class for all Kinescope API services.
@@ -21,7 +23,8 @@ abstract class AbstractService implements ServiceInterface
      * @param ApiClientInterface $apiClient The API client for making requests
      */
     public function __construct(
-        protected readonly ApiClientInterface $apiClient
+        protected readonly ApiClientInterface $apiClient,
+        protected readonly LoggerInterface $logger = new NullLogger(),
     ) {
     }
 
