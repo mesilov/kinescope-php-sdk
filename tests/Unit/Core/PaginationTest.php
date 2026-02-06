@@ -6,7 +6,7 @@ namespace Kinescope\Tests\Unit\Core;
 
 use InvalidArgumentException;
 use Kinescope\Core\Pagination;
-use Kinescope\Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests for Pagination value object.

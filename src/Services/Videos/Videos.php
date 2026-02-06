@@ -33,9 +33,9 @@ final class Videos extends AbstractService
      */
     public function list(
         Pagination $pagination = new Pagination(),
+        ?Sort $sort = null,
         ?string $projectId = null,
         ?string $folderId = null,
-        ?Sort $sort = null,
         ?string $search = null,
         ?string $status = null,
     ): VideoListResult {

@@ -46,10 +46,10 @@ final class Projects extends AbstractService
      *
      * @param string $projectId Project UUID
      *
-     * @return ProjectDTO The project data
      * @throws \Kinescope\Exception\KinescopeException On other API errors
-     *
      * @throws \Kinescope\Exception\NotFoundException If project not found
+     *
+     * @return ProjectDTO The project data
      */
     public function get(string $projectId): ProjectDTO
     {

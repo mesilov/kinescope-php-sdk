@@ -1,0 +1,21 @@
+services:
+  php-cli:
+    build:
+      context: ./docker/php-cli
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    volumes:
+      - ./:/var/www/html
+    working_dir: /var/www/html
+    env_file:
+      - .env
+      - .env.local
+    environment:
+      COMPOSER_CACHE_DIR: /tmp/composer/cache
+    networks:
+      - kinescope-network
+
+networks:
+  kinescope-network:
+    driver: bridge

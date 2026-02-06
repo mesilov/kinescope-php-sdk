@@ -1,0 +1,21 @@
+includes:
+    - vendor/phpstan/phpstan-strict-rules/rules.neon
+
+parameters:
+    level: 8
+
+    paths:
+        - src
+        - tests
+
+    excludePaths:
+        - tests/Fixtures
+
+    treatPhpDocTypesAsCertain: false
+
+    ignoreErrors: []
+
+    tmpDir: .phpstan.cache
+
+    parallel:
+        maximumNumberOfProcesses: 4
