@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kinescope\Services\Projects;
 
 use Kinescope\Core\Pagination;
+use Kinescope\Core\Sort;
 use Kinescope\DTO\Project\ProjectDTO;
 use Kinescope\DTO\Project\ProjectListResult;
 use Kinescope\Services\AbstractService;
@@ -19,23 +20,20 @@ final class Projects extends AbstractService
     /**
      * Get a paginated list of projects.
      *
-     * @param string|null $order Field to order by
-     * @param string|null $direction Sort direction (asc, desc)
+     * @param Pagination $pagination Pagination parameters
+     * @param Sort|null $sort Sorting parameters
      *
-     * @return ProjectListResult Paginated list of projects
      * @throws \Kinescope\Exception\KinescopeException On API errors
      *
+     * @return ProjectListResult Paginated list of projects
      */
     public function list(
         Pagination $pagination = new Pagination(),
-        ?string $order = null,
-        ?string $direction = null
+        ?Sort $sort = null
     ): ProjectListResult {
-        $pagination ??= new Pagination();
-
         $query = $this->mergeQueries(
             $pagination->toQueryParams(),
-            $this->buildSortQuery($order, $direction)
+            $sort?->toQueryParams() ?? []
         );
 
         $response = $this->apiClient->get(self::ENDPOINT, $query);
