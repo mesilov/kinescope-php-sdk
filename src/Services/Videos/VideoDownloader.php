@@ -10,18 +10,21 @@ use Kinescope\Enum\QualityPreference;
 use Kinescope\Exception\KinescopeException;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Service for downloading video files from Kinescope.
  */
-final class VideoDownloader
+final readonly class VideoDownloader
 {
+    private const int CHUNK_SIZE = 8192;
+
     public function __construct(
-        private readonly Videos $videos,
-        private readonly ClientInterface $httpClient,
-        private readonly RequestFactoryInterface $requestFactory,
-        private readonly Filesystem $filesystem,
+        private Videos $videos,
+        private ClientInterface $httpClient,
+        private RequestFactoryInterface $requestFactory,
+        private Filesystem $filesystem,
     ) {
     }
 
@@ -76,7 +79,7 @@ final class VideoDownloader
 
         $filePath = rtrim($destinationDir, '/') . '/' . $videoId . '.mp4';
 
-        $this->filesystem->dumpFile($filePath, (string) $response->getBody());
+        $this->writeStreamToFile($response->getBody(), $filePath);
 
         return $filePath;
     }
@@ -117,5 +120,29 @@ final class VideoDownloader
         } while (true);
 
         return $paths;
+    }
+
+    /**
+     * @throws KinescopeException
+     */
+    private function writeStreamToFile(StreamInterface $stream, string $filePath): void
+    {
+        $fileHandle = @fopen($filePath, 'wb');
+
+        if ($fileHandle === false) {
+            throw new KinescopeException(sprintf('Failed to open file for writing: "%s"', $filePath));
+        }
+
+        try {
+            while (! $stream->eof()) {
+                $chunk = $stream->read(self::CHUNK_SIZE);
+
+                if ($chunk !== '') {
+                    fwrite($fileHandle, $chunk);
+                }
+            }
+        } finally {
+            fclose($fileHandle);
+        }
     }
 }
