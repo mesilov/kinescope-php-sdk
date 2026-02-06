@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Kinescope\Core;
 
-use Http\Discovery\Psr17FactoryDiscovery;
-use Http\Discovery\Psr18ClientDiscovery;
 use Kinescope\Contracts\ApiClientInterface;
 use Kinescope\Enum\HttpMethod;
 use Kinescope\Exception\NetworkException;
@@ -15,7 +13,6 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 /**
  * HTTP client for Kinescope API.
@@ -33,46 +30,27 @@ final class ApiClient implements ApiClientInterface
     public const string DEFAULT_BASE_URL = 'https://api.kinescope.io';
 
     /**
-     * Default request timeout in seconds.
-     */
-    public const int DEFAULT_TIMEOUT = 30;
-
-    private readonly ClientInterface $httpClient;
-
-    private readonly RequestFactoryInterface $requestFactory;
-
-    private readonly StreamFactoryInterface $streamFactory;
-
-    private readonly ResponseHandler $responseHandler;
-
-    private readonly JsonDecoder $jsonDecoder;
-
-    private readonly LoggerInterface $logger;
-
-    /**
      * Create a new API client.
      *
      * @param Credentials $credentials API credentials
      * @param string $baseUrl Base URL for API
-     * @param ClientInterface|null $httpClient PSR-18 HTTP client
-     * @param RequestFactoryInterface|null $requestFactory PSR-17 request factory
-     * @param StreamFactoryInterface|null $streamFactory PSR-17 stream factory
-     * @param LoggerInterface|null $logger PSR-3 logger
+     * @param ClientInterface $httpClient PSR-18 HTTP client
+     * @param RequestFactoryInterface $requestFactory PSR-17 request factory
+     * @param StreamFactoryInterface $streamFactory PSR-17 stream factory
+     * @param ResponseHandler $responseHandler Response handler
+     * @param JsonDecoder $jsonDecoder JSON decoder
+     * @param LoggerInterface $logger PSR-3 logger
      */
     public function __construct(
         private readonly Credentials $credentials,
-        private readonly string $baseUrl = self::DEFAULT_BASE_URL,
-        ?ClientInterface $httpClient = null,
-        ?RequestFactoryInterface $requestFactory = null,
-        ?StreamFactoryInterface $streamFactory = null,
-        ?LoggerInterface $logger = null
+        private readonly string $baseUrl,
+        private readonly ClientInterface $httpClient,
+        private readonly RequestFactoryInterface $requestFactory,
+        private readonly StreamFactoryInterface $streamFactory,
+        private readonly ResponseHandler $responseHandler,
+        private readonly JsonDecoder $jsonDecoder,
+        private readonly LoggerInterface $logger,
     ) {
-        $this->httpClient = $httpClient ?? Psr18ClientDiscovery::find();
-        $this->requestFactory = $requestFactory ?? Psr17FactoryDiscovery::findRequestFactory();
-        $this->streamFactory = $streamFactory ?? Psr17FactoryDiscovery::findStreamFactory();
-        $this->responseHandler = new ResponseHandler();
-        $this->jsonDecoder = new JsonDecoder();
-        $this->logger = $logger ?? new NullLogger();
     }
 
     /**

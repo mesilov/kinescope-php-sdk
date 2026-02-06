@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Kinescope\Core;
 
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Discovery\Psr18ClientDiscovery;
 use InvalidArgumentException;
 use Kinescope\Contracts\ApiClientInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use RuntimeException;
 
 /**
@@ -26,11 +29,16 @@ use RuntimeException;
  */
 final class ApiClientFactory
 {
+    /**
+     * Default request timeout in seconds.
+     */
+    public const int DEFAULT_TIMEOUT = 30;
+
     private ?Credentials $credentials = null;
 
     private string $baseUrl = ApiClient::DEFAULT_BASE_URL;
 
-    private int $timeout = ApiClient::DEFAULT_TIMEOUT;
+    private int $timeout = self::DEFAULT_TIMEOUT;
 
     private ?ClientInterface $httpClient = null;
 
@@ -196,10 +204,12 @@ final class ApiClientFactory
         return new ApiClient(
             credentials: $this->credentials,
             baseUrl: $this->baseUrl,
-            httpClient: $this->httpClient,
-            requestFactory: $this->requestFactory,
-            streamFactory: $this->streamFactory,
-            logger: $this->logger
+            httpClient: $this->httpClient ?? Psr18ClientDiscovery::find(),
+            requestFactory: $this->requestFactory ?? Psr17FactoryDiscovery::findRequestFactory(),
+            streamFactory: $this->streamFactory ?? Psr17FactoryDiscovery::findStreamFactory(),
+            responseHandler: new ResponseHandler(),
+            jsonDecoder: new JsonDecoder(),
+            logger: $this->logger ?? new NullLogger(),
         );
     }
 
