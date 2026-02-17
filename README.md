@@ -8,6 +8,7 @@ Unofficial PHP SDK for [Kinescope](https://kinescope.io) API — a video managem
 - Extensions: `ext-json`, `ext-curl`, `ext-mbstring`
 - A PSR-18 HTTP client (e.g., Guzzle or Symfony HTTP Client)
 - A PSR-7/PSR-17 implementation (e.g., `nyholm/psr7`)
+- Symfony components compatibility: `^5.4|^6.0|^7.0|^8.0`
 
 ## Installation
 
@@ -44,10 +45,44 @@ $playlists = $factory->playlists()->list();
 
 | Service | Access | Description |
 |---------|--------|-------------|
-| Videos | `$factory->videos()` | Video CRUD, upload, download |
-| Projects | `$factory->projects()` | Project management |
-| Folders | `$factory->folders()` | Folder management |
-| Playlists | `$factory->playlists()` | Playlist management |
+| Videos | `$factory->videos()` | Read/list/search videos |
+| Projects | `$factory->projects()` | Read/list projects |
+| Folders | `$factory->folders()` | Folder listing and tree navigation |
+| Playlists | `$factory->playlists()` | Playlist and playlist-entities listing |
+
+## Video Downloader + Events
+
+`VideoDownloader` supports event subscriptions for the download lifecycle:
+- `DownloadStartedEvent`
+- `DownloadProgressEvent`
+- `DownloadCompletedEvent`
+- `DownloadFailedEvent`
+
+```php
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Discovery\Psr18ClientDiscovery;
+use Kinescope\Enum\QualityPreference;
+use Kinescope\Event\Download\DownloadProgressEvent;
+use Kinescope\Services\Videos\VideoDownloader;
+use Symfony\Component\Filesystem\Filesystem;
+
+$downloader = new VideoDownloader(
+    $factory->videos(),
+    Psr18ClientDiscovery::find(),
+    Psr17FactoryDiscovery::findRequestFactory(),
+    new Filesystem(),
+);
+
+$downloader->on(DownloadProgressEvent::class, function (DownloadProgressEvent $event): void {
+    printf("Progress: %.1f%%\n", $event->percent);
+});
+
+$filePath = $downloader->downloadVideo(
+    videoId: 'your-video-id',
+    destinationDir: __DIR__ . '/downloads',
+    quality: QualityPreference::BEST,
+);
+```
 
 ## Development
 
@@ -72,6 +107,9 @@ make test-unit
 
 # Integration tests (requires API key)
 make test-integration
+
+# Full test suite
+make test
 ```
 
 ### Code Quality
@@ -93,3 +131,7 @@ make lint-cs-fixer-fix
 ## License
 
 MIT. See [LICENSE](LICENSE) for details.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history and migration notes.
