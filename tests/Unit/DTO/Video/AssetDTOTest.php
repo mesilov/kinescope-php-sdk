@@ -39,7 +39,7 @@ class AssetDTOTest extends TestCase
         $this->assertEquals('https://example.com/download/video.mp4', $asset->downloadLink);
     }
 
-    public function testFromArrayWithNullableFields(): void
+    public function testFromArrayRequiresFileSize(): void
     {
         $data = [
             'id' => '550e8400-e29b-41d4-a716-446655440000',
@@ -47,18 +47,10 @@ class AssetDTOTest extends TestCase
             'quality' => '720p',
         ];
 
-        $asset = AssetDTO::fromArray($data);
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Asset "file_size" is required.');
 
-        $this->assertEquals('550e8400-e29b-41d4-a716-446655440000', $asset->id);
-        $this->assertEquals('video-uuid', $asset->videoId);
-        $this->assertEquals('720p', $asset->quality);
-        $this->assertNull($asset->width);
-        $this->assertNull($asset->height);
-        $this->assertNull($asset->bitrate);
-        $this->assertNull($asset->fileSize);
-        $this->assertNull($asset->codec);
-        $this->assertNull($asset->url);
-        $this->assertNull($asset->downloadLink);
+        AssetDTO::fromArray($data);
     }
 
     public function testToArrayReturnsCorrectStructure(): void
@@ -98,6 +90,7 @@ class AssetDTOTest extends TestCase
         $asset = AssetDTO::fromArray([
             'id' => '1',
             'video_id' => 'video-1',
+            'file_size' => 1024,
         ]);
 
         $this->assertNull($asset->getResolution());
@@ -108,6 +101,7 @@ class AssetDTOTest extends TestCase
         $asset = AssetDTO::fromArray([
             'id' => '1',
             'video_id' => 'video-1',
+            'file_size' => 1024,
             'width' => 1920,
             'height' => 1080,
         ]);
@@ -120,6 +114,7 @@ class AssetDTOTest extends TestCase
         $asset = AssetDTO::fromArray([
             'id' => '1',
             'video_id' => 'video-1',
+            'file_size' => 1024,
         ]);
 
         $this->assertNull($asset->getAspectRatio());
@@ -130,6 +125,7 @@ class AssetDTOTest extends TestCase
         $asset = AssetDTO::fromArray([
             'id' => '1',
             'video_id' => 'video-1',
+            'file_size' => 1024,
             'width' => 16,
             'height' => 9,
         ]);
@@ -140,16 +136,16 @@ class AssetDTOTest extends TestCase
     public function testIsHdReturnsTrueFor720pAndAbove(): void
     {
         $asset720 = AssetDTO::fromArray([
-            'id' => '1', 'video_id' => 'v1', 'height' => 720,
+            'id' => '1', 'video_id' => 'v1', 'file_size' => 1024, 'height' => 720,
         ]);
         $asset1080 = AssetDTO::fromArray([
-            'id' => '2', 'video_id' => 'v1', 'height' => 1080,
+            'id' => '2', 'video_id' => 'v1', 'file_size' => 1024, 'height' => 1080,
         ]);
         $asset4k = AssetDTO::fromArray([
-            'id' => '3', 'video_id' => 'v1', 'height' => 2160,
+            'id' => '3', 'video_id' => 'v1', 'file_size' => 1024, 'height' => 2160,
         ]);
         $asset480 = AssetDTO::fromArray([
-            'id' => '4', 'video_id' => 'v1', 'height' => 480,
+            'id' => '4', 'video_id' => 'v1', 'file_size' => 1024, 'height' => 480,
         ]);
 
         $this->assertTrue($asset720->isHd());
@@ -161,13 +157,13 @@ class AssetDTOTest extends TestCase
     public function testIsFullHdReturnsTrueFor1080pAndAbove(): void
     {
         $asset1080 = AssetDTO::fromArray([
-            'id' => '1', 'video_id' => 'v1', 'height' => 1080,
+            'id' => '1', 'video_id' => 'v1', 'file_size' => 1024, 'height' => 1080,
         ]);
         $asset4k = AssetDTO::fromArray([
-            'id' => '2', 'video_id' => 'v1', 'height' => 2160,
+            'id' => '2', 'video_id' => 'v1', 'file_size' => 1024, 'height' => 2160,
         ]);
         $asset720 = AssetDTO::fromArray([
-            'id' => '3', 'video_id' => 'v1', 'height' => 720,
+            'id' => '3', 'video_id' => 'v1', 'file_size' => 1024, 'height' => 720,
         ]);
 
         $this->assertTrue($asset1080->isFullHd());
@@ -178,7 +174,7 @@ class AssetDTOTest extends TestCase
     public function testIs4KReturnsTrueFor2160pAndAbove(): void
     {
         $asset4k = AssetDTO::fromArray([
-            'id' => '1', 'video_id' => 'v1', 'height' => 2160,
+            'id' => '1', 'video_id' => 'v1', 'file_size' => 1024, 'height' => 2160,
         ]);
 
         $this->assertTrue($asset4k->is4K());
@@ -187,7 +183,7 @@ class AssetDTOTest extends TestCase
     public function testIs4KReturnsFalseForBelow4K(): void
     {
         $asset1080 = AssetDTO::fromArray([
-            'id' => '1', 'video_id' => 'v1', 'height' => 1080,
+            'id' => '1', 'video_id' => 'v1', 'file_size' => 1024, 'height' => 1080,
         ]);
 
         $this->assertFalse($asset1080->is4K());
@@ -204,14 +200,16 @@ class AssetDTOTest extends TestCase
         $this->assertEquals('1.00 GB', $asset->getHumanFileSize());
     }
 
-    public function testGetHumanFileSizeWithNullSize(): void
+    public function testFromArrayRejectsNonPositiveFileSize(): void
     {
-        $asset = AssetDTO::fromArray([
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Asset "file_size" must be greater than 0.');
+
+        AssetDTO::fromArray([
             'id' => '1',
             'video_id' => 'v1',
+            'file_size' => 0,
         ]);
-
-        $this->assertNull($asset->getHumanFileSize());
     }
 
     public function testGetHumanFileSizeForSmallFiles(): void

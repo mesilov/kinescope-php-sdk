@@ -23,7 +23,7 @@ final readonly class AssetDTO
      * @param int|null $width Video width in pixels
      * @param int|null $height Video height in pixels
      * @param int|null $bitrate Bitrate in bits per second
-     * @param int|null $fileSize File size in bytes
+     * @param int $fileSize File size in bytes (must be > 0)
      * @param string|null $codec Video codec (e.g., "h264", "h265")
      * @param string|null $url Direct URL to the asset
      * @param string|null $downloadLink Download URL for the asset
@@ -36,12 +36,15 @@ final readonly class AssetDTO
         public ?int $width = null,
         public ?int $height = null,
         public ?int $bitrate = null,
-        public ?int $fileSize = null,
+        public int $fileSize = 0,
         public ?string $codec = null,
         public ?string $url = null,
         public ?string $downloadLink = null,
         public ?DateTimeImmutable $createdAt = null,
     ) {
+        if ($this->fileSize <= 0) {
+            throw new \InvalidArgumentException('Asset "file_size" must be greater than 0.');
+        }
     }
 
     /**
@@ -53,6 +56,16 @@ final readonly class AssetDTO
      */
     public static function fromArray(array $data): self
     {
+        if (! isset($data['file_size'])) {
+            throw new \InvalidArgumentException('Asset "file_size" is required.');
+        }
+
+        $fileSize = (int) $data['file_size'];
+
+        if ($fileSize <= 0) {
+            throw new \InvalidArgumentException('Asset "file_size" must be greater than 0.');
+        }
+
         return new self(
             id: (string) $data['id'],
             videoId: (string) ($data['video_id'] ?? ''),
@@ -60,7 +73,7 @@ final readonly class AssetDTO
             width: isset($data['width']) ? (int) $data['width'] : null,
             height: isset($data['height']) ? (int) $data['height'] : null,
             bitrate: isset($data['bitrate']) ? (int) $data['bitrate'] : null,
-            fileSize: isset($data['file_size']) ? (int) $data['file_size'] : null,
+            fileSize: $fileSize,
             codec: isset($data['codec']) ? (string) $data['codec'] : null,
             url: isset($data['url']) ? (string) $data['url'] : null,
             downloadLink: isset($data['download_link']) ? (string) $data['download_link'] : null,
@@ -131,14 +144,10 @@ final readonly class AssetDTO
     /**
      * Get human-readable file size.
      *
-     * @return string|null
+     * @return string
      */
-    public function getHumanFileSize(): ?string
+    public function getHumanFileSize(): string
     {
-        if ($this->fileSize === null) {
-            return null;
-        }
-
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $size = $this->fileSize;
         $unitIndex = 0;

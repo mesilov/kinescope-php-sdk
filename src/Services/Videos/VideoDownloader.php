@@ -80,10 +80,12 @@ final readonly class VideoDownloader
 
         /** @var string $downloadLink */
         $downloadLink = $asset->downloadLink;
+        $totalBytes = $asset->fileSize;
 
         $this->logger->info('Selected asset for download', [
             'videoId' => $videoId,
             'quality' => $asset->height,
+            'fileSize' => $totalBytes,
             'downloadLink' => $downloadLink,
         ]);
 
@@ -93,9 +95,6 @@ final readonly class VideoDownloader
         $response = $this->httpClient->sendRequest($request);
 
         $filePath = rtrim($destinationDir, '/') . '/' . $videoId . '.mp4';
-
-        $contentLength = $response->getHeaderLine('Content-Length');
-        $totalBytes = $contentLength !== '' ? (int) $contentLength : null;
         $this->writeStreamToFile($response->getBody(), $filePath, $totalBytes);
 
         $this->logger->info('Video download completed', [
@@ -164,7 +163,7 @@ final readonly class VideoDownloader
     /**
      * @throws KinescopeException
      */
-    private function writeStreamToFile(StreamInterface $stream, string $filePath, ?int $totalBytes = null): void
+    private function writeStreamToFile(StreamInterface $stream, string $filePath, int $totalBytes): void
     {
         $this->logger->info('Writing stream to file', [
             'filePath' => $filePath,
@@ -196,9 +195,7 @@ final readonly class VideoDownloader
                             'totalBytes' => $totalBytes,
                         ];
 
-                        if ($totalBytes !== null && $totalBytes > 0) {
-                            $context['percent'] = round($bytesWritten / $totalBytes * 100, 1);
-                        }
+                        $context['percent'] = round($bytesWritten / $totalBytes * 100, 1);
 
                         $this->logger->debug('Download progress', $context);
                     }

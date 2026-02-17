@@ -82,15 +82,15 @@ lint-rector-fix:
 
 ## Запуск unit-тестов
 test-unit:
-	docker compose exec php-cli vendor/bin/phpunit --testsuite=unit
+	docker compose exec php-cli vendor/bin/phpunit --testsuite=unit --no-coverage
 
 ## Запуск интеграционных тестов
 test-integration:
-	docker compose exec php-cli vendor/bin/phpunit --testsuite=integration
+	docker compose exec php-cli vendor/bin/phpunit --testsuite=integration --no-coverage
 
 ## Запуск всех тестов
 test:
-	docker compose exec php-cli vendor/bin/phpunit
+	docker compose exec php-cli vendor/bin/phpunit --no-coverage
 
 ## Запуск тестов с покрытием
 test-coverage:

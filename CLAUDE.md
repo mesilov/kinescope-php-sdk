@@ -2,6 +2,59 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Repository Guidelines
+
+### Project Structure & Module Organization
+Core library code lives in `src/` under the `Kinescope\` namespace (PSR-4). Main areas:
+- `src/Core` for HTTP/client infrastructure (`ApiClient`, `ResponseHandler`, credentials, pagination/sort helpers)
+- `src/Services` for API-facing service classes (`Videos`, `Projects`, `Folders`, `Playlists`)
+- `src/DTO`, `src/Enum`, `src/Exception`, `src/Contracts` for typed models and shared contracts
+
+Tests are in `tests/`:
+- `tests/Unit` for isolated logic
+- `tests/Integration` for API/client integration behavior
+- `tests/Fixtures` for reusable test data
+
+Local tooling/config is in `docker/`, `docker-compose.yaml`, `Makefile`, `phpunit.xml`, and `phpstan.neon`.
+
+### Build, Test, and Development Commands
+Use Make targets to keep environment parity:
+- `make docker-init` - first-time setup (containers + dependencies)
+- `make docker-up` / `make docker-down` - start/stop dev containers
+- `make composer-install` - install PHP dependencies in container
+- `make lint-all` - run style, static analysis, and Rector dry-run
+- `make lint-cs-fixer-fix` - auto-fix coding style
+- `make test` - run all PHPUnit suites
+- `make test-unit` / `make test-integration` - run one suite
+- `make test-coverage` - generate HTML coverage in `coverage/`
+
+### Coding Style & Naming Conventions
+Target PHP `>=8.4` with `declare(strict_types=1);` in PHP files. Follow PSR-12 and project rules via PHP-CS-Fixer (`.php-cs-fixer.dist.php`).
+
+Conventions:
+- 4-space indentation, short arrays (`[]`), ordered imports
+- Class/enum names: `PascalCase`; methods/properties: `camelCase`
+- DTO classes end with `DTO` or `ListResult`; tests end with `Test.php`
+- Keep namespaces aligned with directories (for example `src/Services/Videos/Videos.php`)
+
+### Testing Guidelines
+Framework: PHPUnit (`phpunit.xml`) with `unit` and `integration` suites.
+- Mirror source structure when adding tests
+- Add/update unit tests for new logic and bug fixes
+- Run `make test-unit` before commits; run `make test-integration` for API-related changes
+
+Integration tests require environment variables such as `KINESCOPE_API_KEY`, `TESTS_VIDEO_DOWNLOADER_VIDEO_ID`, and `TESTS_VIDEO_DOWNLOADER_FOLDER_ID`.
+
+### Commit & Pull Request Guidelines
+Recent history uses short, imperative commit subjects (example: `Add logging to VideoDownloader and integration tests`).
+- Keep one logical change per commit
+- Start subject with a verb (`Add`, `Fix`, `Refactor`, `Update`)
+- In PRs, include: purpose, key changes, test evidence (`make lint-all`, `make test`), and linked issue(s)
+- Update docs (`README.md`) when public SDK behavior changes
+
+### Security & Configuration Tips
+Never commit real API keys or secrets. Keep local values in `.env.local`; use `.env.local.example` as the template for shared configuration.
+
 ## Project Overview
 
 PHP SDK for Kinescope API - a video management platform for uploading, transcoding (up to 4K), protection, and delivery of video content.

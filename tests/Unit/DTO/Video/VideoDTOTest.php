@@ -202,16 +202,19 @@ class VideoDTOTest extends TestCase
                 [
                     'id' => 'a1',
                     'video_id' => 'video-1',
+                    'file_size' => 1000,
                     'height' => 480,
                 ],
                 [
                     'id' => 'a2',
                     'video_id' => 'video-1',
+                    'file_size' => 2000,
                     'height' => 720,
                 ],
                 [
                     'id' => 'a3',
                     'video_id' => 'video-1',
+                    'file_size' => 3000,
                     'height' => 1080,
                 ],
             ],
@@ -251,16 +254,19 @@ class VideoDTOTest extends TestCase
                 [
                     'id' => 'a1',
                     'video_id' => 'video-1',
+                    'file_size' => 1000,
                     'height' => 480,
                 ],
                 [
                     'id' => 'a2',
                     'video_id' => 'video-1',
+                    'file_size' => 2000,
                     'height' => 720,
                 ],
                 [
                     'id' => 'a3',
                     'video_id' => 'video-1',
+                    'file_size' => 3000,
                     'height' => 1080,
                 ],
             ],
