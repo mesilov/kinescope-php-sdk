@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kinescope\Tests\Unit\DTO\Video;
 
+use InvalidArgumentException;
 use Kinescope\DTO\Video\AssetDTO;
 use PHPUnit\Framework\TestCase;
 
@@ -47,7 +48,7 @@ class AssetDTOTest extends TestCase
             'quality' => '720p',
         ];
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Asset "file_size" is required.');
 
         AssetDTO::fromArray($data);
@@ -202,7 +203,7 @@ class AssetDTOTest extends TestCase
 
     public function testFromArrayRejectsNonPositiveFileSize(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Asset "file_size" must be greater than 0.');
 
         AssetDTO::fromArray([

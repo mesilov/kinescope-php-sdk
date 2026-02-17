@@ -4,16 +4,24 @@ declare(strict_types=1);
 
 namespace Kinescope\Services\Videos;
 
+use Carbon\CarbonImmutable;
 use Kinescope\Core\Pagination;
 use Kinescope\DTO\Video\AssetDTO;
 use Kinescope\Enum\QualityPreference;
+use Kinescope\Event\Download\DownloadCompletedEvent;
+use Kinescope\Event\Download\DownloadFailedEvent;
+use Kinescope\Event\Download\DownloadProgressEvent;
+use Kinescope\Event\Download\DownloadStartedEvent;
 use Kinescope\Exception\KinescopeException;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Filesystem\Filesystem;
+use Throwable;
 
 /**
  * Service for downloading video files from Kinescope.
@@ -29,7 +37,22 @@ final readonly class VideoDownloader
         private RequestFactoryInterface $requestFactory,
         private Filesystem $filesystem,
         private LoggerInterface $logger = new NullLogger(),
+        private EventDispatcherInterface $eventDispatcher = new EventDispatcher(),
     ) {
+    }
+
+    /**
+     * Register an event listener on the internal dispatcher.
+     *
+     * @param class-string $eventName Event class name
+     * @param callable $listener Listener callback
+     * @param int $priority Listener priority (higher runs earlier)
+     */
+    public function on(string $eventName, callable $listener, int $priority = 0): self
+    {
+        $this->eventDispatcher->addListener($eventName, $listener, $priority);
+
+        return $this;
     }
 
     /**
@@ -50,6 +73,8 @@ final readonly class VideoDownloader
         string $destinationDir,
         QualityPreference $quality = QualityPreference::BEST,
     ): string {
+        $startedAt = CarbonImmutable::now('UTC');
+
         $this->logger->info('Starting video download', [
             'videoId' => $videoId,
             'quality' => $quality->name,
@@ -81,28 +106,88 @@ final readonly class VideoDownloader
 
         /** @var string $downloadLink */
         $downloadLink = $asset->downloadLink;
-        $totalBytes = $asset->fileSize;
+        $sizeBytes = $asset->fileSize;
+        $selectedHeight = $asset->height ?? 0;
+
+        if ($sizeBytes <= 0) {
+            throw new KinescopeException(sprintf(
+                'Selected asset has invalid file size for video "%s": %d',
+                $videoId,
+                $sizeBytes,
+            ));
+        }
 
         $this->logger->info('Selected asset for download', [
             'videoId' => $videoId,
-            'quality' => $asset->height,
-            'fileSize' => $totalBytes,
+            'quality' => $selectedHeight,
+            'fileSize' => $sizeBytes,
             'downloadLink' => $downloadLink,
         ]);
 
         $this->filesystem->mkdir($destinationDir);
 
-        $request = $this->requestFactory->createRequest('GET', $downloadLink);
-        $response = $this->httpClient->sendRequest($request);
-
         $filePath = rtrim($destinationDir, '/') . '/' . $videoId . '.mp4';
-        $this->writeStreamToFile($response->getBody(), $filePath, $totalBytes);
+        $bytesWritten = 0;
+
+        $this->eventDispatcher->dispatch(new DownloadStartedEvent(
+            videoId: $videoId,
+            downloadUrl: $downloadLink,
+            sizeBytes: $sizeBytes,
+            qualityPreference: $quality,
+            selectedHeight: $selectedHeight,
+            occurredAt: $startedAt,
+        ));
+
+        try {
+            $request = $this->requestFactory->createRequest('GET', $downloadLink);
+            $response = $this->httpClient->sendRequest($request);
+
+            $bytesWritten = $this->writeStreamToFile(
+                stream: $response->getBody(),
+                filePath: $filePath,
+                sizeBytes: $sizeBytes,
+                onProgress: function (int $writtenBytes, float $percent) use ($videoId, $filePath, $sizeBytes): void {
+                    $this->eventDispatcher->dispatch(new DownloadProgressEvent(
+                        videoId: $videoId,
+                        filePath: $filePath,
+                        bytesWritten: $writtenBytes,
+                        sizeBytes: $sizeBytes,
+                        percent: $percent,
+                        occurredAt: CarbonImmutable::now('UTC'),
+                    ));
+                },
+            );
+        } catch (Throwable $exception) {
+            $this->eventDispatcher->dispatch(new DownloadFailedEvent(
+                videoId: $videoId,
+                filePath: $filePath,
+                totalBytes: $sizeBytes,
+                bytesWritten: $bytesWritten,
+                exception: $exception,
+                occurredAt: CarbonImmutable::now('UTC'),
+            ));
+
+            throw $exception;
+        }
+
+        $completedAt = CarbonImmutable::now('UTC');
+        $durationMs = (int) round($startedAt->diffInMilliseconds($completedAt));
+        $actualFileSize = filesize($filePath);
+        $fileSize = $actualFileSize === false ? $bytesWritten : $actualFileSize;
 
         $this->logger->info('Video download completed', [
             'videoId' => $videoId,
             'filePath' => $filePath,
-            'fileSize' => filesize($filePath),
+            'fileSize' => $fileSize,
         ]);
+
+        $this->eventDispatcher->dispatch(new DownloadCompletedEvent(
+            videoId: $videoId,
+            filePath: $filePath,
+            fileSize: $fileSize,
+            durationMs: $durationMs,
+            occurredAt: $completedAt,
+        ));
 
         return $filePath;
     }
@@ -164,11 +249,15 @@ final readonly class VideoDownloader
     /**
      * @throws KinescopeException
      */
-    private function writeStreamToFile(StreamInterface $stream, string $filePath, int $totalBytes): void
-    {
+    private function writeStreamToFile(
+        StreamInterface $stream,
+        string $filePath,
+        int $sizeBytes,
+        ?callable $onProgress = null,
+    ): int {
         $this->logger->info('Writing stream to file', [
             'filePath' => $filePath,
-            'totalBytes' => $totalBytes,
+            'totalBytes' => $sizeBytes,
         ]);
 
         $fileHandle = @fopen($filePath, 'wb');
@@ -193,15 +282,16 @@ final readonly class VideoDownloader
                             $nextProgressReportAt += self::PROGRESS_REPORT_INTERVAL_BYTES;
                         }
 
+                        $percent = round($bytesWritten / $sizeBytes * 100, 1);
                         $context = [
                             'filePath' => $filePath,
                             'bytesWritten' => $bytesWritten,
-                            'totalBytes' => $totalBytes,
+                            'totalBytes' => $sizeBytes,
+                            'percent' => $percent,
                         ];
 
-                        $context['percent'] = round($bytesWritten / $totalBytes * 100, 1);
-
                         $this->logger->debug('Download progress', $context);
+                        $onProgress?->__invoke($bytesWritten, $percent);
                     }
                 }
             }
@@ -210,6 +300,8 @@ final readonly class VideoDownloader
                 'filePath' => $filePath,
                 'bytesWritten' => $bytesWritten,
             ]);
+
+            return $bytesWritten;
         } finally {
             fclose($fileHandle);
         }

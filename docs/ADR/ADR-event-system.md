@@ -46,7 +46,7 @@ src/Event/
     └── DownloadFailedEvent.php
 ```
 
-Поля событий должны быть строго типизированы и отражать доменные данные (videoId, bytesWritten, totalBytes, percent, filePath, duration, error).
+Поля событий должны быть строго типизированы и отражать доменные данные (videoId, bytesWritten, sizeBytes, percent, filePath, duration, exception).
 
 ### Контракт данных событий
 
@@ -62,6 +62,13 @@ src/Event/
 - `qualityPreference` всегда задаётся enum `Kinescope\Enum\QualityPreference`
 - `occurredAt` хранится как `\Carbon\CarbonImmutable` (UTC)
 - `durationMs` хранится в миллисекундах
+
+#### Параметры чтения и прогресса
+
+- Размер чанка чтения: `256 KiB` (`262_144` байт)
+- Порог отправки прогресса: каждые `1 MiB` (`1_048_576` байт)
+- Прогресс считается по байтам (`bytesWritten`), а не по количеству чанков
+- Частота событий прогресса не должна зависеть от `CHUNK_SIZE`
 
 #### `DownloadStartedEvent`
 
@@ -177,7 +184,7 @@ final readonly class DownloadFailedEvent
 - Перед `sendRequest()` валидировать, что у выбранного ассета есть `fileSize > 0`; иначе бросать `KinescopeException` с явным текстом ошибки
 - Точки dispatch:
   - перед началом скачивания (`DownloadStartedEvent`)
-  - периодически в `writeStreamToFile()` (`DownloadProgressEvent`)
+  - в `writeStreamToFile()` при достижении очередного байтового порога прогресса (`DownloadProgressEvent`)
   - после успешного завершения (`DownloadCompletedEvent`)
   - при ошибке (`DownloadFailedEvent`)
 

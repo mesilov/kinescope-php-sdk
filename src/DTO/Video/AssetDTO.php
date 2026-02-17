@@ -6,6 +6,7 @@ namespace Kinescope\DTO\Video;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use InvalidArgumentException;
 
 /**
  * Video asset (quality variant).
@@ -43,7 +44,7 @@ final readonly class AssetDTO
         public ?DateTimeImmutable $createdAt = null,
     ) {
         if ($this->fileSize <= 0) {
-            throw new \InvalidArgumentException('Asset "file_size" must be greater than 0.');
+            throw new InvalidArgumentException('Asset "file_size" must be greater than 0.');
         }
     }
 
@@ -57,13 +58,13 @@ final readonly class AssetDTO
     public static function fromArray(array $data): self
     {
         if (! isset($data['file_size'])) {
-            throw new \InvalidArgumentException('Asset "file_size" is required.');
+            throw new InvalidArgumentException('Asset "file_size" is required.');
         }
 
         $fileSize = (int) $data['file_size'];
 
         if ($fileSize <= 0) {
-            throw new \InvalidArgumentException('Asset "file_size" must be greater than 0.');
+            throw new InvalidArgumentException('Asset "file_size" must be greater than 0.');
         }
 
         return new self(
