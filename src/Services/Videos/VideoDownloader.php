@@ -20,7 +20,8 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 final readonly class VideoDownloader
 {
-    private const int CHUNK_SIZE = 8192;
+    private const int CHUNK_SIZE = 262_144; // 256 KiB
+    private const int PROGRESS_REPORT_INTERVAL_BYTES = 1_048_576; // 1 MiB
 
     public function __construct(
         private Videos $videos,
@@ -178,7 +179,7 @@ final readonly class VideoDownloader
 
         try {
             $bytesWritten = 0;
-            $chunkCount = 0;
+            $nextProgressReportAt = self::PROGRESS_REPORT_INTERVAL_BYTES;
 
             while (! $stream->eof()) {
                 $chunk = $stream->read(self::CHUNK_SIZE);
@@ -186,9 +187,12 @@ final readonly class VideoDownloader
                 if ($chunk !== '') {
                     fwrite($fileHandle, $chunk);
                     $bytesWritten += strlen($chunk);
-                    $chunkCount++;
 
-                    if ($chunkCount % 128 === 0) {
+                    if ($bytesWritten >= $nextProgressReportAt) {
+                        while ($bytesWritten >= $nextProgressReportAt) {
+                            $nextProgressReportAt += self::PROGRESS_REPORT_INTERVAL_BYTES;
+                        }
+
                         $context = [
                             'filePath' => $filePath,
                             'bytesWritten' => $bytesWritten,
