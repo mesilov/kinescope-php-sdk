@@ -1,7 +1,7 @@
 .PHONY: docker-init docker-up docker-down docker-down-clear docker-restart docker-rebuild \
         composer-install composer-update composer-dumpautoload composer \
         lint-all lint-cs-fixer lint-cs-fixer-fix lint-phpstan lint-rector lint-rector-fix \
-        test-unit test-integration php-cli-bash php-cli-root clear-cache show-env
+        test-unit test-integration php-cli-bash php-cli-root clear-cache show-env console-list
 
 # =============================================================================
 # Docker commands
@@ -118,6 +118,10 @@ clear-cache:
 show-env:
 	docker compose exec php-cli env | sort
 
+## Показать список CLI-команд SDK
+console-list:
+	docker compose exec php-cli php bin/console list
+
 # =============================================================================
 # Help
 # =============================================================================
@@ -152,3 +156,4 @@ help:
 	@echo "Utilities:"
 	@echo "  make php-cli-bash      - Access PHP container shell"
 	@echo "  make clear-cache       - Clear cache files"
+	@echo "  make console-list      - List SDK CLI commands"
