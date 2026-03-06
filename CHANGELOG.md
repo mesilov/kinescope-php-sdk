@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [0.4.0] - Unreleased
 
 ### Added
+- `VideoSlugExtractor` — pure stateless service for extracting video slugs from HLS links, embed codes, or `VideoDTO`.
+- `VideoFetcher` — auto-paginated search service:
+  - `findByTitle(string $title): VideoDTO[]` — server-side search via `Videos::search()`, iterates all pages.
+  - `findByVideoSlug(string $slug): VideoDTO[]` — client-side filter via `Videos::list()`, iterates all pages and matches by slug.
 - CLI application `bin/console` based on Symfony Console 8.
 - Command `video:info <video-id>` — fetches video data by UUID and outputs it as pretty-printed JSON to STDOUT.
   - API key resolved from `KINESCOPE_API_KEY` env variable or `--api-key` / `-k` option.
