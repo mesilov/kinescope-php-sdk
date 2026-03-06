@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## MCP Tools
+
+**context7 is mandatory** for looking up documentation of any library or framework used in this project.
+Before writing code that uses an external package (Symfony, Guzzle, PHPUnit, etc.), always:
+1. Call `mcp__context7__resolve-library-id` to get the library ID
+2. Call `mcp__context7__query-docs` to fetch relevant, version-accurate documentation
+
 ## Repository Guidelines
 
 ### Project Structure & Module Organization

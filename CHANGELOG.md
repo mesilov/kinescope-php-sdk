@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - Unreleased
+
+### Added
+- CLI application `bin/console` based on Symfony Console 8.
+- Command `video:info <video-id>` — fetches video data by UUID and outputs it as pretty-printed JSON to STDOUT.
+  - API key resolved from `KINESCOPE_API_KEY` env variable or `--api-key` / `-k` option.
+  - Errors (not found, auth failure, network) written to STDERR; exit code `1` on failure.
+- `src/Infrastructure/Console/Application` — Console application entry point.
+- `src/Infrastructure/Console/ContainerFactory` — standalone Symfony DI container; wires `LoggerInterface` and pre-configured `ApiClientFactory` into commands.
+- New runtime dependencies: `symfony/console ^8.0`, `symfony/dependency-injection ^8.0`.
+- Makefile target `console-list` — lists all registered SDK CLI commands.
+
 ## [0.3.0] - 2026-02-17
 
 ### Added
