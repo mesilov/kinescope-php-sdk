@@ -308,7 +308,7 @@ class ExceptionsTest extends TestCase
             $this->assertInstanceOf(
                 KinescopeException::class,
                 $exception,
-                get_class($exception) . ' should extend KinescopeException'
+                $exception::class . ' should extend KinescopeException'
             );
         }
     }

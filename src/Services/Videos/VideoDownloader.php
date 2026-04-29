@@ -247,6 +247,8 @@ final readonly class VideoDownloader
     }
 
     /**
+     * @param (callable(int, float): void)|null $onProgress
+     *
      * @throws KinescopeException
      */
     private function writeStreamToFile(
@@ -291,7 +293,10 @@ final readonly class VideoDownloader
                         ];
 
                         $this->logger->debug('Download progress', $context);
-                        $onProgress?->__invoke($bytesWritten, $percent);
+
+                        if ($onProgress !== null) {
+                            $onProgress($bytesWritten, $percent);
+                        }
                     }
                 }
             }

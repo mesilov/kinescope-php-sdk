@@ -27,7 +27,7 @@ final readonly class AnnotationListResult extends PaginatedResponse
 
         if (isset($response['data']) && is_array($response['data'])) {
             $data = array_map(
-                static fn (array $item): AnnotationDTO => AnnotationDTO::fromArray($item),
+                AnnotationDTO::fromArray(...),
                 $response['data']
             );
         }

@@ -27,7 +27,7 @@ final readonly class FolderListResult extends PaginatedResponse
 
         if (isset($response['data']) && is_array($response['data'])) {
             $data = array_map(
-                static fn (array $item): FolderDTO => FolderDTO::fromArray($item),
+                FolderDTO::fromArray(...),
                 $response['data']
             );
         }

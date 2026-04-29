@@ -137,8 +137,8 @@ class VideoFetcherTest extends TestCase
     {
         $targetSlug = 'wDXNmhxAhnJeRtNjAVChzS';
 
-        $apiClient = new class ($targetSlug) implements ApiClientInterface {
-            public function __construct(private readonly string $targetSlug)
+        $apiClient = new readonly class ($targetSlug) implements ApiClientInterface {
+            public function __construct(private string $targetSlug)
             {
             }
 
