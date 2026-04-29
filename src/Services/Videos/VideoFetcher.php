@@ -7,11 +7,11 @@ namespace Kinescope\Services\Videos;
 use Kinescope\Core\Pagination;
 use Kinescope\DTO\Video\VideoDTO;
 
-final class VideoFetcher
+final readonly class VideoFetcher
 {
     public function __construct(
-        private readonly Videos $videos,
-        private readonly VideoSlugExtractor $slugExtractor = new VideoSlugExtractor(),
+        private Videos $videos,
+        private VideoSlugExtractor $slugExtractor = new VideoSlugExtractor(),
     ) {
     }
 

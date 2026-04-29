@@ -28,7 +28,7 @@ final readonly class SubtitleListResult extends PaginatedResponse
 
         if (isset($response['data']) && is_array($response['data'])) {
             $data = array_map(
-                static fn (array $item): SubtitleDTO => SubtitleDTO::fromArray($item),
+                SubtitleDTO::fromArray(...),
                 $response['data']
             );
         }

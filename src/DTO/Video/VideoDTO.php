@@ -72,7 +72,7 @@ final readonly class VideoDTO
 
         if (isset($data['assets']) && is_array($data['assets'])) {
             $assets = array_map(
-                static fn (array $asset): AssetDTO => AssetDTO::fromArray($asset),
+                AssetDTO::fromArray(...),
                 $data['assets']
             );
         }

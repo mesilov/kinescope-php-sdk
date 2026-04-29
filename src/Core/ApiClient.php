@@ -22,7 +22,7 @@ use Psr\Log\LoggerInterface;
  * - JSON encoding/decoding
  * - Rate limit handling
  */
-final class ApiClient implements ApiClientInterface
+final readonly class ApiClient implements ApiClientInterface
 {
     /**
      * Default base URL for the API.
@@ -42,14 +42,14 @@ final class ApiClient implements ApiClientInterface
      * @param LoggerInterface $logger PSR-3 logger
      */
     public function __construct(
-        private readonly Credentials $credentials,
-        private readonly string $baseUrl,
-        private readonly ClientInterface $httpClient,
-        private readonly RequestFactoryInterface $requestFactory,
-        private readonly StreamFactoryInterface $streamFactory,
-        private readonly ResponseHandler $responseHandler,
-        private readonly JsonDecoder $jsonDecoder,
-        private readonly LoggerInterface $logger,
+        private Credentials $credentials,
+        private string $baseUrl,
+        private ClientInterface $httpClient,
+        private RequestFactoryInterface $requestFactory,
+        private StreamFactoryInterface $streamFactory,
+        private ResponseHandler $responseHandler,
+        private JsonDecoder $jsonDecoder,
+        private LoggerInterface $logger,
     ) {
     }
 

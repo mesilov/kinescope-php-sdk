@@ -19,6 +19,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `src/Infrastructure/Console/ContainerFactory` — standalone Symfony DI container; wires `LoggerInterface` and pre-configured `ApiClientFactory` into commands.
 - New runtime dependencies: `symfony/console ^8.0`, `symfony/dependency-injection ^8.0`.
 - Makefile target `console-list` — lists all registered SDK CLI commands.
+- Integration tests for `VideoFetcher` covering title search, slug lookup, and missing-slug behavior against the real Kinescope API.
+
+### Fixed
+- `VideoDownloader` progress callback invocation is now compatible with PHPStan strict callable analysis.
+
+### Quality
+- Added project Rector configuration for PHP 8.4 dry-run linting.
+- Applied Rector PHP 8.4 cleanup rules and kept exceptions for transformations that conflict with Symfony DI or PHPStan.
 
 ## [0.3.0] - 2026-02-17
 
