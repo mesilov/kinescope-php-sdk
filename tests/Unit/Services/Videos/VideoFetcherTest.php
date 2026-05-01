@@ -23,7 +23,7 @@ class VideoFetcherTest extends TestCase
                         self::makeRow('video-1', 'slug-aaa'),
                         self::makeRow('video-2', 'slug-bbb'),
                     ],
-                    'meta' => ['total' => 2, 'page' => 1, 'per_page' => 100, 'last_page' => 1],
+                    'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 100]],
                 ];
             }
 
@@ -87,7 +87,7 @@ class VideoFetcherTest extends TestCase
                         'data' => [
                             ['id' => 'video-1', 'title' => 'Video', 'status' => 'done', 'duration' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                         ],
-                        'meta' => ['total' => 2, 'page' => 1, 'per_page' => 100, 'last_page' => 2],
+                        'meta' => ['pagination' => ['total' => 101, 'page' => 1, 'per_page' => 100]],
                     ];
                 }
 
@@ -95,7 +95,7 @@ class VideoFetcherTest extends TestCase
                     'data' => [
                         ['id' => 'video-2', 'title' => 'Video', 'status' => 'done', 'duration' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                     ],
-                    'meta' => ['total' => 2, 'page' => 2, 'per_page' => 100, 'last_page' => 2],
+                    'meta' => ['pagination' => ['total' => 101, 'page' => 2, 'per_page' => 100]],
                 ];
             }
 
@@ -149,7 +149,7 @@ class VideoFetcherTest extends TestCase
                         ['id' => 'video-1', 'title' => 'Match', 'status' => 'done', 'duration' => 0, 'hls_link' => "https://kinescope.io/{$this->targetSlug}/master.m3u8", 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                         ['id' => 'video-2', 'title' => 'Other', 'status' => 'done', 'duration' => 0, 'hls_link' => 'https://kinescope.io/otherSlug/master.m3u8', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                     ],
-                    'meta' => ['total' => 2, 'page' => 1, 'per_page' => 100, 'last_page' => 1],
+                    'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 100]],
                 ];
             }
 
@@ -195,7 +195,7 @@ class VideoFetcherTest extends TestCase
                     'data' => [
                         ['id' => 'video-1', 'title' => 'Other', 'status' => 'done', 'duration' => 0, 'hls_link' => 'https://kinescope.io/someOtherSlug/master.m3u8', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                     ],
-                    'meta' => ['total' => 1, 'page' => 1, 'per_page' => 100, 'last_page' => 1],
+                    'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 100]],
                 ];
             }
 

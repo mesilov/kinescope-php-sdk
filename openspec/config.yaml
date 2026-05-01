@@ -1,0 +1,40 @@
+schema: spec-driven
+
+context: |
+  Project: mesilov/kinescope-php-sdk.
+  Purpose: PHP 8.4 SDK for the Kinescope API with typed DTOs, API services, service factory, video download helpers, and a Symfony Console entry point.
+  Stack:
+  - PHP >=8.4
+  - PSR-7, PSR-17, and PSR-18 HTTP abstractions
+  - Symfony Console and DependencyInjection for CLI wiring
+  - PHPUnit for unit and integration tests
+  - PHPStan strict rules, PHP-CS-Fixer, and Rector for quality gates
+  - Docker Compose and Makefile as the canonical local command surface
+  Repository rules:
+  - Read CLAUDE.md before changing code.
+  - Use Makefile targets instead of ad-hoc tool invocations when a target exists.
+  - Keep public SDK behavior typed and backwards-compatible unless the OpenSpec change explicitly defines a breaking change.
+  - Never commit real API keys or secrets.
+  - Update CHANGELOG.md when public behavior, tooling gates, or test coverage materially changes.
+  OpenSpec workflow:
+  - Create OpenSpec changes for behavior, API, CLI, architecture, and public SDK contract changes.
+  - Use kebab-case change IDs with a verb prefix, for example add-video-fetcher-integration-tests.
+  - Put requirement deltas in openspec/changes/<change-id>/specs/<capability>/spec.md.
+  - Each requirement uses "### Requirement:" and at least one "#### Scenario:".
+  - Keep human-readable artifacts in English unless a task explicitly requires Russian.
+  - Run make openspec-validate before implementation and before final review.
+  Quality gates:
+  - make lint-all
+  - make test-unit
+  - make test-integration for API-facing changes when credentials and fixtures are available
+
+rules:
+  proposal:
+    - Keep proposals focused on one logical SDK change.
+    - Include explicit non-goals when scope could be broadened.
+  tasks:
+    - Include validation tasks for linting and relevant PHPUnit suites.
+    - Mention integration tests for API-facing behavior when credentials and fixtures are available.
+  specs:
+    - Every requirement must include at least one scenario.
+    - Define compatibility and error behavior for public SDK contracts.
