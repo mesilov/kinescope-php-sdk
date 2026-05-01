@@ -16,6 +16,22 @@ services:
     networks:
       - kinescope-network
 
+  openspec:
+    image: kinescope-php-sdk-openspec:dev
+    build:
+      context: ./docker/openspec
+      args:
+        OPENSPEC_VERSION: ${OPENSPEC_VERSION:-1.3.1}
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    environment:
+      OPENSPEC_TELEMETRY: "0"
+    profiles:
+      - dev
+    networks:
+      - kinescope-network
+
 networks:
   kinescope-network:
     driver: bridge

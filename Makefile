@@ -1,7 +1,8 @@
 .PHONY: docker-init docker-up docker-down docker-down-clear docker-restart docker-rebuild \
         composer-install composer-update composer-dumpautoload composer \
         lint-all lint-cs-fixer lint-cs-fixer-fix lint-phpstan lint-rector lint-rector-fix \
-        test-unit test-integration php-cli-bash php-cli-root clear-cache show-env console-list
+        test-unit test-integration openspec openspec-init openspec-list openspec-list-specs openspec-validate \
+        php-cli-bash php-cli-root clear-cache show-env console-list
 
 # =============================================================================
 # Docker commands
@@ -97,6 +98,30 @@ test-coverage:
 	docker compose exec php-cli vendor/bin/phpunit --coverage-html coverage
 
 # =============================================================================
+# OpenSpec commands
+# =============================================================================
+
+## Run OpenSpec CLI (usage: make openspec args="show add-video-fetcher")
+openspec:
+	docker compose run --rm openspec $(args)
+
+## Initialize OpenSpec repository structure and repository-local Codex skills
+openspec-init:
+	docker compose run --rm openspec init --tools codex --force
+
+## List active OpenSpec changes
+openspec-list:
+	docker compose run --rm openspec list
+
+## List OpenSpec specifications
+openspec-list-specs:
+	docker compose run --rm openspec list --specs
+
+## Validate all OpenSpec changes and specs in strict non-interactive mode
+openspec-validate:
+	docker compose run --rm openspec validate --all --strict --no-interactive
+
+# =============================================================================
 # Utility commands
 # =============================================================================
 
@@ -152,6 +177,11 @@ help:
 	@echo "  make test-unit         - Run unit tests"
 	@echo "  make test-integration  - Run integration tests"
 	@echo "  make test-coverage     - Run tests with coverage"
+	@echo ""
+	@echo "OpenSpec:"
+	@echo "  make openspec-init     - Initialize OpenSpec structure"
+	@echo "  make openspec-list     - List active OpenSpec changes"
+	@echo "  make openspec-validate - Validate all OpenSpec artifacts"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make php-cli-bash      - Access PHP container shell"

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kinescope\DTO\Common;
 
 use Kinescope\Core\Pagination;
+use Kinescope\Exception\MalformedResponseException;
 
 /**
  * Metadata for paginated API responses.
@@ -36,13 +37,28 @@ final readonly class MetaDTO
      */
     public static function fromArray(array $data): self
     {
+        if (! isset($data['pagination']) || ! is_array($data['pagination'])) {
+            throw new MalformedResponseException(
+                'Missing required response metadata key: pagination'
+            );
+        }
+
+        $pagination = $data['pagination'];
+
+        foreach (['total', 'page', 'per_page'] as $key) {
+            if (! array_key_exists($key, $pagination)) {
+                throw new MalformedResponseException(
+                    sprintf('Missing required response metadata key: pagination.%s', $key)
+                );
+            }
+        }
+
         return new self(
-            total: (int) ($data['total'] ?? 0),
+            total: (int) $pagination['total'],
             pagination: new Pagination(
-                page: (int) ($data['page'] ?? 1),
-                perPage: (int) ($data['per_page'] ?? 20),
+                page: (int) $pagination['page'],
+                perPage: (int) $pagination['per_page'],
             ),
-            lastPage: isset($data['last_page']) ? (int) $data['last_page'] : null,
         );
     }
 

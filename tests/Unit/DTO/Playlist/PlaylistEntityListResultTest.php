@@ -29,11 +29,7 @@ class PlaylistEntityListResultTest extends TestCase
                     'title' => 'Video 2',
                 ],
             ],
-            'meta' => [
-                'total' => 2,
-                'page' => 1,
-                'per_page' => 20,
-            ],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);
@@ -51,7 +47,7 @@ class PlaylistEntityListResultTest extends TestCase
                 ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 0, 'title' => 'First'],
                 ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'v3', 'position' => 1, 'title' => 'Second'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);
@@ -70,7 +66,7 @@ class PlaylistEntityListResultTest extends TestCase
                 ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1, 'title' => 'Second'],
                 ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'v3', 'position' => 2, 'title' => 'Third'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);
@@ -86,7 +82,7 @@ class PlaylistEntityListResultTest extends TestCase
             'data' => [
                 ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 0, 'title' => 'First'],
             ],
-            'meta' => ['total' => 1, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);
@@ -102,7 +98,7 @@ class PlaylistEntityListResultTest extends TestCase
                 ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1, 'video_status' => 'processing'],
                 ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'v3', 'position' => 2, 'video_status' => 'done'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);
@@ -123,7 +119,7 @@ class PlaylistEntityListResultTest extends TestCase
                 ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1, 'video_status' => 'processing'],
                 ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'v3', 'position' => 2, 'video_status' => 'processing'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);
@@ -143,7 +139,7 @@ class PlaylistEntityListResultTest extends TestCase
                 ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 0, 'video_status' => 'done'],
                 ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1, 'video_status' => 'error'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);
@@ -160,7 +156,7 @@ class PlaylistEntityListResultTest extends TestCase
                 ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 0],
                 ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);
@@ -176,7 +172,7 @@ class PlaylistEntityListResultTest extends TestCase
             'data' => [
                 ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 0],
             ],
-            'meta' => ['total' => 1, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);
@@ -191,7 +187,7 @@ class PlaylistEntityListResultTest extends TestCase
                 ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'video-aaa', 'position' => 0],
                 ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'video-bbb', 'position' => 1],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);
@@ -207,7 +203,7 @@ class PlaylistEntityListResultTest extends TestCase
             'data' => [
                 ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'video-aaa', 'position' => 0],
             ],
-            'meta' => ['total' => 1, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);
@@ -223,7 +219,7 @@ class PlaylistEntityListResultTest extends TestCase
                 ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1, 'duration' => 200],
                 ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'v3', 'position' => 2, 'duration' => 150],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);
@@ -239,7 +235,7 @@ class PlaylistEntityListResultTest extends TestCase
                 ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1, 'duration' => 0],
                 ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'v3', 'position' => 2, 'duration' => 150],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);
@@ -255,7 +251,7 @@ class PlaylistEntityListResultTest extends TestCase
                 ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'video-bbb', 'position' => 1],
                 ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'video-ccc', 'position' => 2],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistEntityListResult::fromArray($data);

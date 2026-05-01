@@ -30,11 +30,7 @@ class ProjectListResultTest extends TestCase
                     'updated_at' => '2024-01-01T00:00:00Z',
                 ],
             ],
-            'meta' => [
-                'total' => 2,
-                'page' => 1,
-                'per_page' => 20,
-            ],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -52,7 +48,7 @@ class ProjectListResultTest extends TestCase
                 ['id' => '2', 'name' => 'Default Project', 'is_default' => true, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'name' => 'Project 3', 'is_default' => false, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -70,7 +66,7 @@ class ProjectListResultTest extends TestCase
                 ['id' => '1', 'name' => 'Project 1', 'is_default' => false, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '2', 'name' => 'Project 2', 'is_default' => false, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -86,7 +82,7 @@ class ProjectListResultTest extends TestCase
                 ['id' => '2', 'name' => 'Custom', 'privacy_type' => 'custom', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'name' => 'Public 2', 'privacy_type' => 'anywhere', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -107,7 +103,7 @@ class ProjectListResultTest extends TestCase
                 ['id' => '2', 'name' => 'Custom', 'privacy_type' => 'custom', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'name' => 'Public 2', 'privacy_type' => 'anywhere', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -128,7 +124,7 @@ class ProjectListResultTest extends TestCase
                 ['id' => '2', 'name' => 'Custom 1', 'privacy_type' => 'custom', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'name' => 'Custom 2', 'privacy_type' => 'custom', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -148,7 +144,7 @@ class ProjectListResultTest extends TestCase
                 ['id' => '1', 'name' => 'Public', 'privacy_type' => 'anywhere', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '2', 'name' => 'Disabled', 'privacy_type' => 'nowhere', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -166,7 +162,7 @@ class ProjectListResultTest extends TestCase
                 ['id' => '2', 'name' => 'Empty', 'videos_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'name' => 'With Videos 2', 'videos_count' => 5, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -187,7 +183,7 @@ class ProjectListResultTest extends TestCase
                 ['id' => '2', 'name' => 'Empty 1', 'videos_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'name' => 'Empty 2', 'videos_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -208,7 +204,7 @@ class ProjectListResultTest extends TestCase
                 ['id' => '2', 'name' => 'Beta', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'name' => 'Gamma', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -225,7 +221,7 @@ class ProjectListResultTest extends TestCase
             'data' => [
                 ['id' => '1', 'name' => 'Alpha', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 1, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -241,7 +237,7 @@ class ProjectListResultTest extends TestCase
                 ['id' => '2', 'name' => 'Beta', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'name' => 'Gamma', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -258,7 +254,7 @@ class ProjectListResultTest extends TestCase
             'data' => [
                 ['id' => '1', 'name' => 'Alpha', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 1, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -274,7 +270,7 @@ class ProjectListResultTest extends TestCase
                 ['id' => '2', 'name' => 'Project 2', 'videos_count' => 20, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'name' => 'Project 3', 'videos_count' => 5, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -290,7 +286,7 @@ class ProjectListResultTest extends TestCase
                 ['id' => '2', 'name' => 'Project 2', 'storage_used' => 2000, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'name' => 'Project 3', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
@@ -305,7 +301,7 @@ class ProjectListResultTest extends TestCase
                 ['id' => '1', 'name' => 'Project 1', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '2', 'name' => 'Project 2', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);

@@ -203,13 +203,7 @@ final class PlaylistsService extends AbstractService
 
         $public = $result->getPublic();
 
-        return PlaylistListResult::fromArray([
-            'data' => array_map(
-                static fn (PlaylistDTO $playlist): array => $playlist->toArray(),
-                $public
-            ),
-            'meta' => $result->getMeta()->toArray(),
-        ]);
+        return new PlaylistListResult($public, $result->getMeta());
     }
 
     /**
