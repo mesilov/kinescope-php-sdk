@@ -30,11 +30,7 @@ class FolderListResultTest extends TestCase
                     'updated_at' => '2024-01-01T00:00:00Z',
                 ],
             ],
-            'meta' => [
-                'total' => 2,
-                'page' => 1,
-                'per_page' => 20,
-            ],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -52,7 +48,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '2', 'project_id' => 'project-uuid', 'name' => 'Child', 'parent_id' => '1', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'project_id' => 'project-uuid', 'name' => 'Root 2', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -74,7 +70,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '3', 'project_id' => 'project-uuid', 'name' => 'Child 2', 'parent_id' => '1', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '4', 'project_id' => 'project-uuid', 'name' => 'Other Child', 'parent_id' => '5', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 4, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 4, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -96,7 +92,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '3', 'project_id' => 'project-uuid', 'name' => 'Level 1 again', 'depth' => 1, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '4', 'project_id' => 'project-uuid', 'name' => 'Level 2', 'depth' => 2, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 4, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 4, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -117,7 +113,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '2', 'project_id' => 'project-uuid', 'name' => 'First', 'position' => 1, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'project_id' => 'project-uuid', 'name' => 'Second', 'position' => 2, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -136,7 +132,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '2', 'project_id' => 'project-uuid', 'name' => 'Alpha', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'project_id' => 'project-uuid', 'name' => 'Mike', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -155,7 +151,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '2', 'project_id' => 'project-uuid', 'name' => 'Empty', 'videos_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'project_id' => 'project-uuid', 'name' => 'With Videos 2', 'videos_count' => 5, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -176,7 +172,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '2', 'project_id' => 'project-uuid', 'name' => 'Empty 1', 'videos_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'project_id' => 'project-uuid', 'name' => 'Empty 2', 'videos_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -196,7 +192,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '1', 'project_id' => 'project-uuid', 'name' => 'Alpha', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '2', 'project_id' => 'project-uuid', 'name' => 'Beta', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -213,7 +209,7 @@ class FolderListResultTest extends TestCase
             'data' => [
                 ['id' => '1', 'project_id' => 'project-uuid', 'name' => 'Alpha', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 1, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -228,7 +224,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '1', 'project_id' => 'project-uuid', 'name' => 'Alpha', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '2', 'project_id' => 'project-uuid', 'name' => 'Beta', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -244,7 +240,7 @@ class FolderListResultTest extends TestCase
             'data' => [
                 ['id' => '1', 'project_id' => 'project-uuid', 'name' => 'Alpha', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 1, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -259,7 +255,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '1', 'project_id' => 'project-uuid', 'name' => 'Root', 'path' => 'root', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '2', 'project_id' => 'project-uuid', 'name' => 'Child', 'path' => 'root/child', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -275,7 +271,7 @@ class FolderListResultTest extends TestCase
             'data' => [
                 ['id' => '1', 'project_id' => 'project-uuid', 'name' => 'Root', 'path' => 'root', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 1, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -291,7 +287,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '2', 'project_id' => 'project-uuid', 'name' => 'Folder 2', 'videos_count' => 20, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'project_id' => 'project-uuid', 'name' => 'Folder 3', 'videos_count' => 5, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -306,7 +302,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '1', 'project_id' => 'project-uuid', 'name' => 'Root', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '2', 'project_id' => 'project-uuid', 'name' => 'Child', 'parent_id' => '1', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -328,7 +324,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '2', 'project_id' => 'project-uuid', 'name' => 'Root 2', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'project_id' => 'project-uuid', 'name' => 'Child of Root 1', 'parent_id' => '1', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);
@@ -344,7 +340,7 @@ class FolderListResultTest extends TestCase
                 ['id' => '1', 'project_id' => 'project-uuid', 'name' => 'Folder 1', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '2', 'project_id' => 'project-uuid', 'name' => 'Folder 2', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = FolderListResult::fromArray($data);

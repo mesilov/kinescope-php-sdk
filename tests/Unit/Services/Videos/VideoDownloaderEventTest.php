@@ -155,10 +155,10 @@ class VideoDownloaderEventTest extends TestCase
 
     private function createDownloader(ClientInterface $httpClient, int $fileSize, int $selectedHeight): VideoDownloader
     {
-        $apiClient = new class ($fileSize, $selectedHeight) implements ApiClientInterface {
+        $apiClient = new readonly class ($fileSize, $selectedHeight) implements ApiClientInterface {
             public function __construct(
-                private readonly int $fileSize,
-                private readonly int $selectedHeight,
+                private int $fileSize,
+                private int $selectedHeight,
             ) {
             }
 

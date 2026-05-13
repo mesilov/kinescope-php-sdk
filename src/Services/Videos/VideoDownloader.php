@@ -6,7 +6,6 @@ namespace Kinescope\Services\Videos;
 
 use Carbon\CarbonImmutable;
 use Kinescope\Core\Pagination;
-use Kinescope\DTO\Video\AssetDTO;
 use Kinescope\Enum\QualityPreference;
 use Kinescope\Event\Download\DownloadCompletedEvent;
 use Kinescope\Event\Download\DownloadFailedEvent;
@@ -38,6 +37,7 @@ final readonly class VideoDownloader
         private Filesystem $filesystem,
         private LoggerInterface $logger = new NullLogger(),
         private EventDispatcherInterface $eventDispatcher = new EventDispatcher(),
+        private AssetSelector $assetSelector = new AssetSelector(),
     ) {
     }
 
@@ -82,27 +82,13 @@ final readonly class VideoDownloader
 
         $video = $this->videos->get($videoId);
 
-        $downloadableAssets = array_filter(
-            $video->assets,
-            static fn (AssetDTO $asset): bool => $asset->downloadLink !== null,
-        );
+        $asset = $this->assetSelector->select($video->assets, $quality);
 
-        if ($downloadableAssets === []) {
+        if ($asset === null) {
             throw new KinescopeException(
                 sprintf('No downloadable assets found for video "%s"', $videoId),
             );
         }
-
-        $downloadableAssets = array_values($downloadableAssets);
-
-        usort(
-            $downloadableAssets,
-            static fn (AssetDTO $a, AssetDTO $b): int => $quality === QualityPreference::BEST
-                ? ($b->height ?? 0) <=> ($a->height ?? 0)
-                : ($a->height ?? 0) <=> ($b->height ?? 0),
-        );
-
-        $asset = $downloadableAssets[0];
 
         /** @var string $downloadLink */
         $downloadLink = $asset->downloadLink;
@@ -247,6 +233,8 @@ final readonly class VideoDownloader
     }
 
     /**
+     * @param (callable(int, float): void)|null $onProgress
+     *
      * @throws KinescopeException
      */
     private function writeStreamToFile(
@@ -291,7 +279,10 @@ final readonly class VideoDownloader
                         ];
 
                         $this->logger->debug('Download progress', $context);
-                        $onProgress?->__invoke($bytesWritten, $percent);
+
+                        if ($onProgress !== null) {
+                            $onProgress($bytesWritten, $percent);
+                        }
                     }
                 }
             }

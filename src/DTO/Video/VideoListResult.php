@@ -28,7 +28,7 @@ final readonly class VideoListResult extends PaginatedResponse
 
         if (isset($response['data']) && is_array($response['data'])) {
             $data = array_map(
-                static fn (array $item): VideoDTO => VideoDTO::fromArray($item),
+                VideoDTO::fromArray(...),
                 $response['data']
             );
         }

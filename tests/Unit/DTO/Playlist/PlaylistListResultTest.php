@@ -29,11 +29,7 @@ class PlaylistListResultTest extends TestCase
                     'updated_at' => '2024-01-01T00:00:00Z',
                 ],
             ],
-            'meta' => [
-                'total' => 2,
-                'page' => 1,
-                'per_page' => 20,
-            ],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -51,7 +47,7 @@ class PlaylistListResultTest extends TestCase
                 ['id' => '2', 'title' => 'Private', 'is_public' => false, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'title' => 'Public 2', 'is_public' => true, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -72,7 +68,7 @@ class PlaylistListResultTest extends TestCase
                 ['id' => '2', 'title' => 'Private 1', 'is_public' => false, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'title' => 'Private 2', 'is_public' => false, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -93,7 +89,7 @@ class PlaylistListResultTest extends TestCase
                 ['id' => '2', 'title' => 'Empty', 'items_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'title' => 'Also Has Items', 'items_count' => 3, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -114,7 +110,7 @@ class PlaylistListResultTest extends TestCase
                 ['id' => '2', 'title' => 'Empty 1', 'items_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'title' => 'Empty 2', 'items_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -135,7 +131,7 @@ class PlaylistListResultTest extends TestCase
                 ['id' => '2', 'title' => 'Playlist 2', 'project_id' => 'project-2', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'title' => 'Playlist 3', 'project_id' => 'project-1', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -156,7 +152,7 @@ class PlaylistListResultTest extends TestCase
                 ['id' => '2', 'title' => 'Five', 'items_count' => 5, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'title' => 'Twenty', 'items_count' => 20, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -175,7 +171,7 @@ class PlaylistListResultTest extends TestCase
                 ['id' => '2', 'title' => 'Five', 'items_count' => 5, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'title' => 'Twenty', 'items_count' => 20, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -194,7 +190,7 @@ class PlaylistListResultTest extends TestCase
                 ['id' => '2', 'title' => 'Short', 'total_duration' => 60, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'title' => 'Medium', 'total_duration' => 600, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -212,7 +208,7 @@ class PlaylistListResultTest extends TestCase
                 ['id' => '1', 'title' => 'Alpha', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '2', 'title' => 'Beta', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -229,7 +225,7 @@ class PlaylistListResultTest extends TestCase
             'data' => [
                 ['id' => '1', 'title' => 'Alpha', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 1, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -244,7 +240,7 @@ class PlaylistListResultTest extends TestCase
                 ['id' => '1', 'title' => 'Alpha', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '2', 'title' => 'Beta', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -260,7 +256,7 @@ class PlaylistListResultTest extends TestCase
             'data' => [
                 ['id' => '1', 'title' => 'Alpha', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 1, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -276,7 +272,7 @@ class PlaylistListResultTest extends TestCase
                 ['id' => '2', 'title' => 'Playlist 2', 'items_count' => 20, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'title' => 'Playlist 3', 'items_count' => 5, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -292,7 +288,7 @@ class PlaylistListResultTest extends TestCase
                 ['id' => '2', 'title' => 'Playlist 2', 'total_duration' => 200, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'title' => 'Playlist 3', 'total_duration' => 150, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);
@@ -307,7 +303,7 @@ class PlaylistListResultTest extends TestCase
                 ['id' => '1', 'title' => 'Playlist 1', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '2', 'title' => 'Playlist 2', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = PlaylistListResult::fromArray($data);

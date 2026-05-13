@@ -27,8 +27,7 @@ final readonly class PlaylistEntityListResult extends PaginatedResponse
 
         if (isset($response['data']) && is_array($response['data'])) {
             $data = array_map(
-                static fn (array $item): PlaylistEntityDTO =>
-                    PlaylistEntityDTO::fromArray($item),
+                PlaylistEntityDTO::fromArray(...),
                 $response['data']
             );
         }
