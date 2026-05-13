@@ -20,9 +20,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - New runtime dependencies: `symfony/console ^8.0`, `symfony/dependency-injection ^8.0`.
 - Makefile target `console-list` — lists all registered SDK CLI commands.
 - Integration tests for `VideoFetcher` covering title search, slug lookup, and missing-slug behavior against the real Kinescope API.
+- `AssetSelector` — dedicated service that picks a downloadable `AssetDTO` based on the requested `QualityPreference`. Injected into `VideoDownloader` as a constructor dependency with a sensible default; existing callers do not need to change.
+- Makefile targets `test-integration-fast` and `test-integration-download`. The latter automatically sets `TESTS_VIDEO_DOWNLOADER_ENABLED=1` so heavy CDN-download tests run only on demand.
+- `TESTS_VIDEO_DOWNLOADER_ENABLED` env flag — opt-in gate for `VideoDownloaderTest`; downloader integration tests are skipped unless explicitly enabled.
 
 ### Fixed
 - `VideoDownloader` progress callback invocation is now compatible with PHPStan strict callable analysis.
+- `QualityPreference::WORST` now selects the smallest downloadable file by `fileSize` instead of treating missing asset height as resolution `0`.
 - Pagination metadata parsing now reads the current Kinescope API shape from `meta.pagination.total`, `meta.pagination.page`, and `meta.pagination.per_page` instead of the obsolete flat `meta.total`, `meta.page`, and `meta.per_page` keys.
 - Malformed paginated response metadata now fails explicitly instead of returning hidden pagination defaults.
 
