@@ -1,21 +1,30 @@
-## 1. Regression Coverage
+## 1. Resolution Value Object
 
-- [ ] 1.1 Add a unit test for `AssetDTO::fromArray()` that populates `$width` and `$height` from a `resolution` string like `"1920x1080"` when separate numeric fields are absent.
-- [ ] 1.2 Add a unit test that confirms numeric `width` and `height` keys remain authoritative when both numeric fields and `resolution` are present.
-- [ ] 1.3 Add a unit test that confirms a malformed or empty `resolution` string is treated as missing metadata (both `$width` and `$height` stay `null`, no exception).
-- [ ] 1.4 Add a unit test confirming `getResolution()`, `isHd()`, `isFullHd()`, and `is4K()` reflect the parsed values for a real-world payload (`original`, `1080p`, `720p`, `480p`, `360p`).
+- [x] 1.1 Create `Kinescope\DTO\Video\Resolution` as `final readonly` with `int $width` and `int $height` (positive-int invariants enforced in the constructor).
+- [x] 1.2 Implement `Resolution::tryFromString(string $value): ?self` (strict `^(\d+)x(\d+)$`) and `Resolution::fromString(string $value): self`.
+- [x] 1.3 Implement `aspectRatio(): float`, `isHd(): bool`, `isFullHd(): bool`, `is4K(): bool`, `__toString(): string`.
+- [x] 1.4 Add `tests/Unit/DTO/Video/ResolutionTest.php` covering: positive-int constructor validation, valid `tryFromString`, malformed/empty input → null, `fromString` throws on malformed input, `__toString` format, `aspectRatio`, all three height predicates.
 
-## 2. Parsing Implementation
+## 2. AssetDTO Migration
 
-- [ ] 2.1 Implement `resolution` parsing inside `AssetDTO::fromArray()` using a strict `^(\d+)x(\d+)$` match.
-- [ ] 2.2 Apply parsed values only when numeric `width` / `height` keys are absent; leave the existing numeric path untouched.
-- [ ] 2.3 Preserve `AssetDTO` constructor signature, property set, and `toArray()` output shape.
-- [ ] 2.4 Ensure other DTO consumers (`VideoDTO::getHighestQualityAsset()`, `VideoDTO::getLowestQualityAsset()`) keep working unchanged.
+- [x] 2.1 Replace `?int $width` and `?int $height` properties on `AssetDTO` with `?Resolution $resolution`.
+- [x] 2.2 Update `AssetDTO::fromArray()` to build `Resolution` from numeric `width`+`height` when both are present and positive, otherwise from `Resolution::tryFromString($data['resolution'] ?? '')`.
+- [x] 2.3 Remove `AssetDTO::getResolution(): ?string`.
+- [x] 2.4 Update `getAspectRatio()`, `isHd()`, `isFullHd()`, `is4K()` to delegate to `$this->resolution?->...()`.
+- [x] 2.5 Update `AssetDTO::toArray()` to emit a single `resolution` key (string or null) and drop the `width` / `height` keys.
+- [x] 2.6 Update `tests/Unit/DTO/Video/AssetDTOTest.php` for the new property and `toArray()` shape.
 
-## 3. Documentation And Validation
+## 3. Internal Callers
 
-- [ ] 3.1 Update `CHANGELOG.md` with the new `AssetDTO::$width` / `$height` behavior.
-- [ ] 3.2 Run `make openspec-validate`.
-- [ ] 3.3 Run `make test-unit`.
-- [ ] 3.4 Run `make lint-all`.
-- [ ] 3.5 Optional: re-run `bin/check-assets.php` against live API to confirm parsed values appear in `AssetDTO`.
+- [x] 3.1 Update `Kinescope\DTO\Video\VideoDTO::getHighestQualityAsset()` and `getLowestQualityAsset()` to sort by `$asset->resolution?->height` semantics, and adjust their unit tests.
+- [x] 3.2 Update `Kinescope\Services\Videos\AssetSelector` (and `AssetSelectorTest`) to read `$asset->resolution?->height` in the height tie-breaker.
+- [x] 3.3 Update `tests/Unit/Services/Videos/VideoDownloaderQualitySelectionTest.php` asset payload shape to use `resolution` strings instead of separate `height` keys.
+- [x] 3.4 Audit remaining `->height` and `->width` references on `AssetDTO` across `src/` and `tests/` and migrate them.
+
+## 4. Documentation And Validation
+
+- [x] 4.1 Update `CHANGELOG.md` with a "Breaking changes" entry covering the `AssetDTO` surface change and migration notes.
+- [x] 4.2 Run `make openspec-validate`.
+- [x] 4.3 Run `make test-unit`.
+- [x] 4.4 Run `make lint-all`.
+- [ ] 4.5 Optional: run `make test-integration-download` after the implementation lands to confirm `BEST` now selects the highest-resolution non-original asset on live Kinescope payloads.

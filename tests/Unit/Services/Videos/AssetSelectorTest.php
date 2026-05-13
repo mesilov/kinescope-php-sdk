@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kinescope\Tests\Unit\Services\Videos;
 
 use Kinescope\DTO\Video\AssetDTO;
+use Kinescope\DTO\Video\Resolution;
 use Kinescope\Enum\QualityPreference;
 use Kinescope\Services\Videos\AssetSelector;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -198,12 +199,13 @@ final class AssetSelectorTest extends TestCase
         ?string $downloadLink,
         ?int $height = null,
     ): AssetDTO {
+        $resolution = $height === null ? null : new Resolution(width: 1920, height: $height);
+
         return new AssetDTO(
             id: $id,
             videoId: 'video-test',
             quality: null,
-            width: null,
-            height: $height,
+            resolution: $resolution,
             bitrate: null,
             fileSize: $fileSize,
             codec: null,

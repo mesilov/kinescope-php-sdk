@@ -150,7 +150,7 @@ final class VideoDownloaderQualitySelectionTest extends TestCase
      *     id: string,
      *     video_id: string,
      *     quality: string,
-     *     height: int|null,
+     *     resolution: string|null,
      *     file_size: int,
      *     download_link: string|null,
      * }
@@ -166,7 +166,7 @@ final class VideoDownloaderQualitySelectionTest extends TestCase
             'id' => $id,
             'video_id' => 'video-quality-selection',
             'quality' => $quality,
-            'height' => $height,
+            'resolution' => $height === null ? null : sprintf('1920x%d', $height),
             'file_size' => $fileSize,
             'download_link' => $downloadLink,
         ];

@@ -6,50 +6,73 @@
 - `width` and `height` are not present in any asset payload.
 - `resolution` is present for every asset (including `original`) as a `"<width>x<height>"` string.
 
-The currently shipped `fix-worst-quality-file-selection` change fixes `WORST` by sorting on `fileSize`, but `BEST` still depends on `height`, which is always `null` in practice. Public DTO accessors that depend on height (`isHd()`, `isFullHd()`, `is4K()`, `getResolution()`, `getAspectRatio()`) likewise return `null`/`false` for every real asset.
+The currently shipped `fix-worst-quality-file-selection` change fixes `WORST` by sorting on `fileSize`, but `BEST` still depends on `height`, which is always `null` in practice. Public DTO accessors that depend on height (`isHd()`, `isFullHd()`, `is4K()`, `getResolution()`, `getAspectRatio()`) likewise return `null` or `false` for every real asset.
+
+The existing pair (`?int $width`, `?int $height`) also has a soft contract: callers can construct an `AssetDTO` with `width` set but `height` null, or one of them zero, and the synthesizing `getResolution()` will misbehave. A value object resolves that and concentrates parsing in one place.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Populate `AssetDTO::$width` and `AssetDTO::$height` from the API `resolution` field when separate numeric fields are absent.
-- Keep numeric `width`/`height` as authoritative when the API does provide them.
+- Introduce a `Resolution` value object that captures the invariant `width > 0 && height > 0`, parses `"<width>x<height>"` strings, exposes resolution-derived predicates (`isHd`, `isFullHd`, `is4K`), and stringifies back.
+- Replace `AssetDTO::$width` and `AssetDTO::$height` with `?Resolution $resolution`.
+- Parse `resolution` from the API payload into the VO inside `AssetDTO::fromArray()`.
+- Keep numeric `width`/`height` keys authoritative when the API supplies them (and both are positive).
 - Treat malformed `resolution` strings as missing metadata silently.
-- Cover the parsing rules with focused unit tests.
-- Keep `AssetDTO` constructor signature, property set, and `toArray()` shape unchanged.
+- Update height-aware accessors (`getAspectRatio`, `isHd`, `isFullHd`, `is4K`) on `AssetDTO` to delegate to the VO.
+- Update internal callers (`VideoDTO`, `AssetSelector`) to use `$resolution?->height`.
+- Cover the new VO and the migrated DTO with focused unit tests.
 
 **Non-Goals:**
 
-- Do not add a new `$resolution` property on `AssetDTO`.
-- Do not change `VideoDownloader` selection logic. `BEST` will benefit indirectly because `height` becomes populated, but no rule changes.
-- Do not change other DTOs (`VideoDTO`, `SubtitleDTO`, etc.).
+- Do not preserve backwards compatibility on the `AssetDTO` property/method surface. This is an explicit breaking change called out in the proposal and CHANGELOG.
+- Do not change `VideoDownloader` selection rules. `BEST` will benefit indirectly because the resolution VO becomes populated, but no rule changes.
+- Do not change other DTOs (`VideoDTO` accessors, `SubtitleDTO`, etc.) beyond what is required to compile against the new `AssetDTO` shape.
 - Do not require live Kinescope credentials for regression coverage.
-- Do not perform automatic migration of stored `AssetDTO::toArray()` snapshots.
+- Do not perform automatic migration of stored `AssetDTO::toArray()` snapshots persisted by consumers.
 
 ## Decisions
 
-- Parse `resolution` strictly as `^(\d+)x(\d+)$`.
-  - Rationale: matches the observed API payload (`"1920x1080"`, `"852x480"`, etc.) and rejects junk without ambiguity.
-  - Alternative considered: split on `x` and cast to `int`. Rejected because `(int)"abc"` silently becomes `0` and would produce `width = 0`, `height = 0` for malformed input.
+- New type lives at `Kinescope\DTO\Video\Resolution`.
+  - Rationale: only used by `AssetDTO` today; keeps the namespace next to its consumer. If a second consumer appears, it can be moved to `Kinescope\DTO\Common` in a non-breaking follow-up.
+  - Alternative considered: place it in `Common` upfront. Rejected as speculative.
 
-- Prefer numeric `width`/`height` when both numeric and `resolution` are present.
-  - Rationale: a future API change that emits both is most likely to use the numeric pair as the precise source.
-  - Alternative considered: prefer `resolution`. Rejected because the numeric pair is already the canonical shape in `AssetDTO`.
+- `Resolution` is `final readonly`, constructor enforces `width > 0` and `height > 0`, throws `InvalidArgumentException` otherwise.
+  - Rationale: matches `AssetDTO::$fileSize` validation style and prevents zero-dimension nonsense.
 
-- Treat malformed or empty `resolution` as missing metadata.
-  - Rationale: resolution is not validated as required anywhere else in the SDK; raising on a soft metadata field would be a regression.
-  - Alternative considered: throw `InvalidArgumentException`. Rejected because it would break `fromArray()` for any future API change that emits a different string format.
+- Parsing entry points: `Resolution::tryFromString(string $value): ?self` and `Resolution::fromString(string $value): self`.
+  - `tryFromString` returns `null` on malformed input (used by `AssetDTO::fromArray()` for soft metadata).
+  - `fromString` throws `InvalidArgumentException` (available for callers that already validated input).
+  - Strict regex: `^(\d+)x(\d+)$`. Rejects `"1920×1080"` (Unicode `×`), `"1080p"`, `"abc"`.
 
-- Keep `AssetDTO::toArray()` emitting `width` and `height` numerically and not re-emitting `resolution`.
-  - Rationale: the existing snapshot shape stays stable; consumers already use `getResolution()` for a formatted string.
-  - Alternative considered: include `resolution` in `toArray()`. Rejected to keep the change minimal and backwards-compatible.
+- `AssetDTO::fromArray()` source-of-truth order:
+  1. If both numeric `width` and `height` are present and positive → build `Resolution` from them.
+  2. Else if `resolution` is present → `Resolution::tryFromString()`.
+  3. Else → `null`.
+  - Rationale: future API change that emits both numeric fields stays authoritative; current payload (only `resolution`) gets parsed; partial input (one numeric only) is rejected silently.
+
+- `AssetDTO::toArray()` shape:
+  - Emits `resolution` as `string|null` (the VO's `__toString()` or `null`).
+  - Does **not** emit `width` or `height` keys.
+  - Rationale: matches the live Kinescope payload shape and avoids leaking the old field pair.
+
+- `AssetDTO::getResolution(): ?string` is removed.
+  - Rationale: redundant given the public `$resolution` property and `(string) $asset->resolution`.
+  - Alternative considered: keep as a deprecated alias. Rejected — the proposal explicitly accepts the break, and a thin alias would entrench the old idiom.
+
+- `AssetDTO::isHd()`, `isFullHd()`, `is4K()`, `getAspectRatio()` are kept but delegate to the VO.
+  - Rationale: the method names are convenient and ergonomic on the DTO; pushing callers to write `$asset->resolution?->isHd() ?? false` everywhere would multiply churn without a clear gain.
 
 - Cover the behavior with unit tests using fake asset payloads.
-  - Rationale: the parsing rule is deterministic and isolated to `AssetDTO::fromArray()`. No HTTP transport is needed.
-  - Alternative considered: live integration coverage. Rejected because the issue was confirmed live once and reverting `resolution` parsing would not require an API call to detect.
+  - Rationale: parsing is deterministic and isolated. No HTTP transport needed.
+  - Alternative considered: live integration coverage. Rejected — covered indirectly by the existing live check from `fix-worst-quality-file-selection`.
 
 ## Risks / Trade-offs
 
-- Consumers who relied on `height === null` as a signal that an asset is "unknown resolution" will now see populated values. Mitigation: document the change in `CHANGELOG.md`; the new value is more accurate, not less.
-- The `original` asset may report the same resolution as `1080p`, so `getHighestQualityAsset()`-style helpers based purely on height could produce ties. Mitigation: this matches Kinescope's own metadata; tie-breakers belong to a separate change.
-- A future API change that emits `resolution` in a different shape (e.g. `1920×1080` with a Unicode multiplication sign, or `1080p`) would be ignored by the strict regex. Mitigation: documented decision; can be extended later without breaking the public API.
+- **Breaking change.** Consumers that read `$asset->width`, `$asset->height` directly or call `$asset->getResolution()` must migrate to `$asset->resolution?->width`, `$asset->resolution?->height`, and `(string) $asset->resolution`. Mitigation: CHANGELOG entry under a "Breaking changes" subsection, plus migration notes; SDK is pre-1.0 so semver allows the break in a minor.
+
+- `AssetDTO::toArray()` consumers that persisted snapshots in the old shape (with `width`/`height` keys) will not round-trip back through `fromArray()` losslessly. Mitigation: the resulting snapshot still contains a `resolution` string, which is the canonical Kinescope shape; older snapshots that captured only `width` and `height` simply produce `Resolution::tryFromString(null)` → `null`, which matches the documented contract.
+
+- The `original` asset frequently reports the same `resolution` as `1080p`, so `getHighestQualityAsset()` could produce ties on height. Mitigation: matches Kinescope metadata; secondary tie-breakers are out of scope for this change.
+
+- A future API change that emits `resolution` in a different shape (e.g. Unicode `×`, suffixes like `"1080p"`) would be silently ignored by the strict regex. Mitigation: documented; can be extended later in a non-breaking follow-up by relaxing `Resolution::tryFromString()`.

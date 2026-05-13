@@ -93,7 +93,7 @@ final readonly class VideoDownloader
         /** @var string $downloadLink */
         $downloadLink = $asset->downloadLink;
         $sizeBytes = $asset->fileSize;
-        $selectedHeight = $asset->height ?? 0;
+        $selectedHeight = $asset->resolution === null ? 0 : $asset->resolution->height;
 
         if ($sizeBytes <= 0) {
             throw new KinescopeException(sprintf(
