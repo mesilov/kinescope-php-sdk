@@ -1,7 +1,7 @@
 .PHONY: docker-init docker-up docker-down docker-down-clear docker-restart docker-rebuild \
         composer-install composer-update composer-dumpautoload composer \
         lint-all lint-cs-fixer lint-cs-fixer-fix lint-phpstan lint-rector lint-rector-fix \
-        test-unit test-integration openspec openspec-init openspec-list openspec-list-specs openspec-validate \
+        test-unit test-integration test-integration-fast test-integration-download openspec openspec-init openspec-list openspec-list-specs openspec-validate \
         php-cli-bash php-cli-root clear-cache show-env console-list
 
 # =============================================================================
@@ -89,6 +89,14 @@ test-unit:
 test-integration:
 	docker compose exec php-cli vendor/bin/phpunit --testsuite=integration --no-coverage
 
+## Быстрая часть интеграционных тестов (без скачивания файлов)
+test-integration-fast:
+	docker compose exec php-cli vendor/bin/phpunit --testsuite=integration --exclude-group=download --no-coverage
+
+## Тяжёлая часть интеграционных тестов (только скачивание файлов; opt-in через TESTS_VIDEO_DOWNLOADER_ENABLED=1)
+test-integration-download:
+	docker compose exec -e TESTS_VIDEO_DOWNLOADER_ENABLED=1 php-cli vendor/bin/phpunit --testsuite=integration --group=download --no-coverage
+
 ## Запуск всех тестов
 test:
 	docker compose exec php-cli vendor/bin/phpunit --no-coverage
@@ -174,9 +182,11 @@ help:
 	@echo "  make lint-phpstan      - Run static analysis"
 	@echo ""
 	@echo "Testing:"
-	@echo "  make test-unit         - Run unit tests"
-	@echo "  make test-integration  - Run integration tests"
-	@echo "  make test-coverage     - Run tests with coverage"
+	@echo "  make test-unit                 - Run unit tests"
+	@echo "  make test-integration          - Run all integration tests"
+	@echo "  make test-integration-fast     - Run integration tests except @group=download"
+	@echo "  make test-integration-download - Run only @group=download integration tests"
+	@echo "  make test-coverage             - Run tests with coverage"
 	@echo ""
 	@echo "OpenSpec:"
 	@echo "  make openspec-init     - Initialize OpenSpec structure"
