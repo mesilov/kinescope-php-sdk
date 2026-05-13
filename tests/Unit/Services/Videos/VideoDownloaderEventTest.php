@@ -176,7 +176,7 @@ class VideoDownloaderEventTest extends TestCase
                             [
                                 'id' => 'asset-1',
                                 'video_id' => $videoId,
-                                'height' => $this->selectedHeight,
+                                'resolution' => sprintf('1920x%d', $this->selectedHeight),
                                 'file_size' => $this->fileSize,
                                 'download_link' => 'https://example.test/videos/' . $videoId . '.mp4',
                             ],

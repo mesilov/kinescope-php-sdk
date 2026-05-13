@@ -170,7 +170,7 @@ final readonly class VideoDTO
         usort(
             $sorted,
             static fn (AssetDTO $a, AssetDTO $b): int =>
-            ($b->height ?? 0) <=> ($a->height ?? 0)
+            ($b->resolution === null ? 0 : $b->resolution->height) <=> ($a->resolution === null ? 0 : $a->resolution->height)
         );
 
         return $sorted[0];
@@ -191,7 +191,7 @@ final readonly class VideoDTO
         usort(
             $sorted,
             static fn (AssetDTO $a, AssetDTO $b): int =>
-            ($a->height ?? 0) <=> ($b->height ?? 0)
+            ($a->resolution === null ? 0 : $a->resolution->height) <=> ($b->resolution === null ? 0 : $b->resolution->height)
         );
 
         return $sorted[0];

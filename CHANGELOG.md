@@ -6,7 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## 0.4.0 - Unreleased
 
+### Breaking changes
+- `AssetDTO` no longer exposes separate `?int $width` and `?int $height` properties. They are replaced by a single `?Resolution $resolution` property that wraps the dimensions in a value object. `AssetDTO::getResolution(): ?string` is removed in favor of the public `$resolution` property; cast it to string to get the legacy `"<width>x<height>"` shape. `AssetDTO::toArray()` now emits a single `resolution` key (string or `null`) instead of separate `width` / `height` keys.
+  - Migration:
+    - `$asset->width` → `$asset->resolution?->width`
+    - `$asset->height` → `$asset->resolution?->height`
+    - `$asset->getResolution()` → `$asset->resolution === null ? null : (string) $asset->resolution`
+    - `toArray()` snapshots persisted before this release will not round-trip back; the canonical key is now `resolution`.
+
 ### Added
+- `Kinescope\DTO\Video\Resolution` — `final readonly` value object with positive-int `width` and `height`, `Resolution::tryFromString()` / `Resolution::fromString()` parsers for the canonical `"<width>x<height>"` shape, `aspectRatio()`, `isHd()` / `isFullHd()` / `is4K()` predicates, and `__toString()`.
+- `AssetDTO::fromArray()` now parses the API `resolution` string into a `Resolution` value object; numeric `width`+`height` keys remain authoritative when both are positive.
 - `VideoSlugExtractor` — pure stateless service for extracting video slugs from HLS links, embed codes, or `VideoDTO`.
 - `VideoFetcher` — auto-paginated search service:
   - `findByTitle(string $title): VideoDTO[]` — server-side search via `Videos::search()`, iterates all pages.

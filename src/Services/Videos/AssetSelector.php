@@ -65,15 +65,18 @@ final readonly class AssetSelector
 
     private static function compareKnownHeightAsc(AssetDTO $a, AssetDTO $b): int
     {
-        if ($a->height !== null && $b->height !== null) {
-            return $a->height <=> $b->height;
+        $heightA = $a->resolution?->height;
+        $heightB = $b->resolution?->height;
+
+        if ($heightA !== null && $heightB !== null) {
+            return $heightA <=> $heightB;
         }
 
-        if ($a->height !== null) {
+        if ($heightA !== null) {
             return -1;
         }
 
-        if ($b->height !== null) {
+        if ($heightB !== null) {
             return 1;
         }
 
@@ -82,15 +85,18 @@ final readonly class AssetSelector
 
     private static function compareKnownHeightDesc(AssetDTO $a, AssetDTO $b): int
     {
-        if ($a->height !== null && $b->height !== null) {
-            return $b->height <=> $a->height;
+        $heightA = $a->resolution?->height;
+        $heightB = $b->resolution?->height;
+
+        if ($heightA !== null && $heightB !== null) {
+            return $heightB <=> $heightA;
         }
 
-        if ($a->height !== null) {
+        if ($heightA !== null) {
             return -1;
         }
 
-        if ($b->height !== null) {
+        if ($heightB !== null) {
             return 1;
         }
 
