@@ -4,16 +4,11 @@ declare(strict_types=1);
 
 namespace Kinescope\Tests\Integration\Services\Videos;
 
-use Http\Discovery\Psr17FactoryDiscovery;
-use Http\Discovery\Psr18ClientDiscovery;
 use Kinescope\Core\ApiClientFactory;
 use Kinescope\Core\Credentials;
 use Kinescope\Enum\QualityPreference;
 use Kinescope\Services\Videos\VideoDownloader;
 use Kinescope\Services\Videos\Videos;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
-use Monolog\Processor\MemoryUsageProcessor;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -27,6 +22,7 @@ use Symfony\Component\Filesystem\Filesystem;
  * and TESTS_VIDEO_DOWNLOADER_FOLDER_ID environment variables.
  *
  * @group integration
+ * @group download
  */
 class VideoDownloaderTest extends TestCase
 {
@@ -43,6 +39,13 @@ class VideoDownloaderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        if (getenv('TESTS_VIDEO_DOWNLOADER_ENABLED') !== '1') {
+            $this->markTestSkipped(
+                'Downloader integration tests are opt-in. Set TESTS_VIDEO_DOWNLOADER_ENABLED=1 '
+                . 'or run "make test-integration-download" to enable them.'
+            );
+        }
 
         $apiKey = getenv('KINESCOPE_API_KEY');
         $videoId = getenv('TESTS_VIDEO_DOWNLOADER_VIDEO_ID');
@@ -73,28 +76,16 @@ class VideoDownloaderTest extends TestCase
 
         $this->tempDir = dirname(__DIR__, 4) . '/var/temp/kinescope-sdk-test-' . uniqid();
 
-        $logDir = dirname(__DIR__, 4) . '/var/logs';
-
-        if (! is_dir($logDir)) {
-            mkdir($logDir, 0o755, true);
-        }
-        $logger = new Logger('kinescope-test');
-        $logger->pushHandler(new StreamHandler($logDir . '/video-downloader-test.log'));
-        $logger->pushProcessor(new MemoryUsageProcessor());
-
         $this->downloader = new VideoDownloader(
-            $videos,
-            Psr18ClientDiscovery::find(),
-            Psr17FactoryDiscovery::findRequestFactory(),
-            $this->filesystem,
-            $logger,
+            videos: $videos,
+            filesystem: $this->filesystem,
         );
     }
 
     protected function tearDown(): void
     {
         if (isset($this->tempDir) && $this->filesystem->exists($this->tempDir)) {
-            //  $this->filesystem->remove($this->tempDir);
+            $this->filesystem->remove($this->tempDir);
         }
 
         parent::tearDown();

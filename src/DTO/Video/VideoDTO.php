@@ -72,7 +72,7 @@ final readonly class VideoDTO
 
         if (isset($data['assets']) && is_array($data['assets'])) {
             $assets = array_map(
-                static fn (array $asset): AssetDTO => AssetDTO::fromArray($asset),
+                AssetDTO::fromArray(...),
                 $data['assets']
             );
         }
@@ -90,7 +90,7 @@ final readonly class VideoDTO
             title: (string) ($data['title'] ?? ''),
             description: isset($data['description']) ? (string) $data['description'] : null,
             status: VideoStatus::from((string) ($data['status'] ?? 'pending')),
-            duration: (int) ($data['duration'] ?? 0),
+            duration: (int) round((float) ($data['duration'] ?? 0)),
             projectId: isset($data['project_id']) ? (string) $data['project_id'] : null,
             folderId: isset($data['folder_id']) ? (string) $data['folder_id'] : null,
             embedCode: isset($data['embed_code']) ? (string) $data['embed_code'] : null,
@@ -170,7 +170,7 @@ final readonly class VideoDTO
         usort(
             $sorted,
             static fn (AssetDTO $a, AssetDTO $b): int =>
-            ($b->height ?? 0) <=> ($a->height ?? 0)
+            ($b->resolution === null ? 0 : $b->resolution->height) <=> ($a->resolution === null ? 0 : $a->resolution->height)
         );
 
         return $sorted[0];
@@ -191,7 +191,7 @@ final readonly class VideoDTO
         usort(
             $sorted,
             static fn (AssetDTO $a, AssetDTO $b): int =>
-            ($a->height ?? 0) <=> ($b->height ?? 0)
+            ($a->resolution === null ? 0 : $a->resolution->height) <=> ($b->resolution === null ? 0 : $b->resolution->height)
         );
 
         return $sorted[0];

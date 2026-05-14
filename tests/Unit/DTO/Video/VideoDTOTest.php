@@ -72,6 +72,32 @@ class VideoDTOTest extends TestCase
         $this->assertEmpty($video->assets);
     }
 
+    public function testFromArrayParsesEveryDocumentedStatus(): void
+    {
+        $this->assertEquals(VideoStatus::PENDING, VideoDTO::fromArray($this->minimalData('pending'))->status);
+        $this->assertEquals(VideoStatus::UPLOADING, VideoDTO::fromArray($this->minimalData('uploading'))->status);
+        $this->assertEquals(VideoStatus::PRE_PROCESSING, VideoDTO::fromArray($this->minimalData('pre-processing'))->status);
+        $this->assertEquals(VideoStatus::PROCESSING, VideoDTO::fromArray($this->minimalData('processing'))->status);
+        $this->assertEquals(VideoStatus::ABORTED, VideoDTO::fromArray($this->minimalData('aborted'))->status);
+        $this->assertEquals(VideoStatus::DONE, VideoDTO::fromArray($this->minimalData('done'))->status);
+        $this->assertEquals(VideoStatus::ERROR, VideoDTO::fromArray($this->minimalData('error'))->status);
+    }
+
+    public function testFromArrayRoundsFractionalDurationToNearestWholeSecond(): void
+    {
+        $this->assertEquals(60, VideoDTO::fromArray($this->minimalData('done', 59.96))->duration);
+        $this->assertEquals(179, VideoDTO::fromArray($this->minimalData('done', 179.305))->duration);
+        $this->assertEquals(180, VideoDTO::fromArray($this->minimalData('done', 179.5))->duration);
+    }
+
+    public function testFromArrayKeepsMissingDurationAsZero(): void
+    {
+        $data = $this->minimalData('done');
+        unset($data['duration']);
+
+        $this->assertEquals(0, VideoDTO::fromArray($data)->duration);
+    }
+
     public function testToArrayReturnsCorrectStructure(): void
     {
         $data = [
@@ -203,19 +229,19 @@ class VideoDTOTest extends TestCase
                     'id' => 'a1',
                     'video_id' => 'video-1',
                     'file_size' => 1000,
-                    'height' => 480,
+                    'resolution' => '852x480',
                 ],
                 [
                     'id' => 'a2',
                     'video_id' => 'video-1',
                     'file_size' => 2000,
-                    'height' => 720,
+                    'resolution' => '1280x720',
                 ],
                 [
                     'id' => 'a3',
                     'video_id' => 'video-1',
                     'file_size' => 3000,
-                    'height' => 1080,
+                    'resolution' => '1920x1080',
                 ],
             ],
             'created_at' => '2024-01-01T00:00:00Z',
@@ -255,19 +281,19 @@ class VideoDTOTest extends TestCase
                     'id' => 'a1',
                     'video_id' => 'video-1',
                     'file_size' => 1000,
-                    'height' => 480,
+                    'resolution' => '852x480',
                 ],
                 [
                     'id' => 'a2',
                     'video_id' => 'video-1',
                     'file_size' => 2000,
-                    'height' => 720,
+                    'resolution' => '1280x720',
                 ],
                 [
                     'id' => 'a3',
                     'video_id' => 'video-1',
                     'file_size' => 3000,
-                    'height' => 1080,
+                    'resolution' => '1920x1080',
                 ],
             ],
             'created_at' => '2024-01-01T00:00:00Z',
@@ -351,5 +377,20 @@ class VideoDTOTest extends TestCase
         ]);
 
         $this->assertFalse($video->hasEmbedCode());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function minimalData(string $status, float|int $duration = 0): array
+    {
+        return [
+            'id' => '1',
+            'title' => 'Test',
+            'status' => $status,
+            'duration' => $duration,
+            'created_at' => '2024-01-01T00:00:00Z',
+            'updated_at' => '2024-01-01T00:00:00Z',
+        ];
     }
 }

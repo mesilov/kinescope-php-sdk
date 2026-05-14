@@ -75,7 +75,7 @@ final readonly class ProjectDTO
             storageUsed: isset($data['storage_used']) ? (int) $data['storage_used'] : null,
             isDefault: (bool) ($data['is_default'] ?? false),
             allowedDomains: isset($data['allowed_domains']) && is_array($data['allowed_domains'])
-                ? array_map('strval', $data['allowed_domains'])
+                ? array_map(strval(...), $data['allowed_domains'])
                 : [],
             settings: isset($data['settings']) && is_array($data['settings'])
                 ? $data['settings']

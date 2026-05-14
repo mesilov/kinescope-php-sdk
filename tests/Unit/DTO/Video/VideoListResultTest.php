@@ -32,11 +32,7 @@ class VideoListResultTest extends TestCase
                     'updated_at' => '2024-01-02T00:00:00Z',
                 ],
             ],
-            'meta' => [
-                'total' => 2,
-                'page' => 1,
-                'per_page' => 20,
-            ],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = VideoListResult::fromArray($data);
@@ -59,11 +55,7 @@ class VideoListResultTest extends TestCase
                     'updated_at' => '2024-01-02T00:00:00Z',
                 ],
             ],
-            'meta' => [
-                'total' => 1,
-                'page' => 1,
-                'per_page' => 20,
-            ],
+            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = VideoListResult::fromArray($data);
@@ -77,11 +69,7 @@ class VideoListResultTest extends TestCase
     {
         $data = [
             'data' => [],
-            'meta' => [
-                'total' => 100,
-                'page' => 2,
-                'per_page' => 25,
-            ],
+            'meta' => ['pagination' => ['total' => 100, 'page' => 2, 'per_page' => 25]],
         ];
 
         $result = VideoListResult::fromArray($data);
@@ -96,11 +84,7 @@ class VideoListResultTest extends TestCase
     {
         $data = [
             'data' => [],
-            'meta' => [
-                'total' => 100,
-                'page' => 1,
-                'per_page' => 20,
-            ],
+            'meta' => ['pagination' => ['total' => 100, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = VideoListResult::fromArray($data);
@@ -115,11 +99,7 @@ class VideoListResultTest extends TestCase
                 ['id' => '1', 'title' => 'Video 1', 'status' => 'done', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '2', 'title' => 'Video 2', 'status' => 'error', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => [
-                'total' => 2,
-                'page' => 1,
-                'per_page' => 20,
-            ],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = VideoListResult::fromArray($data);
@@ -133,15 +113,15 @@ class VideoListResultTest extends TestCase
     {
         $data = [
             'data' => [
-                ['id' => '1', 'title' => 'Video 1', 'duration' => 120, 'status' => 'done', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-                ['id' => '2', 'title' => 'Video 2', 'duration' => 240, 'status' => 'done', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '1', 'title' => 'Video 1', 'duration' => 59.96, 'status' => 'done', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '2', 'title' => 'Video 2', 'duration' => 179.305, 'status' => 'done', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = VideoListResult::fromArray($data);
 
-        $this->assertEquals(360, $result->getTotalDuration());
+        $this->assertEquals(239, $result->getTotalDuration());
     }
 
     public function testGetReadyReturnsOnlyDoneVideos(): void
@@ -152,7 +132,7 @@ class VideoListResultTest extends TestCase
                 ['id' => '2', 'title' => 'Video 2', 'status' => 'processing', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'title' => 'Video 3', 'status' => 'done', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = VideoListResult::fromArray($data);
@@ -172,7 +152,7 @@ class VideoListResultTest extends TestCase
                 ['id' => '1', 'title' => 'Video 1', 'status' => 'processing', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '2', 'title' => 'Video 2', 'status' => 'error', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 2, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = VideoListResult::fromArray($data);
@@ -190,7 +170,7 @@ class VideoListResultTest extends TestCase
                 ['id' => '2', 'title' => 'Video 2', 'status' => 'error', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'title' => 'Video 3', 'status' => 'error', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = VideoListResult::fromArray($data);
@@ -211,7 +191,7 @@ class VideoListResultTest extends TestCase
                 ['id' => '2', 'title' => 'Video 2', 'status' => 'done', 'project_id' => 'project-2', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'title' => 'Video 3', 'status' => 'done', 'project_id' => 'project-1', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
-            'meta' => ['total' => 3, 'page' => 1, 'per_page' => 20],
+            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = VideoListResult::fromArray($data);

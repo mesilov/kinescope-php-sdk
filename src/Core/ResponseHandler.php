@@ -22,12 +22,12 @@ use Psr\Http\Message\ResponseInterface;
  * - Mapping HTTP error codes to SDK exceptions
  * - Extracting error messages from response bodies
  */
-final class ResponseHandler
+final readonly class ResponseHandler
 {
     /**
      * JSON decoder instance.
      */
-    private readonly JsonDecoder $jsonDecoder;
+    private JsonDecoder $jsonDecoder;
 
     /**
      * Create a new ResponseHandler.

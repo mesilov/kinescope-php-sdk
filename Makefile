@@ -1,7 +1,8 @@
 .PHONY: docker-init docker-up docker-down docker-down-clear docker-restart docker-rebuild \
         composer-install composer-update composer-dumpautoload composer \
         lint-all lint-cs-fixer lint-cs-fixer-fix lint-phpstan lint-rector lint-rector-fix \
-        test-unit test-integration php-cli-bash php-cli-root clear-cache show-env
+        test-unit test-integration test-integration-fast test-integration-download openspec openspec-init openspec-list openspec-list-specs openspec-validate \
+        php-cli-bash php-cli-root clear-cache show-env console-list
 
 # =============================================================================
 # Docker commands
@@ -88,6 +89,14 @@ test-unit:
 test-integration:
 	docker compose exec php-cli vendor/bin/phpunit --testsuite=integration --no-coverage
 
+## Быстрая часть интеграционных тестов (без скачивания файлов)
+test-integration-fast:
+	docker compose exec php-cli vendor/bin/phpunit --testsuite=integration --exclude-group=download --no-coverage
+
+## Тяжёлая часть интеграционных тестов (только скачивание файлов; opt-in через TESTS_VIDEO_DOWNLOADER_ENABLED=1)
+test-integration-download:
+	docker compose exec -e TESTS_VIDEO_DOWNLOADER_ENABLED=1 php-cli vendor/bin/phpunit --testsuite=integration --group=download --no-coverage
+
 ## Запуск всех тестов
 test:
 	docker compose exec php-cli vendor/bin/phpunit --no-coverage
@@ -95,6 +104,30 @@ test:
 ## Запуск тестов с покрытием
 test-coverage:
 	docker compose exec php-cli vendor/bin/phpunit --coverage-html coverage
+
+# =============================================================================
+# OpenSpec commands
+# =============================================================================
+
+## Run OpenSpec CLI (usage: make openspec args="show add-video-fetcher")
+openspec:
+	docker compose run --rm openspec $(args)
+
+## Initialize OpenSpec repository structure and repository-local Codex skills
+openspec-init:
+	docker compose run --rm openspec init --tools codex --force
+
+## List active OpenSpec changes
+openspec-list:
+	docker compose run --rm openspec list
+
+## List OpenSpec specifications
+openspec-list-specs:
+	docker compose run --rm openspec list --specs
+
+## Validate all OpenSpec changes and specs in strict non-interactive mode
+openspec-validate:
+	docker compose run --rm openspec validate --all --strict --no-interactive
 
 # =============================================================================
 # Utility commands
@@ -117,6 +150,10 @@ clear-cache:
 ## Показать переменные окружения
 show-env:
 	docker compose exec php-cli env | sort
+
+## Показать список CLI-команд SDK
+console-list:
+	docker compose exec php-cli php bin/console list
 
 # =============================================================================
 # Help
@@ -145,10 +182,18 @@ help:
 	@echo "  make lint-phpstan      - Run static analysis"
 	@echo ""
 	@echo "Testing:"
-	@echo "  make test-unit         - Run unit tests"
-	@echo "  make test-integration  - Run integration tests"
-	@echo "  make test-coverage     - Run tests with coverage"
+	@echo "  make test-unit                 - Run unit tests"
+	@echo "  make test-integration          - Run all integration tests"
+	@echo "  make test-integration-fast     - Run integration tests except @group=download"
+	@echo "  make test-integration-download - Run only @group=download integration tests"
+	@echo "  make test-coverage             - Run tests with coverage"
+	@echo ""
+	@echo "OpenSpec:"
+	@echo "  make openspec-init     - Initialize OpenSpec structure"
+	@echo "  make openspec-list     - List active OpenSpec changes"
+	@echo "  make openspec-validate - Validate all OpenSpec artifacts"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make php-cli-bash      - Access PHP container shell"
 	@echo "  make clear-cache       - Clear cache files"
+	@echo "  make console-list      - List SDK CLI commands"

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Kinescope\Services\Folders;
 
+use Kinescope\Core\Pagination;
 use Kinescope\Core\Sort;
+use Kinescope\DTO\Common\MetaDTO;
 use Kinescope\DTO\Folder\FolderDTO;
 use Kinescope\DTO\Folder\FolderListResult;
 use Kinescope\Services\AbstractService;
@@ -135,13 +137,7 @@ final class FoldersService extends AbstractService
 
         $roots = $result->getRoots();
 
-        return FolderListResult::fromArray([
-            'data' => array_map(
-                static fn (FolderDTO $folder): array => $folder->toArray(),
-                $roots
-            ),
-            'meta' => $result->getMeta()->toArray(),
-        ]);
+        return new FolderListResult($roots, $result->getMeta());
     }
 
     /**
@@ -178,13 +174,13 @@ final class FoldersService extends AbstractService
     {
         $allFolders = $this->getAll($projectId);
 
-        $result = FolderListResult::fromArray([
-            'data' => array_map(
-                static fn (FolderDTO $folder): array => $folder->toArray(),
-                $allFolders
-            ),
-            'meta' => ['total' => count($allFolders), 'page' => 1, 'per_page' => count($allFolders)],
-        ]);
+        $result = new FolderListResult(
+            $allFolders,
+            new MetaDTO(
+                total: count($allFolders),
+                pagination: new Pagination(perPage: max(1, min(count($allFolders), Pagination::MAX_PER_PAGE))),
+            )
+        );
 
         return $result->buildTree();
     }

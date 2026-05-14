@@ -11,11 +11,7 @@ class PaginatedResponseTest extends TestCase
 {
     public function testMetaPaginationMethods(): void
     {
-        $meta = MetaDTO::fromArray([
-            'total' => 100,
-            'page' => 1,
-            'per_page' => 20,
-        ]);
+        $meta = self::meta(total: 100, page: 1, perPage: 20);
 
         $this->assertEquals(5, $meta->getLastPage());
         $this->assertTrue($meta->hasNextPage());
@@ -27,11 +23,7 @@ class PaginatedResponseTest extends TestCase
 
     public function testMetaLastPage(): void
     {
-        $meta = MetaDTO::fromArray([
-            'total' => 100,
-            'page' => 5,
-            'per_page' => 20,
-        ]);
+        $meta = self::meta(total: 100, page: 5, perPage: 20);
 
         $this->assertEquals(5, $meta->getLastPage());
         $this->assertFalse($meta->hasNextPage());
@@ -40,26 +32,28 @@ class PaginatedResponseTest extends TestCase
 
     public function testMetaEmpty(): void
     {
-        $meta = MetaDTO::fromArray([
-            'total' => 0,
-            'page' => 1,
-            'per_page' => 20,
-        ]);
+        $meta = self::meta(total: 0, page: 1, perPage: 20);
 
         $this->assertEquals(0, $meta->getLastPage());
         $this->assertTrue($meta->isEmpty());
         $this->assertFalse($meta->hasNextPage());
     }
 
-    public function testMetaWithCustomLastPage(): void
+    public function testMetaCalculatesLastPageWithoutCustomLastPage(): void
     {
-        $meta = MetaDTO::fromArray([
-            'total' => 100,
-            'page' => 1,
-            'per_page' => 20,
-            'last_page' => 3,
-        ]);
+        $meta = self::meta(total: 100, page: 1, perPage: 20);
 
-        $this->assertEquals(3, $meta->getLastPage());
+        $this->assertEquals(5, $meta->getLastPage());
+    }
+
+    private static function meta(int $total, int $page, int $perPage): MetaDTO
+    {
+        return MetaDTO::fromArray([
+            'pagination' => [
+                'total' => $total,
+                'page' => $page,
+                'per_page' => $perPage,
+            ],
+        ]);
     }
 }

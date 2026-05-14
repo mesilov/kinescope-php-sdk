@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Kinescope\Tests\Unit\Services\Videos;
 
-use Kinescope\Contracts\ApiClientInterface;
-use Kinescope\Enum\HttpMethod;
 use Kinescope\Enum\QualityPreference;
 use Kinescope\Event\Download\DownloadCompletedEvent;
 use Kinescope\Event\Download\DownloadFailedEvent;
@@ -13,15 +11,15 @@ use Kinescope\Event\Download\DownloadProgressEvent;
 use Kinescope\Event\Download\DownloadStartedEvent;
 use Kinescope\Services\Videos\VideoDownloader;
 use Kinescope\Services\Videos\Videos;
-use Nyholm\Psr7\Factory\Psr17Factory;
-use Nyholm\Psr7\Response;
+use Kinescope\Tests\Unit\FakeApiClient;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Client\ClientInterface;
 use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 
-class VideoDownloaderEventTest extends TestCase
+final class VideoDownloaderEventTest extends TestCase
 {
+    private const int PROGRESS_INTERVAL_BYTES = 10_485_760;
+
     private Filesystem $filesystem;
 
     protected function setUp(): void
@@ -33,25 +31,18 @@ class VideoDownloaderEventTest extends TestCase
     public function testDownloadVideoDispatchesStartedProgressAndCompletedEvents(): void
     {
         $videoId = 'video-1';
-        $sizeBytes = 1_500_000;
+        $sizeBytes = 12_000_000;
         $destinationDir = sys_get_temp_dir() . '/kinescope-sdk-unit-' . uniqid('', true);
-
-        $requestFactory = new Psr17Factory();
-        $response = new Response(
-            status: 200,
-            body: $requestFactory->createStream(str_repeat('a', $sizeBytes)),
-        );
-
-        $httpClient = $this->createMock(ClientInterface::class);
-        $httpClient
-            ->expects($this->once())
-            ->method('sendRequest')
-            ->willReturn($response);
+        $fileTransfer = new FakeFileTransfer(progressBytes: [
+            1_000_000,
+            self::PROGRESS_INTERVAL_BYTES,
+            self::PROGRESS_INTERVAL_BYTES + 1,
+        ]);
 
         $downloader = $this->createDownloader(
-            httpClient: $httpClient,
             fileSize: $sizeBytes,
             selectedHeight: 1080,
+            fileTransfer: $fileTransfer,
         );
 
         $started = [];
@@ -83,9 +74,10 @@ class VideoDownloaderEventTest extends TestCase
         }
 
         $this->assertCount(1, $started);
-        $this->assertGreaterThanOrEqual(1, count($progress));
+        $this->assertCount(1, $progress);
         $this->assertCount(1, $completed);
         $this->assertCount(0, $failed);
+        $this->assertSame(1, $fileTransfer->requestCount());
 
         $startedEvent = $started[0];
         $this->assertSame($videoId, $startedEvent->videoId);
@@ -95,14 +87,15 @@ class VideoDownloaderEventTest extends TestCase
 
         $progressEvent = $progress[0];
         $this->assertSame($videoId, $progressEvent->videoId);
+        $this->assertSame($destinationDir . '/' . $videoId . '.mp4', $progressEvent->filePath);
         $this->assertSame($sizeBytes, $progressEvent->sizeBytes);
-        $this->assertGreaterThan(0, $progressEvent->bytesWritten);
-        $this->assertGreaterThanOrEqual(0.0, $progressEvent->percent);
-        $this->assertLessThanOrEqual(100.0, $progressEvent->percent);
+        $this->assertSame(self::PROGRESS_INTERVAL_BYTES, $progressEvent->bytesWritten);
+        $this->assertSame(87.4, $progressEvent->percent);
 
         $completedEvent = $completed[0];
         $this->assertSame($videoId, $completedEvent->videoId);
-        $this->assertGreaterThan(0, $completedEvent->fileSize);
+        $this->assertSame($destinationDir . '/' . $videoId . '.mp4', $completedEvent->filePath);
+        $this->assertSame($sizeBytes, $completedEvent->fileSize);
         $this->assertGreaterThanOrEqual(0, $completedEvent->durationMs);
     }
 
@@ -111,17 +104,16 @@ class VideoDownloaderEventTest extends TestCase
         $videoId = 'video-2';
         $sizeBytes = 2_000_000;
         $destinationDir = sys_get_temp_dir() . '/kinescope-sdk-unit-' . uniqid('', true);
-
-        $httpClient = $this->createMock(ClientInterface::class);
-        $httpClient
-            ->expects($this->once())
-            ->method('sendRequest')
-            ->willThrowException(new RuntimeException('request failed'));
+        $exception = new RuntimeException('request failed');
+        $fileTransfer = new FakeFileTransfer(
+            exception: $exception,
+            partialBytesBeforeFailure: 1024,
+        );
 
         $downloader = $this->createDownloader(
-            httpClient: $httpClient,
             fileSize: $sizeBytes,
             selectedHeight: 720,
+            fileTransfer: $fileTransfer,
         );
 
         $started = [];
@@ -150,77 +142,48 @@ class VideoDownloaderEventTest extends TestCase
         $this->assertCount(1, $failed);
         $this->assertSame($videoId, $failed[0]->videoId);
         $this->assertSame($sizeBytes, $failed[0]->totalBytes);
+        $this->assertSame(0, $failed[0]->bytesWritten);
         $this->assertSame('request failed', $failed[0]->exception->getMessage());
+        $this->assertFileDoesNotExist($destinationDir . '/' . $videoId . '.mp4');
+        $this->assertFileDoesNotExist($destinationDir . '/' . $videoId . '.mp4.part');
     }
 
-    private function createDownloader(ClientInterface $httpClient, int $fileSize, int $selectedHeight): VideoDownloader
+    private function createDownloader(int $fileSize, int $selectedHeight, FakeFileTransfer $fileTransfer): VideoDownloader
     {
-        $apiClient = new class ($fileSize, $selectedHeight) implements ApiClientInterface {
-            public function __construct(
-                private readonly int $fileSize,
-                private readonly int $selectedHeight,
-            ) {
-            }
-
-            public function get(string $endpoint, array $query = []): array
-            {
-                $videoId = basename($endpoint);
-
-                return [
-                    'data' => [
-                        'id' => $videoId,
-                        'title' => 'Test Video',
-                        'status' => 'done',
-                        'duration' => 120,
-                        'assets' => [
-                            [
-                                'id' => 'asset-1',
-                                'video_id' => $videoId,
-                                'height' => $this->selectedHeight,
-                                'file_size' => $this->fileSize,
-                                'download_link' => 'https://example.test/videos/' . $videoId . '.mp4',
-                            ],
-                        ],
-                        'created_at' => '2024-01-01T00:00:00Z',
-                        'updated_at' => '2024-01-01T00:00:00Z',
-                    ],
-                ];
-            }
-
-            public function post(string $endpoint, array $data = [], array $query = []): array
-            {
-                throw new RuntimeException('Not implemented in test stub.');
-            }
-
-            public function put(string $endpoint, array $data = [], array $query = []): array
-            {
-                throw new RuntimeException('Not implemented in test stub.');
-            }
-
-            public function patch(string $endpoint, array $data = [], array $query = []): array
-            {
-                throw new RuntimeException('Not implemented in test stub.');
-            }
-
-            public function delete(string $endpoint, array $query = []): array
-            {
-                throw new RuntimeException('Not implemented in test stub.');
-            }
-
-            public function request(HttpMethod $method, string $endpoint, array $options = []): array
-            {
-                throw new RuntimeException('Not implemented in test stub.');
-            }
-        };
-
-        $videos = new Videos($apiClient);
-        $requestFactory = new Psr17Factory();
-
         return new VideoDownloader(
-            videos: $videos,
-            httpClient: $httpClient,
-            requestFactory: $requestFactory,
             filesystem: $this->filesystem,
+            videos: new Videos(new FakeApiClient()->queueResponse($this->videoResponse(
+                videoId: 'video-' . ($selectedHeight === 1080 ? '1' : '2'),
+                fileSize: $fileSize,
+                selectedHeight: $selectedHeight,
+            ))),
+            fileTransfer: $fileTransfer,
         );
+    }
+
+    /**
+     * @return array{data: array<string, mixed>}
+     */
+    private function videoResponse(string $videoId, int $fileSize, int $selectedHeight): array
+    {
+        return [
+            'data' => [
+                'id' => $videoId,
+                'title' => 'Test Video',
+                'status' => 'done',
+                'duration' => 120,
+                'assets' => [
+                    [
+                        'id' => 'asset-1',
+                        'video_id' => $videoId,
+                        'resolution' => sprintf('1920x%d', $selectedHeight),
+                        'file_size' => $fileSize,
+                        'download_link' => 'https://example.test/videos/' . $videoId . '.mp4',
+                    ],
+                ],
+                'created_at' => '2024-01-01T00:00:00Z',
+                'updated_at' => '2024-01-01T00:00:00Z',
+            ],
+        ];
     }
 }

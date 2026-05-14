@@ -4,7 +4,70 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] - 2026-02-17
+## 0.5.0 — UNRELEASED
+
+## 0.4.0 — 2026-05-14
+
+### Breaking changes
+- `VideoDownloader` no longer accepts PSR-18 `ClientInterface` or PSR-17 `RequestFactoryInterface` constructor dependencies for video file bytes. The new constructor order is `Videos`, `Filesystem`, `FileTransferInterface`, `EventDispatcherInterface`, `AssetSelector`, `LoggerInterface`; the logger is the final optional dependency.
+  - Migration: `new VideoDownloader($videos, $httpClient, $requestFactory, $filesystem)` -> `new VideoDownloader(videos: $videos, filesystem: $filesystem)`.
+  - Applications that need a non-default transfer should inject `fileTransfer: new AppFileTransfer()` where `AppFileTransfer` implements `FileTransferInterface`.
+- `AssetDTO` no longer exposes separate `?int $width` and `?int $height` properties. They are replaced by a single `?Resolution $resolution` property that wraps the dimensions in a value object. `AssetDTO::getResolution(): ?string` is removed in favor of the public `$resolution` property; cast it to string to get the legacy `"<width>x<height>"` shape. `AssetDTO::toArray()` now emits a single `resolution` key (string or `null`) instead of separate `width` / `height` keys.
+  - Migration:
+    - `$asset->width` → `$asset->resolution?->width`
+    - `$asset->height` → `$asset->resolution?->height`
+    - `$asset->getResolution()` → `$asset->resolution === null ? null : (string) $asset->resolution`
+    - `toArray()` snapshots persisted before this release will not round-trip back; the canonical key is now `resolution`.
+- `Videos::list(status:)` now accepts `?VideoStatus` instead of `?string` and serializes the filter as API key `status[]` with a single scalar enum value.
+  - Migration: `status: 'done'` → `status: VideoStatus::DONE`.
+
+### Added
+- `Kinescope\DTO\Video\Resolution` — `final readonly` value object with positive-int `width` and `height`, `Resolution::tryFromString()` / `Resolution::fromString()` parsers for the canonical `"<width>x<height>"` shape, `aspectRatio()`, `isHd()` / `isFullHd()` / `is4K()` predicates, and `__toString()`.
+- `Kinescope\DTO\Statistics\StatisticsDTO` — immutable statistics result with done-video count, total duration, rounded minute/hour helpers, human-readable formatting, and array export.
+- `Kinescope\Services\Statistics\Statistics` exposed through `$factory->statistics()` with `forAccount()`, `forProject()`, and `forFolder()` aggregations over videos with `VideoStatus::DONE`.
+- `VideoStatus` now includes the documented `pre-processing` and `aborted` states.
+- Statistics integration-test env slots: `TESTS_STATISTICS_PROJECT_ID` and `TESTS_STATISTICS_FOLDER_ID`.
+- `AssetDTO::fromArray()` now parses the API `resolution` string into a `Resolution` value object; numeric `width`+`height` keys remain authoritative when both are positive.
+- `VideoSlugExtractor` — pure stateless service for extracting video slugs from HLS links, embed codes, or `VideoDTO`.
+- `VideoFetcher` — auto-paginated search service:
+  - `findByTitle(string $title): VideoDTO[]` — server-side search via `Videos::search()`, iterates all pages.
+  - `findByVideoSlug(string $slug): VideoDTO[]` — client-side filter via `Videos::list()`, iterates all pages and matches by slug.
+- CLI application `bin/console` based on Symfony Console 8.
+- Command `video:info <video-id>` — fetches video data by UUID and outputs it as pretty-printed JSON to STDOUT.
+  - API key resolved from `KINESCOPE_API_KEY` env variable or `--api-key` / `-k` option.
+  - Errors (not found, auth failure, network) written to STDERR; exit code `1` on failure.
+- `src/Infrastructure/Console/Application` — Console application entry point.
+- `src/Infrastructure/Console/ContainerFactory` — standalone Symfony DI container; wires `LoggerInterface` and pre-configured `ApiClientFactory` into commands.
+- New runtime dependencies: `symfony/console ^8.0`, `symfony/dependency-injection ^8.0`.
+- Makefile target `console-list` — lists all registered SDK CLI commands.
+- Integration tests for `VideoFetcher` covering title search, slug lookup, and missing-slug behavior against the real Kinescope API.
+- `AssetSelector` — dedicated service that picks a downloadable `AssetDTO` based on the requested `QualityPreference`. Injected into `VideoDownloader` as a constructor dependency with a sensible default; existing callers do not need to change.
+- `FileTransferInterface`, `FileTransferRequest`, `FileTransferProgress`, and `FileTransferResult` for injecting custom video file-transfer implementations.
+- `CurlFileTransfer` — default direct-to-file transfer implementation for selected video download links. It uses `GET`, HTTP/HTTPS only, up to 5 redirects, TLS peer/host verification, `2xx` success statuses only, a 10-second connect timeout, no fixed total timeout, and low-speed failure below 1024 bytes/sec for 60 seconds.
+- Makefile targets `test-integration-fast` and `test-integration-download`. The latter automatically sets `TESTS_VIDEO_DOWNLOADER_ENABLED=1` so heavy CDN-download tests run only on demand.
+- `TESTS_VIDEO_DOWNLOADER_ENABLED` env flag — opt-in gate for `VideoDownloaderTest`; downloader integration tests are skipped unless explicitly enabled.
+
+### Changed
+- `VideoDownloader` now transfers selected asset bytes through `FileTransferInterface`, writes in-progress downloads to a sibling `.part` file, validates the completed byte count against transfer-reported bytes when available and selected asset `fileSize` as a fallback, and renames `.part` to the final destination only after validation succeeds.
+- `VideoDownloader` removes handled failed `.part` files and does not report completion after transfer or validation failures. Fatal process termination may still leave `.part` cleanup candidates.
+- Download progress events are now throttled at 10 MiB boundaries in `VideoDownloader`; transfer implementations may report smaller chunks, but lifecycle events remain SDK-owned.
+- Kinescope API bearer credentials are not sent to selected asset download URLs by default. Transfer request headers are explicit only.
+- Symfony HttpClient remains optional for file downloads; applications can use it through a custom `FileTransferInterface` implementation with `buffer=false` and `stream()`.
+
+### Fixed
+- Fractional video durations from the API are now rounded to the nearest whole second in `VideoDTO::fromArray()` instead of being truncated.
+- `VideoDownloader` progress callback invocation is now compatible with PHPStan strict callable analysis.
+- `QualityPreference::WORST` now selects the smallest downloadable file by `fileSize` instead of treating missing asset height as resolution `0`.
+- Pagination metadata parsing now reads the current Kinescope API shape from `meta.pagination.total`, `meta.pagination.page`, and `meta.pagination.per_page` instead of the obsolete flat `meta.total`, `meta.page`, and `meta.per_page` keys.
+- Malformed paginated response metadata now fails explicitly instead of returning hidden pagination defaults.
+
+### Quality
+- Added project Rector configuration for PHP 8.4 dry-run linting.
+- Applied Rector PHP 8.4 cleanup rules and kept exceptions for transformations that conflict with Symfony DI or PHPStan.
+- Added OpenSpec support via a Docker-backed `kinescope-php-sdk-openspec:dev` image and Makefile wrappers.
+- Added repository-local Codex skills generated by OpenSpec for explore, propose, apply, and archive workflows.
+
+## 0.3.0 - 2026-02-17
 
 ### Added
 - Event subscription support in `VideoDownloader` via `on(string $eventName, callable $listener, int $priority = 0): self`.
@@ -26,7 +89,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   - `symfony/mime`
   - `symfony/uid`
 
-## [0.2.0] - 2026-02-07
+## 0.2.0 - 2026-02-07
 
 ### Added
 
