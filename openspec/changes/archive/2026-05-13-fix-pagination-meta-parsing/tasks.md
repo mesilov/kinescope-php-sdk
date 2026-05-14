@@ -21,4 +21,4 @@
 - [x] 4.1 Run `make openspec-validate`.
 - [x] 4.2 Run `make test-unit`.
 - [x] 4.3 Run `make lint-all`.
-- [ ] 4.4 Run `make test-integration` when Kinescope credentials and fixtures are available.
+- [x] 4.4 Run `make test-integration` when Kinescope credentials and fixtures are available.
