@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.0/phpunit.xsd"
+    bootstrap="vendor/autoload.php"
+    cacheDirectory=".phpunit.cache"
+    colors="true"
+>
+    <php>
+        <env name="KINESCOPE_API_KEY" value=""/>
+        <env name="TESTS_VIDEO_DOWNLOADER_VIDEO_ID" value=""/>
+        <env name="TESTS_VIDEO_DOWNLOADER_FOLDER_ID" value=""/>
+        <env name="TESTS_VIDEO_DOWNLOADER_ENABLED" value="0"/>
+        <env name="TESTS_STATISTICS_PROJECT_ID" value=""/>
+        <env name="TESTS_STATISTICS_FOLDER_ID" value=""/>
+    </php>
+
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+</phpunit>

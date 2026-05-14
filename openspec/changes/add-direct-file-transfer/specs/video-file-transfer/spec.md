@@ -133,22 +133,25 @@ The SDK SHALL translate file-transfer progress into the existing download progre
 - **THEN** `VideoDownloader` dispatches the download-completed event with the final file path and completed file size
 
 ### Requirement: Validate completed transfers
-The SDK SHALL validate completed video file transfers in `VideoDownloader` against the selected asset file size before reporting download completion.
+The SDK SHALL validate completed video file transfers in `VideoDownloader` before reporting download completion, using the transfer-reported byte count when available and the selected asset file size as a fallback.
 
 #### Scenario: Transfer request includes selected asset size
 - **WHEN** `VideoDownloader` creates a file-transfer request for a selected asset
 - **THEN** it sets the request expected byte count to the selected asset `fileSize`
 
-#### Scenario: Successful transfer matches selected asset size
-- **WHEN** the transfer result reports exactly the selected asset `fileSize` as written bytes
+#### Scenario: Successful transfer matches validation byte count
+- **WHEN** the transfer result reports a completed byte count
+- **THEN** `VideoDownloader` uses that transfer-reported byte count as the validation byte count
+- **AND** when the transfer result does not report a completed byte count, `VideoDownloader` uses the selected asset `fileSize` as the validation byte count
+- **AND** when written bytes match the validation byte count
 - **THEN** `VideoDownloader` renames the `.part` file to the final destination path and completes successfully
 
 #### Scenario: Incomplete transfer fails
-- **WHEN** the transfer result reports fewer or more written bytes than the selected asset `fileSize`
+- **WHEN** the transfer result reports fewer or more written bytes than the validation byte count
 - **THEN** the download fails with a `KinescopeException`
 
-#### Scenario: Custom transfer cannot bypass size validation
-- **WHEN** a custom transfer implementation returns a successful result with a written byte count that differs from the selected asset `fileSize`
+#### Scenario: Custom transfer cannot bypass completed-size validation
+- **WHEN** a custom transfer implementation returns a successful result with a written byte count that differs from its reported completed byte count or, when absent, from the selected asset `fileSize`
 - **THEN** `VideoDownloader` fails the download with a `KinescopeException`
 
 #### Scenario: Failed transfer does not report completion

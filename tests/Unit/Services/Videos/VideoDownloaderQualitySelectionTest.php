@@ -4,19 +4,13 @@ declare(strict_types=1);
 
 namespace Kinescope\Tests\Unit\Services\Videos;
 
-use Kinescope\Contracts\ApiClientInterface;
-use Kinescope\Enum\HttpMethod;
 use Kinescope\Enum\QualityPreference;
 use Kinescope\Exception\KinescopeException;
 use Kinescope\Services\Videos\VideoDownloader;
 use Kinescope\Services\Videos\Videos;
-use Nyholm\Psr7\Factory\Psr17Factory;
-use Nyholm\Psr7\Response;
+use Kinescope\Tests\Unit\FakeApiClient;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestInterface;
-use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 
 final class VideoDownloaderQualitySelectionTest extends TestCase
@@ -86,25 +80,12 @@ final class VideoDownloaderQualitySelectionTest extends TestCase
         $videoId = 'video-quality-selection';
         $destinationDir = sys_get_temp_dir() . '/kinescope-sdk-unit-' . uniqid('', true);
         $filesystem = new Filesystem();
-        $requestFactory = new Psr17Factory();
-
-        $httpClient = $this->createMock(ClientInterface::class);
-        $httpClient
-            ->expects($this->once())
-            ->method('sendRequest')
-            ->with($this->callback(
-                static fn (RequestInterface $request): bool => (string) $request->getUri() === $expectedUrl,
-            ))
-            ->willReturn(new Response(
-                status: 200,
-                body: $requestFactory->createStream(str_repeat('a', $expectedSize)),
-            ));
+        $fileTransfer = new FakeFileTransfer();
 
         $downloader = new VideoDownloader(
             videos: new Videos($this->createApiClient($assets)),
-            httpClient: $httpClient,
-            requestFactory: $requestFactory,
             filesystem: $filesystem,
+            fileTransfer: $fileTransfer,
         );
 
         try {
@@ -112,6 +93,13 @@ final class VideoDownloaderQualitySelectionTest extends TestCase
         } finally {
             $filesystem->remove($destinationDir);
         }
+
+        $request = $fileTransfer->requestAt(0);
+
+        $this->assertSame($expectedUrl, $request->url);
+        $this->assertSame($destinationDir . '/' . $videoId . '.mp4.part', $request->outputPath);
+        $this->assertSame($expectedSize, $request->expectedBytes);
+        $this->assertSame([], $request->headers);
     }
 
     public function testDownloadVideoFailsWhenNoDownloadableAssetExists(): void
@@ -119,20 +107,14 @@ final class VideoDownloaderQualitySelectionTest extends TestCase
         $videoId = 'video-quality-selection';
         $destinationDir = sys_get_temp_dir() . '/kinescope-sdk-unit-' . uniqid('', true);
         $filesystem = new Filesystem();
-        $requestFactory = new Psr17Factory();
-
-        $httpClient = $this->createMock(ClientInterface::class);
-        $httpClient
-            ->expects($this->never())
-            ->method('sendRequest');
+        $fileTransfer = new FakeFileTransfer();
 
         $downloader = new VideoDownloader(
             videos: new Videos($this->createApiClient([
                 self::asset(id: 'asset-undownloadable', quality: '360p', height: 360, fileSize: 10, downloadLink: null),
             ])),
-            httpClient: $httpClient,
-            requestFactory: $requestFactory,
             filesystem: $filesystem,
+            fileTransfer: $fileTransfer,
         );
 
         $this->expectException(KinescopeException::class);
@@ -143,6 +125,8 @@ final class VideoDownloaderQualitySelectionTest extends TestCase
         } finally {
             $filesystem->remove($destinationDir);
         }
+
+        $this->assertSame(0, $fileTransfer->requestCount());
     }
 
     /**
@@ -175,56 +159,18 @@ final class VideoDownloaderQualitySelectionTest extends TestCase
     /**
      * @param list<array<string, mixed>> $assets
      */
-    private function createApiClient(array $assets): ApiClientInterface
+    private function createApiClient(array $assets): FakeApiClient
     {
-        return new readonly class ($assets) implements ApiClientInterface {
-            /**
-             * @param list<array<string, mixed>> $assets
-             */
-            public function __construct(
-                private array $assets,
-            ) {
-            }
-
-            public function get(string $endpoint, array $query = []): array
-            {
-                return [
-                    'data' => [
-                        'id' => basename($endpoint),
-                        'title' => 'Quality Selection Test Video',
-                        'status' => 'done',
-                        'duration' => 120,
-                        'assets' => $this->assets,
-                        'created_at' => '2024-01-01T00:00:00Z',
-                        'updated_at' => '2024-01-01T00:00:00Z',
-                    ],
-                ];
-            }
-
-            public function post(string $endpoint, array $data = [], array $query = []): array
-            {
-                throw new RuntimeException('Not implemented in test stub.');
-            }
-
-            public function put(string $endpoint, array $data = [], array $query = []): array
-            {
-                throw new RuntimeException('Not implemented in test stub.');
-            }
-
-            public function patch(string $endpoint, array $data = [], array $query = []): array
-            {
-                throw new RuntimeException('Not implemented in test stub.');
-            }
-
-            public function delete(string $endpoint, array $query = []): array
-            {
-                throw new RuntimeException('Not implemented in test stub.');
-            }
-
-            public function request(HttpMethod $method, string $endpoint, array $options = []): array
-            {
-                throw new RuntimeException('Not implemented in test stub.');
-            }
-        };
+        return new FakeApiClient()->queueResponse([
+            'data' => [
+                'id' => 'video-quality-selection',
+                'title' => 'Quality Selection Test Video',
+                'status' => 'done',
+                'duration' => 120,
+                'assets' => $assets,
+                'created_at' => '2024-01-01T00:00:00Z',
+                'updated_at' => '2024-01-01T00:00:00Z',
+            ],
+        ]);
     }
 }
