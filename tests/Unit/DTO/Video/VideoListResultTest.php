@@ -113,15 +113,15 @@ class VideoListResultTest extends TestCase
     {
         $data = [
             'data' => [
-                ['id' => '1', 'title' => 'Video 1', 'duration' => 120, 'status' => 'done', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-                ['id' => '2', 'title' => 'Video 2', 'duration' => 240, 'status' => 'done', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '1', 'title' => 'Video 1', 'duration' => 59.96, 'status' => 'done', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '2', 'title' => 'Video 2', 'duration' => 179.305, 'status' => 'done', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
             'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = VideoListResult::fromArray($data);
 
-        $this->assertEquals(360, $result->getTotalDuration());
+        $this->assertEquals(239, $result->getTotalDuration());
     }
 
     public function testGetReadyReturnsOnlyDoneVideos(): void

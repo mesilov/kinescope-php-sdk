@@ -47,33 +47,33 @@ The SDK SHALL expose `Kinescope\DTO\Statistics\StatisticsDTO` as a `final readon
 - **THEN** the returned array contains exactly the keys `videos_count`, `total_duration_seconds`, `total_minutes`, `total_hours`, and `generated_at`, where `total_duration_seconds` is `(int) $dto->totalDuration->totalSeconds`, `total_minutes` and `total_hours` are the rounded integer values returned by `getTotalMinutes()` / `getTotalHours()`, and `generated_at` is an ISO 8601 string (`DateTimeInterface::ATOM`)
 
 ### Requirement: Aggregate statistics across the whole account
-The SDK SHALL provide `Statistics::forAccount(): StatisticsDTO` that aggregates over every `done` video accessible to the configured API key.
+The SDK SHALL provide `Statistics::forAccount(): StatisticsDTO` that aggregates over every `done` video accessible to the configured API key, summing normalized whole-second `VideoDTO::$duration` values.
 
-#### Scenario: forAccount sums durations across paginated responses
-- **WHEN** the API returns two pages of `done` videos whose `duration` values sum to `18450` seconds and the first page reports `meta.pagination.total === 42`
+#### Scenario: forAccount sums normalized durations across paginated responses
+- **WHEN** the API returns two pages of `done` videos whose normalized `VideoDTO::$duration` values sum to `18450` seconds and the first page reports `meta.pagination.total === 42`
 - **THEN** `forAccount()` returns a `StatisticsDTO` with `videosCount === 42` and `$dto->getTotalSeconds() === 18450`
 
-#### Scenario: forAccount issues every request with status=done and no scope filters
+#### Scenario: forAccount issues every request with VideoStatus::DONE and no scope filters
 - **WHEN** `forAccount()` paginates `Videos::list`
-- **THEN** every request carries `status = 'done'` and omits the `projectId` and `folderId` filters
+- **THEN** every delegated call passes the single enum argument `status: VideoStatus::DONE` and omits the `projectId` and `folderId` filters
 
 ### Requirement: Aggregate statistics within a project
-The SDK SHALL provide `Statistics::forProject(string $projectId): StatisticsDTO` that aggregates over every `done` video in the given project.
+The SDK SHALL provide `Statistics::forProject(string $projectId): StatisticsDTO` that aggregates over every `done` video in the given project, summing normalized whole-second `VideoDTO::$duration` values.
 
 #### Scenario: forProject filters by projectId
 - **WHEN** `forProject('prj-123')` is invoked
-- **THEN** every paginated call to `Videos::list` carries `projectId = 'prj-123'` and `status = 'done'`
+- **THEN** every paginated call to `Videos::list` carries `projectId = 'prj-123'` and the single enum argument `status: VideoStatus::DONE`
 
 #### Scenario: forProject rejects empty projectId
 - **WHEN** `forProject('')` is invoked
 - **THEN** the call throws `InvalidArgumentException` and no HTTP request is made
 
 ### Requirement: Aggregate statistics within a folder
-The SDK SHALL provide `Statistics::forFolder(string $folderId): StatisticsDTO` that aggregates over every `done` video in the given folder.
+The SDK SHALL provide `Statistics::forFolder(string $folderId): StatisticsDTO` that aggregates over every `done` video in the given folder, summing normalized whole-second `VideoDTO::$duration` values.
 
 #### Scenario: forFolder filters by folderId
 - **WHEN** `forFolder('fld-abc')` is invoked
-- **THEN** every paginated call to `Videos::list` carries `folderId = 'fld-abc'` and `status = 'done'`
+- **THEN** every paginated call to `Videos::list` carries `folderId = 'fld-abc'` and the single enum argument `status: VideoStatus::DONE`
 
 #### Scenario: forFolder rejects empty folderId
 - **WHEN** `forFolder('')` is invoked
@@ -88,11 +88,11 @@ The SDK SHALL set `videosCount` from the `meta.pagination.total` of the first pa
 
 #### Scenario: Empty scope returns a zeroed snapshot after one request
 - **WHEN** the scope contains no `done` videos
-- **THEN** the method issues exactly one paginated request and returns a `StatisticsDTO` with `videosCount === 0`, `totalDurationSeconds === 0`, and a non-null `generatedAt`
+- **THEN** the method issues exactly one paginated request and returns a `StatisticsDTO` with `videosCount === 0`, `$dto->getTotalSeconds() === 0`, and a non-null `generatedAt`
 
 #### Scenario: Pagination continues while hasNextPage is true
 - **WHEN** the API reports three pages of `done` videos with `hasNextPage() === true` for pages 1 and 2 and `false` for page 3
-- **THEN** the service issues exactly three paginated requests and the durations from all three pages are summed into `totalDurationSeconds`
+- **THEN** the service issues exactly three paginated requests and the durations from all three pages are reflected by `$dto->getTotalSeconds()`
 
 ### Requirement: Propagate API errors without partial results
 The SDK SHALL propagate `Kinescope\Exception\KinescopeException` subclasses raised by the underlying paginated calls, and SHALL NOT return a partially aggregated `StatisticsDTO` when iteration fails.

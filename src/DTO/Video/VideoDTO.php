@@ -90,7 +90,7 @@ final readonly class VideoDTO
             title: (string) ($data['title'] ?? ''),
             description: isset($data['description']) ? (string) $data['description'] : null,
             status: VideoStatus::from((string) ($data['status'] ?? 'pending')),
-            duration: (int) ($data['duration'] ?? 0),
+            duration: (int) round((float) ($data['duration'] ?? 0)),
             projectId: isset($data['project_id']) ? (string) $data['project_id'] : null,
             folderId: isset($data['folder_id']) ? (string) $data['folder_id'] : null,
             embedCode: isset($data['embed_code']) ? (string) $data['embed_code'] : null,

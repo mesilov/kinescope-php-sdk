@@ -10,6 +10,7 @@ use Kinescope\Core\Credentials;
 use Kinescope\Services\Folders\FoldersService;
 use Kinescope\Services\Playlists\PlaylistsService;
 use Kinescope\Services\Projects\Projects;
+use Kinescope\Services\Statistics\Statistics;
 use Kinescope\Services\Videos\Videos;
 use RuntimeException;
 
@@ -29,11 +30,12 @@ use RuntimeException;
  *
  * // Or with custom API client
  * $apiClient = ApiClientFactory::create()->withApiKey('your-api-key')->build();
- * $factory = new ServiceFactory(apiClient: $apiClient);
+ * $factory = ServiceFactory::withClient($apiClient);
  *
  * // Use services
  * $videos = $factory->videos();
  * $projects = $factory->projects();
+ * $statistics = $factory->statistics()->forAccount();
  */
 final class ServiceFactory
 {
@@ -44,6 +46,8 @@ final class ServiceFactory
     private ?FoldersService $folders = null;
 
     private ?PlaylistsService $playlists = null;
+
+    private ?Statistics $statistics = null;
 
     private ?ApiClientInterface $resolvedApiClient = null;
 
@@ -121,6 +125,16 @@ final class ServiceFactory
     public function playlists(): PlaylistsService
     {
         return $this->playlists ??= new PlaylistsService($this->getApiClient());
+    }
+
+    /**
+     * Get Statistics service.
+     *
+     * @return Statistics
+     */
+    public function statistics(): Statistics
+    {
+        return $this->statistics ??= new Statistics($this->videos());
     }
 
     /**
