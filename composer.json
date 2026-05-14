@@ -12,6 +12,7 @@
     ],
     "require": {
         "php": ">=8.4",
+        "ext-curl": "*",
         "ext-json": "*",
         "nesbot/carbon": "^3.0",
         "php-http/discovery": "^1.14",

@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## 0.4.0 - Unreleased
 
 ### Breaking changes
+- `VideoDownloader` no longer accepts PSR-18 `ClientInterface` or PSR-17 `RequestFactoryInterface` constructor dependencies for video file bytes. The new constructor order is `Videos`, `Filesystem`, `FileTransferInterface`, `EventDispatcherInterface`, `AssetSelector`, `LoggerInterface`; the logger is the final optional dependency.
+  - Migration: `new VideoDownloader($videos, $httpClient, $requestFactory, $filesystem)` -> `new VideoDownloader(videos: $videos, filesystem: $filesystem)`.
+  - Applications that need a non-default transfer should inject `fileTransfer: new AppFileTransfer()` where `AppFileTransfer` implements `FileTransferInterface`.
 - `AssetDTO` no longer exposes separate `?int $width` and `?int $height` properties. They are replaced by a single `?Resolution $resolution` property that wraps the dimensions in a value object. `AssetDTO::getResolution(): ?string` is removed in favor of the public `$resolution` property; cast it to string to get the legacy `"<width>x<height>"` shape. `AssetDTO::toArray()` now emits a single `resolution` key (string or `null`) instead of separate `width` / `height` keys.
   - Migration:
     - `$asset->width` → `$asset->resolution?->width`
@@ -37,8 +40,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Makefile target `console-list` — lists all registered SDK CLI commands.
 - Integration tests for `VideoFetcher` covering title search, slug lookup, and missing-slug behavior against the real Kinescope API.
 - `AssetSelector` — dedicated service that picks a downloadable `AssetDTO` based on the requested `QualityPreference`. Injected into `VideoDownloader` as a constructor dependency with a sensible default; existing callers do not need to change.
+- `FileTransferInterface`, `FileTransferRequest`, `FileTransferProgress`, and `FileTransferResult` for injecting custom video file-transfer implementations.
+- `CurlFileTransfer` — default direct-to-file transfer implementation for selected video download links. It uses `GET`, HTTP/HTTPS only, up to 5 redirects, TLS peer/host verification, `2xx` success statuses only, a 10-second connect timeout, no fixed total timeout, and low-speed failure below 1024 bytes/sec for 60 seconds.
 - Makefile targets `test-integration-fast` and `test-integration-download`. The latter automatically sets `TESTS_VIDEO_DOWNLOADER_ENABLED=1` so heavy CDN-download tests run only on demand.
 - `TESTS_VIDEO_DOWNLOADER_ENABLED` env flag — opt-in gate for `VideoDownloaderTest`; downloader integration tests are skipped unless explicitly enabled.
+
+### Changed
+- `VideoDownloader` now transfers selected asset bytes through `FileTransferInterface`, writes in-progress downloads to a sibling `.part` file, validates the completed byte count against transfer-reported bytes when available and selected asset `fileSize` as a fallback, and renames `.part` to the final destination only after validation succeeds.
+- `VideoDownloader` removes handled failed `.part` files and does not report completion after transfer or validation failures. Fatal process termination may still leave `.part` cleanup candidates.
+- Download progress events are now throttled at 10 MiB boundaries in `VideoDownloader`; transfer implementations may report smaller chunks, but lifecycle events remain SDK-owned.
+- Kinescope API bearer credentials are not sent to selected asset download URLs by default. Transfer request headers are explicit only.
+- Symfony HttpClient remains optional for file downloads; applications can use it through a custom `FileTransferInterface` implementation with `buffer=false` and `stream()`.
 
 ### Fixed
 - Fractional video durations from the API are now rounded to the nearest whole second in `VideoDTO::fromArray()` instead of being truncated.

@@ -10,7 +10,7 @@ parameters:
         - tests
 
     excludePaths:
-        - tests/Fixtures
+        - tests/Fixtures (?)
 
     treatPhpDocTypesAsCertain: false
 

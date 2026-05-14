@@ -6,8 +6,8 @@ Unofficial PHP SDK for [Kinescope](https://kinescope.io) API — a video managem
 
 - PHP >= 8.4
 - Extensions: `ext-json`, `ext-curl`, `ext-mbstring`
-- A PSR-18 HTTP client (e.g., Guzzle or Symfony HTTP Client)
-- A PSR-7/PSR-17 implementation (e.g., `nyholm/psr7`)
+- A PSR-18 HTTP client for API requests (e.g., Guzzle or Symfony HTTP Client)
+- A PSR-7/PSR-17 implementation for API requests (e.g., `nyholm/psr7`)
 - Symfony components compatibility: `^5.4|^6.0|^7.0|^8.0`
 
 ## Installation
@@ -16,7 +16,7 @@ Unofficial PHP SDK for [Kinescope](https://kinescope.io) API — a video managem
 composer require mesilov/kinescope-php-sdk
 ```
 
-You also need an HTTP client and PSR-7 implementation. For example, with Guzzle:
+You also need an HTTP client and PSR-7 implementation for Kinescope API requests. For example, with Guzzle:
 
 ```bash
 composer require guzzlehttp/guzzle nyholm/psr7
@@ -68,26 +68,20 @@ printf(
 
 ## Video Downloader + Events
 
-`VideoDownloader` supports event subscriptions for the download lifecycle:
+`VideoDownloader` fetches video metadata through `Videos`, selects the requested downloadable asset, and transfers the selected video bytes through a dedicated file-transfer boundary. By default it uses `CurlFileTransfer`, which writes directly to the in-progress file without materializing a PSR-18 response body.
+
+It also supports event subscriptions for the download lifecycle:
 - `DownloadStartedEvent`
 - `DownloadProgressEvent`
 - `DownloadCompletedEvent`
 - `DownloadFailedEvent`
 
 ```php
-use Http\Discovery\Psr17FactoryDiscovery;
-use Http\Discovery\Psr18ClientDiscovery;
 use Kinescope\Enum\QualityPreference;
 use Kinescope\Event\Download\DownloadProgressEvent;
 use Kinescope\Services\Videos\VideoDownloader;
-use Symfony\Component\Filesystem\Filesystem;
 
-$downloader = new VideoDownloader(
-    $factory->videos(),
-    Psr18ClientDiscovery::find(),
-    Psr17FactoryDiscovery::findRequestFactory(),
-    new Filesystem(),
-);
+$downloader = new VideoDownloader($factory->videos());
 
 $downloader->on(DownloadProgressEvent::class, function (DownloadProgressEvent $event): void {
     printf("Progress: %.1f%%\n", $event->percent);
@@ -99,6 +93,83 @@ $filePath = $downloader->downloadVideo(
     quality: QualityPreference::BEST,
 );
 ```
+
+For custom transfer behavior, inject `FileTransferInterface`. The downloader still owns metadata lookup, asset selection, lifecycle events, `.part` handling, and completed-size validation:
+
+```php
+use Kinescope\Services\Videos\Download\FileTransferInterface;
+use Kinescope\Services\Videos\Download\FileTransferProgress;
+use Kinescope\Services\Videos\Download\FileTransferRequest;
+use Kinescope\Services\Videos\Download\FileTransferResult;
+use Kinescope\Services\Videos\VideoDownloader;
+use RuntimeException;
+use Symfony\Component\Filesystem\Filesystem;
+
+final readonly class AppFileTransfer implements FileTransferInterface
+{
+    public function transfer(FileTransferRequest $request, ?callable $onProgress = null): FileTransferResult
+    {
+        $source = fopen($request->url, 'rb');
+        $target = fopen($request->outputPath, 'wb');
+        $bytesWritten = 0;
+
+        if ($source === false) {
+            throw new RuntimeException('Transfer stream cannot be opened.');
+        }
+
+        if ($target === false) {
+            fclose($source);
+
+            throw new RuntimeException('Transfer output cannot be opened.');
+        }
+
+        try {
+            while (! feof($source)) {
+                $chunk = fread($source, 1024 * 1024);
+
+                if ($chunk === false || $chunk === '') {
+                    continue;
+                }
+
+                $written = fwrite($target, $chunk);
+
+                if ($written === false) {
+                    throw new RuntimeException('Transfer stream cannot be written.');
+                }
+
+                $bytesWritten += $written;
+
+                if ($onProgress !== null) {
+                    $onProgress(new FileTransferProgress($bytesWritten, $request->expectedBytes));
+                }
+            }
+        } finally {
+            fclose($source);
+            fclose($target);
+        }
+
+        return new FileTransferResult($request->outputPath, $bytesWritten, $request->expectedBytes);
+    }
+}
+
+$downloader = new VideoDownloader(
+    videos: $factory->videos(),
+    filesystem: new Filesystem(),
+    fileTransfer: new AppFileTransfer(),
+);
+```
+
+Symfony applications may implement this interface with `HttpClientInterface::request()` using `buffer: false` and `stream()`; `symfony/http-client` is not required by the SDK itself.
+
+Default transfer policy:
+- cURL `GET`, HTTP/HTTPS only, follows up to 5 HTTP/HTTPS redirects.
+- TLS peer and host verification are enabled.
+- Only final `2xx` HTTP statuses are successful.
+- Connection setup timeout is 10 seconds; there is no fixed total transfer timeout.
+- Stalled transfers fail below 1024 bytes/sec for 60 seconds.
+- Kinescope API bearer credentials are not sent to video download URLs automatically; only explicit `FileTransferRequest` headers are used.
+- Progress events are throttled by `VideoDownloader` at 10 MiB intervals.
+- Downloads are written to a sibling `.part` file first, renamed only after the written byte count matches the transfer-reported byte count or, when absent, the selected asset size, and removed on handled transfer or validation failures.
 
 ## Development
 

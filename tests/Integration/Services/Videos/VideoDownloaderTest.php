@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace Kinescope\Tests\Integration\Services\Videos;
 
-use Http\Discovery\Psr17FactoryDiscovery;
-use Http\Discovery\Psr18ClientDiscovery;
 use Kinescope\Core\ApiClientFactory;
 use Kinescope\Core\Credentials;
 use Kinescope\Enum\QualityPreference;
 use Kinescope\Services\Videos\VideoDownloader;
 use Kinescope\Services\Videos\Videos;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -80,11 +77,8 @@ class VideoDownloaderTest extends TestCase
         $this->tempDir = dirname(__DIR__, 4) . '/var/temp/kinescope-sdk-test-' . uniqid();
 
         $this->downloader = new VideoDownloader(
-            $videos,
-            Psr18ClientDiscovery::find(),
-            Psr17FactoryDiscovery::findRequestFactory(),
-            $this->filesystem,
-            new NullLogger(),
+            videos: $videos,
+            filesystem: $this->filesystem,
         );
     }
 

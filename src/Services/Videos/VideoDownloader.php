@@ -12,9 +12,10 @@ use Kinescope\Event\Download\DownloadFailedEvent;
 use Kinescope\Event\Download\DownloadProgressEvent;
 use Kinescope\Event\Download\DownloadStartedEvent;
 use Kinescope\Exception\KinescopeException;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\StreamInterface;
+use Kinescope\Services\Videos\Download\CurlFileTransfer;
+use Kinescope\Services\Videos\Download\FileTransferInterface;
+use Kinescope\Services\Videos\Download\FileTransferProgress;
+use Kinescope\Services\Videos\Download\FileTransferRequest;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -27,17 +28,15 @@ use Throwable;
  */
 final readonly class VideoDownloader
 {
-    private const int CHUNK_SIZE = 262_144; // 256 KiB
-    private const int PROGRESS_REPORT_INTERVAL_BYTES = 1_048_576; // 1 MiB
+    private const int PROGRESS_REPORT_INTERVAL_BYTES = 10_485_760; // 10 MiB
 
     public function __construct(
         private Videos $videos,
-        private ClientInterface $httpClient,
-        private RequestFactoryInterface $requestFactory,
-        private Filesystem $filesystem,
-        private LoggerInterface $logger = new NullLogger(),
+        private Filesystem $filesystem = new Filesystem(),
+        private FileTransferInterface $fileTransfer = new CurlFileTransfer(),
         private EventDispatcherInterface $eventDispatcher = new EventDispatcher(),
         private AssetSelector $assetSelector = new AssetSelector(),
+        private LoggerInterface $logger = new NullLogger(),
     ) {
     }
 
@@ -113,7 +112,9 @@ final readonly class VideoDownloader
         $this->filesystem->mkdir($destinationDir);
 
         $filePath = rtrim($destinationDir, '/') . '/' . $videoId . '.mp4';
+        $partPath = $filePath . '.part';
         $bytesWritten = 0;
+        $nextProgressReportAt = self::PROGRESS_REPORT_INTERVAL_BYTES;
 
         $this->eventDispatcher->dispatch(new DownloadStartedEvent(
             videoId: $videoId,
@@ -125,25 +126,73 @@ final readonly class VideoDownloader
         ));
 
         try {
-            $request = $this->requestFactory->createRequest('GET', $downloadLink);
-            $response = $this->httpClient->sendRequest($request);
+            $result = $this->fileTransfer->transfer(
+                request: new FileTransferRequest(
+                    url: $downloadLink,
+                    outputPath: $partPath,
+                    expectedBytes: $sizeBytes,
+                ),
+                onProgress: function (FileTransferProgress $progress) use (
+                    $videoId,
+                    $filePath,
+                    $sizeBytes,
+                    &$bytesWritten,
+                    &$nextProgressReportAt,
+                ): void {
+                    $bytesWritten = $progress->bytesWritten;
 
-            $bytesWritten = $this->writeStreamToFile(
-                stream: $response->getBody(),
-                filePath: $filePath,
-                sizeBytes: $sizeBytes,
-                onProgress: function (int $writtenBytes, float $percent) use ($videoId, $filePath, $sizeBytes): void {
+                    if ($progress->bytesWritten < $nextProgressReportAt) {
+                        return;
+                    }
+
+                    while ($progress->bytesWritten >= $nextProgressReportAt) {
+                        $nextProgressReportAt += self::PROGRESS_REPORT_INTERVAL_BYTES;
+                    }
+
+                    $percent = $progress->percent() ?? round($progress->bytesWritten / $sizeBytes * 100, 1);
+
+                    $this->logger->debug('Download progress', [
+                        'filePath' => $filePath,
+                        'bytesWritten' => $progress->bytesWritten,
+                        'totalBytes' => $sizeBytes,
+                        'percent' => $percent,
+                    ]);
+
                     $this->eventDispatcher->dispatch(new DownloadProgressEvent(
                         videoId: $videoId,
                         filePath: $filePath,
-                        bytesWritten: $writtenBytes,
+                        bytesWritten: $progress->bytesWritten,
                         sizeBytes: $sizeBytes,
                         percent: $percent,
                         occurredAt: CarbonImmutable::now('UTC'),
                     ));
                 },
             );
+
+            $bytesWritten = $result->bytesWritten;
+            $validationBytes = $result->reportedBytes ?? $sizeBytes;
+
+            if ($result->reportedBytes !== null && $result->reportedBytes !== $sizeBytes) {
+                $this->logger->warning('Transfer reported size differs from selected asset metadata', [
+                    'videoId' => $videoId,
+                    'assetFileSize' => $sizeBytes,
+                    'reportedBytes' => $result->reportedBytes,
+                ]);
+            }
+
+            if ($result->bytesWritten !== $validationBytes) {
+                throw new KinescopeException(sprintf(
+                    'Completed transfer size mismatch for video "%s": expected %d bytes, got %d bytes.',
+                    $videoId,
+                    $validationBytes,
+                    $result->bytesWritten,
+                ));
+            }
+
+            $this->filesystem->rename($partPath, $filePath, true);
         } catch (Throwable $exception) {
+            $this->cleanupPartFile($partPath);
+
             $this->eventDispatcher->dispatch(new DownloadFailedEvent(
                 videoId: $videoId,
                 filePath: $filePath,
@@ -232,69 +281,15 @@ final readonly class VideoDownloader
         return $paths;
     }
 
-    /**
-     * @param (callable(int, float): void)|null $onProgress
-     *
-     * @throws KinescopeException
-     */
-    private function writeStreamToFile(
-        StreamInterface $stream,
-        string $filePath,
-        int $sizeBytes,
-        ?callable $onProgress = null,
-    ): int {
-        $this->logger->info('Writing stream to file', [
-            'filePath' => $filePath,
-            'totalBytes' => $sizeBytes,
-        ]);
-
-        $fileHandle = @fopen($filePath, 'wb');
-
-        if ($fileHandle === false) {
-            throw new KinescopeException(sprintf('Failed to open file for writing: "%s"', $filePath));
-        }
-
+    private function cleanupPartFile(string $partPath): void
+    {
         try {
-            $bytesWritten = 0;
-            $nextProgressReportAt = self::PROGRESS_REPORT_INTERVAL_BYTES;
-
-            while (! $stream->eof()) {
-                $chunk = $stream->read(self::CHUNK_SIZE);
-
-                if ($chunk !== '') {
-                    fwrite($fileHandle, $chunk);
-                    $bytesWritten += strlen($chunk);
-
-                    if ($bytesWritten >= $nextProgressReportAt) {
-                        while ($bytesWritten >= $nextProgressReportAt) {
-                            $nextProgressReportAt += self::PROGRESS_REPORT_INTERVAL_BYTES;
-                        }
-
-                        $percent = round($bytesWritten / $sizeBytes * 100, 1);
-                        $context = [
-                            'filePath' => $filePath,
-                            'bytesWritten' => $bytesWritten,
-                            'totalBytes' => $sizeBytes,
-                            'percent' => $percent,
-                        ];
-
-                        $this->logger->debug('Download progress', $context);
-
-                        if ($onProgress !== null) {
-                            $onProgress($bytesWritten, $percent);
-                        }
-                    }
-                }
-            }
-
-            $this->logger->info('File write completed', [
-                'filePath' => $filePath,
-                'bytesWritten' => $bytesWritten,
+            $this->filesystem->remove($partPath);
+        } catch (Throwable $cleanupException) {
+            $this->logger->warning('Failed to remove incomplete download part file', [
+                'partPath' => $partPath,
+                'exception' => $cleanupException,
             ]);
-
-            return $bytesWritten;
-        } finally {
-            fclose($fileHandle);
         }
     }
 }
