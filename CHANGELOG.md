@@ -13,9 +13,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
     - `$asset->height` → `$asset->resolution?->height`
     - `$asset->getResolution()` → `$asset->resolution === null ? null : (string) $asset->resolution`
     - `toArray()` snapshots persisted before this release will not round-trip back; the canonical key is now `resolution`.
+- `Videos::list(status:)` now accepts `?VideoStatus` instead of `?string` and serializes the filter as API key `status[]` with a single scalar enum value.
+  - Migration: `status: 'done'` → `status: VideoStatus::DONE`.
 
 ### Added
 - `Kinescope\DTO\Video\Resolution` — `final readonly` value object with positive-int `width` and `height`, `Resolution::tryFromString()` / `Resolution::fromString()` parsers for the canonical `"<width>x<height>"` shape, `aspectRatio()`, `isHd()` / `isFullHd()` / `is4K()` predicates, and `__toString()`.
+- `Kinescope\DTO\Statistics\StatisticsDTO` — immutable statistics result with done-video count, total duration, rounded minute/hour helpers, human-readable formatting, and array export.
+- `Kinescope\Services\Statistics\Statistics` exposed through `$factory->statistics()` with `forAccount()`, `forProject()`, and `forFolder()` aggregations over videos with `VideoStatus::DONE`.
+- `VideoStatus` now includes the documented `pre-processing` and `aborted` states.
+- Statistics integration-test env slots: `TESTS_STATISTICS_PROJECT_ID` and `TESTS_STATISTICS_FOLDER_ID`.
 - `AssetDTO::fromArray()` now parses the API `resolution` string into a `Resolution` value object; numeric `width`+`height` keys remain authoritative when both are positive.
 - `VideoSlugExtractor` — pure stateless service for extracting video slugs from HLS links, embed codes, or `VideoDTO`.
 - `VideoFetcher` — auto-paginated search service:
@@ -35,6 +41,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `TESTS_VIDEO_DOWNLOADER_ENABLED` env flag — opt-in gate for `VideoDownloaderTest`; downloader integration tests are skipped unless explicitly enabled.
 
 ### Fixed
+- Fractional video durations from the API are now rounded to the nearest whole second in `VideoDTO::fromArray()` instead of being truncated.
 - `VideoDownloader` progress callback invocation is now compatible with PHPStan strict callable analysis.
 - `QualityPreference::WORST` now selects the smallest downloadable file by `fileSize` instead of treating missing asset height as resolution `0`.
 - Pagination metadata parsing now reads the current Kinescope API shape from `meta.pagination.total`, `meta.pagination.page`, and `meta.pagination.per_page` instead of the obsolete flat `meta.total`, `meta.page`, and `meta.per_page` keys.

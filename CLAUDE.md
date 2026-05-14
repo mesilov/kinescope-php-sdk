@@ -92,8 +92,6 @@ PHP SDK for Kinescope API - a video management platform for uploading, transcodi
 
 ## Key Resources
 
-- **Technical Specification**: `.tasks/technical-specification.md` - Complete implementation guide (in Russian)
-- **OpenAPI Spec**: `.tasks/openapi.yaml` - Full API documentation (253KB)
 - **API Base URL**: `https://api.kinescope.io`
 - **Authentication**: Bearer Token (`Authorization: Bearer {api_key}`)
 
