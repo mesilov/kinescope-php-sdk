@@ -39,6 +39,7 @@ $videos = $factory->videos()->list();
 $projects = $factory->projects()->list();
 $folders = $factory->folders()->list();
 $playlists = $factory->playlists()->list();
+$statistics = $factory->statistics()->forAccount();
 ```
 
 ## Available Services
@@ -49,6 +50,21 @@ $playlists = $factory->playlists()->list();
 | Projects | `$factory->projects()` | Read/list projects |
 | Folders | `$factory->folders()` | Folder listing and tree navigation |
 | Playlists | `$factory->playlists()` | Playlist and playlist-entities listing |
+| Statistics | `$factory->statistics()` | Done-video count and total duration aggregation |
+
+## Statistics
+
+```php
+$account = $factory->statistics()->forAccount();
+$project = $factory->statistics()->forProject('project-id');
+$folder = $factory->statistics()->forFolder('folder-id');
+
+printf(
+    "%d done videos, %d seconds total\n",
+    $account->videosCount,
+    $account->getTotalSeconds(),
+);
+```
 
 ## Video Downloader + Events
 

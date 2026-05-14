@@ -22,9 +22,19 @@ enum VideoStatus: string
     case UPLOADING = 'uploading';
 
     /**
+     * Video upload is complete and pre-processing is in progress.
+     */
+    case PRE_PROCESSING = 'pre-processing';
+
+    /**
      * Video is being processed/transcoded.
      */
     case PROCESSING = 'processing';
+
+    /**
+     * Video processing was aborted.
+     */
+    case ABORTED = 'aborted';
 
     /**
      * Video processing is complete and ready for playback.
@@ -50,8 +60,8 @@ enum VideoStatus: string
     public function isProcessing(): bool
     {
         return match ($this) {
-            self::PENDING, self::UPLOADING, self::PROCESSING => true,
-            self::DONE, self::ERROR => false,
+            self::PENDING, self::UPLOADING, self::PRE_PROCESSING, self::PROCESSING => true,
+            self::ABORTED, self::DONE, self::ERROR => false,
         };
     }
 
@@ -71,7 +81,9 @@ enum VideoStatus: string
         return match ($this) {
             self::PENDING => 'Pending',
             self::UPLOADING => 'Uploading',
+            self::PRE_PROCESSING => 'Pre-processing',
             self::PROCESSING => 'Processing',
+            self::ABORTED => 'Aborted',
             self::DONE => 'Done',
             self::ERROR => 'Error',
         };

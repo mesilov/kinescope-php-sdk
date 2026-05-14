@@ -27,4 +27,4 @@
 - [x] 4.2 Run `make openspec-validate`.
 - [x] 4.3 Run `make test-unit`.
 - [x] 4.4 Run `make lint-all`.
-- [ ] 4.5 Optional: run `make test-integration-download` after the implementation lands to confirm `BEST` now selects the highest-resolution non-original asset on live Kinescope payloads.
+- [x] 4.5 Optional: run `make test-integration-download` after the implementation lands to confirm `BEST` now selects the highest-resolution non-original asset on live Kinescope payloads.

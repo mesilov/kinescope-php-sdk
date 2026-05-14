@@ -8,6 +8,7 @@ use Kinescope\Core\Pagination;
 use Kinescope\Core\Sort;
 use Kinescope\DTO\Video\VideoDTO;
 use Kinescope\DTO\Video\VideoListResult;
+use Kinescope\Enum\VideoStatus;
 use Kinescope\Services\AbstractService;
 
 final class Videos extends AbstractService
@@ -25,7 +26,7 @@ final class Videos extends AbstractService
      * @param string|null $folderId Filter by folder ID
      * @param Sort|null $sort Sorting parameters
      * @param string|null $search Search query for video title
-     * @param string|null $status Filter by status (pending, uploading, processing, done, error)
+     * @param VideoStatus|null $status Filter by status (pending, uploading, pre-processing, processing, aborted, done, error)
      *
      * @throws \Kinescope\Exception\KinescopeException On API errors
      *
@@ -37,7 +38,7 @@ final class Videos extends AbstractService
         ?string $projectId = null,
         ?string $folderId = null,
         ?string $search = null,
-        ?string $status = null,
+        ?VideoStatus $status = null,
     ): VideoListResult {
         $query = $this->mergeQueries(
             $pagination->toQueryParams(),
@@ -46,7 +47,7 @@ final class Videos extends AbstractService
                 'project_id' => $projectId,
                 'folder_id' => $folderId,
                 'q' => $search,
-                'status' => $status,
+                'status[]' => $status?->value,
             ])
         );
 
