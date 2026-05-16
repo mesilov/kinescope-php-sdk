@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kinescope\Infrastructure\Console;
 
 use Kinescope\Core\ApiClientFactory;
+use Kinescope\Infrastructure\Console\Command\BrowseCommand;
 use Kinescope\Infrastructure\Console\Command\VideoInfoCommand;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -26,6 +27,11 @@ final class ContainerFactory
             ->addArgument(new Reference(LoggerInterface::class));
 
         $container->register(VideoInfoCommand::class)
+            ->setPublic(true)
+            ->addArgument(new Reference(ApiClientFactory::class))
+            ->addArgument(new Reference(LoggerInterface::class));
+
+        $container->register(BrowseCommand::class)
             ->setPublic(true)
             ->addArgument(new Reference(ApiClientFactory::class))
             ->addArgument(new Reference(LoggerInterface::class));

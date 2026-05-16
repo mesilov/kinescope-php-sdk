@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kinescope\Infrastructure\Console;
 
+use Kinescope\Infrastructure\Console\Command\BrowseCommand;
 use Kinescope\Infrastructure\Console\Command\VideoInfoCommand;
 use Symfony\Component\Console\Application as BaseApplication;
 
@@ -18,9 +19,14 @@ final class Application extends BaseApplication
 
         $container = ContainerFactory::build();
 
-        $command = $container->get(VideoInfoCommand::class);
-        assert($command instanceof VideoInfoCommand);
-        $this->addCommand($command);
+        $videoInfoCommand = $container->get(VideoInfoCommand::class);
+        assert($videoInfoCommand instanceof VideoInfoCommand);
+        $this->addCommand($videoInfoCommand);
+
+        $browseCommand = $container->get(BrowseCommand::class);
+        assert($browseCommand instanceof BrowseCommand);
+        $this->addCommand($browseCommand);
+
         $this->setDefaultCommand('video:info');
     }
 }

@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## 0.5.0 — UNRELEASED
 
+### Added
+- Command `kinescope:browse <projects|folders|videos|assets>` for read-only Kinescope account inspection from the SDK CLI.
+  - Supports `table` and deterministic `json` output.
+  - Resolves credentials via `KINESCOPE_API_KEY` or `--api-key` / `-k`, consistently with `video:info`.
+  - Validates resource-specific UUID selectors before API reads.
+  - Sanitizes asset output by exposing `hasUrl`, `hasDownloadLink`, and `downloadable` booleans instead of raw signed CDN URLs.
+
 ## 0.4.0 — 2026-05-14
 
 ### Breaking changes
