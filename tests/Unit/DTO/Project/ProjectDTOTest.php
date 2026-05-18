@@ -15,31 +15,97 @@ class ProjectDTOTest extends TestCase
         $data = [
             'id' => '550e8400-e29b-41d4-a716-446655440000',
             'name' => 'My Project',
-            'description' => 'Project description',
             'privacy_type' => 'anywhere',
-            'videos_count' => 10,
-            'folders_count' => 3,
-            'storage_used' => 1073741824,
-            'is_default' => true,
-            'allowed_domains' => ['example.com', '*.test.com'],
-            'settings' => ['key' => 'value'],
+            'items_count' => 10,
+            'folders' => [
+                ['id' => 'folder-1'],
+                ['id' => 'folder-2'],
+                ['id' => 'folder-3'],
+            ],
+            'size' => 1073741824,
+            'privacy_domains' => ['example.com', '*.test.com'],
+            'privacy_email_domains' => ['example.org'],
+            'privacy_share' => ['enabled' => true],
+            'player_id' => 'player-uuid',
+            'favorite' => true,
             'created_at' => '2024-01-01T00:00:00Z',
             'updated_at' => '2024-01-02T00:00:00Z',
+            'encrypted' => true,
         ];
 
         $project = ProjectDTO::fromArray($data);
 
         $this->assertEquals('550e8400-e29b-41d4-a716-446655440000', $project->id);
         $this->assertEquals('My Project', $project->name);
-        $this->assertEquals('Project description', $project->description);
         $this->assertEquals(PrivacyType::ANYWHERE, $project->privacyType);
         $this->assertEquals('anywhere', $project->privacyTypeRaw);
-        $this->assertEquals(10, $project->videosCount);
-        $this->assertEquals(3, $project->foldersCount);
-        $this->assertEquals(1073741824, $project->storageUsed);
-        $this->assertTrue($project->isDefault);
-        $this->assertEquals(['example.com', '*.test.com'], $project->allowedDomains);
-        $this->assertEquals(['key' => 'value'], $project->settings);
+        $this->assertEquals(10, $project->itemsCount);
+        $this->assertCount(3, $project->folders);
+        $this->assertEquals(1073741824, $project->size);
+        $this->assertEquals(['example.com', '*.test.com'], $project->privacyDomains);
+        $this->assertEquals(['example.org'], $project->privacyEmailDomains);
+        $this->assertEquals(['enabled' => true], $project->privacyShare);
+        $this->assertEquals('player-uuid', $project->playerId);
+        $this->assertTrue($project->favorite);
+        $this->assertTrue($project->encrypted);
+    }
+
+    public function testFromArrayMapsCurrentApiProjectPayload(): void
+    {
+        $data = [
+            'id' => '550e8400-e29b-41d4-a716-446655440000',
+            'name' => 'Current API Project',
+            'privacy_type' => 'custom',
+            'privacy_domains' => ['learn.rarus.ru', 'demo2-learn.rarus.ru'],
+            'privacy_email_domains' => [],
+            'privacy_share' => [],
+            'player_id' => '83073711-4967-48ab-b2a7-0c628f795e0e',
+            'favorite' => false,
+            'size' => 272661569450,
+            'items_count' => 242,
+            'folders' => [
+                ['id' => 'folder-1'],
+                ['id' => 'folder-2'],
+                ['id' => 'folder-3'],
+                ['id' => 'folder-4'],
+            ],
+            'created_at' => '2025-09-28T10:35:39.170997Z',
+            'updated_at' => '2026-03-26T13:23:29.567978Z',
+            'encrypted' => true,
+        ];
+
+        $project = ProjectDTO::fromArray($data);
+
+        $this->assertEquals(242, $project->itemsCount);
+        $this->assertCount(4, $project->folders);
+        $this->assertEquals(272661569450, $project->size);
+        $this->assertEquals(['learn.rarus.ru', 'demo2-learn.rarus.ru'], $project->privacyDomains);
+        $this->assertEquals([], $project->privacyEmailDomains);
+        $this->assertEquals([], $project->privacyShare);
+        $this->assertEquals('83073711-4967-48ab-b2a7-0c628f795e0e', $project->playerId);
+        $this->assertFalse($project->favorite);
+        $this->assertTrue($project->encrypted);
+    }
+
+    public function testFromArrayDoesNotUseLegacyCounterAliases(): void
+    {
+        $data = [
+            'id' => '550e8400-e29b-41d4-a716-446655440000',
+            'name' => 'Legacy-shaped Project',
+            'videos_count' => 242,
+            'folders_count' => 4,
+            'storage_used' => 272661569450,
+            'allowed_domains' => ['learn.rarus.ru'],
+            'created_at' => '2025-09-28T10:35:39.170997Z',
+            'updated_at' => '2026-03-26T13:23:29.567978Z',
+        ];
+
+        $project = ProjectDTO::fromArray($data);
+
+        $this->assertSame(0, $project->itemsCount);
+        $this->assertSame([], $project->folders);
+        $this->assertSame(0, $project->size);
+        $this->assertSame([], $project->privacyDomains);
     }
 
     public function testFromArrayWithMinimalData(): void
@@ -55,15 +121,17 @@ class ProjectDTOTest extends TestCase
 
         $this->assertEquals('550e8400-e29b-41d4-a716-446655440000', $project->id);
         $this->assertEquals('My Project', $project->name);
-        $this->assertNull($project->description);
         $this->assertNull($project->privacyType);
         $this->assertNull($project->privacyTypeRaw);
-        $this->assertEquals(0, $project->videosCount);
-        $this->assertEquals(0, $project->foldersCount);
-        $this->assertNull($project->storageUsed);
-        $this->assertFalse($project->isDefault);
-        $this->assertEmpty($project->allowedDomains);
-        $this->assertEmpty($project->settings);
+        $this->assertEquals(0, $project->itemsCount);
+        $this->assertEmpty($project->folders);
+        $this->assertEquals(0, $project->size);
+        $this->assertEmpty($project->privacyDomains);
+        $this->assertEmpty($project->privacyEmailDomains);
+        $this->assertEmpty($project->privacyShare);
+        $this->assertNull($project->playerId);
+        $this->assertFalse($project->favorite);
+        $this->assertFalse($project->encrypted);
     }
 
     public function testToArrayReturnsCorrectStructure(): void
@@ -71,16 +139,22 @@ class ProjectDTOTest extends TestCase
         $data = [
             'id' => '550e8400-e29b-41d4-a716-446655440000',
             'name' => 'My Project',
-            'description' => 'Project description',
             'privacy_type' => 'anywhere',
-            'videos_count' => 10,
-            'folders_count' => 3,
-            'storage_used' => 1073741824,
-            'is_default' => true,
-            'allowed_domains' => ['example.com'],
-            'settings' => ['key' => 'value'],
+            'items_count' => 10,
+            'folders' => [
+                ['id' => 'folder-1'],
+                ['id' => 'folder-2'],
+                ['id' => 'folder-3'],
+            ],
+            'size' => 1073741824,
+            'privacy_domains' => ['example.com'],
+            'privacy_email_domains' => ['example.org'],
+            'privacy_share' => ['enabled' => true],
+            'player_id' => 'player-uuid',
+            'favorite' => true,
             'created_at' => '2024-01-01T00:00:00Z',
             'updated_at' => '2024-01-02T00:00:00Z',
+            'encrypted' => true,
         ];
 
         $project = ProjectDTO::fromArray($data);
@@ -88,14 +162,20 @@ class ProjectDTOTest extends TestCase
 
         $this->assertEquals('550e8400-e29b-41d4-a716-446655440000', $array['id']);
         $this->assertEquals('My Project', $array['name']);
-        $this->assertEquals('Project description', $array['description']);
         $this->assertEquals('anywhere', $array['privacy_type']);
-        $this->assertEquals(10, $array['videos_count']);
-        $this->assertEquals(3, $array['folders_count']);
-        $this->assertEquals(1073741824, $array['storage_used']);
-        $this->assertTrue($array['is_default']);
-        $this->assertEquals(['example.com'], $array['allowed_domains']);
-        $this->assertEquals(['key' => 'value'], $array['settings']);
+        $this->assertEquals(10, $array['items_count']);
+        $this->assertCount(3, $array['folders']);
+        $this->assertEquals(1073741824, $array['size']);
+        $this->assertEquals(['example.com'], $array['privacy_domains']);
+        $this->assertEquals(['example.org'], $array['privacy_email_domains']);
+        $this->assertEquals(['enabled' => true], $array['privacy_share']);
+        $this->assertEquals('player-uuid', $array['player_id']);
+        $this->assertTrue($array['favorite']);
+        $this->assertTrue($array['encrypted']);
+        $this->assertArrayNotHasKey('videos_count', $array);
+        $this->assertArrayNotHasKey('folders_count', $array);
+        $this->assertArrayNotHasKey('storage_used', $array);
+        $this->assertArrayNotHasKey('allowed_domains', $array);
     }
 
     public function testIsPublicReturnsTrueWhenPrivacyTypeIsAnywhere(): void
@@ -214,7 +294,7 @@ class ProjectDTOTest extends TestCase
             'id' => '1',
             'name' => 'Custom Project',
             'privacy_type' => 'custom',
-            'allowed_domains' => ['example.com', '*.test.com'],
+            'privacy_domains' => ['example.com', '*.test.com'],
             'created_at' => '2024-01-01T00:00:00Z',
             'updated_at' => '2024-01-01T00:00:00Z',
         ]);
@@ -224,12 +304,12 @@ class ProjectDTOTest extends TestCase
         $this->assertFalse($project->isDomainAllowed('other.com'));
     }
 
-    public function testHasVideosReturnsTrueWhenVideosCountGreaterThanZero(): void
+    public function testHasVideosReturnsTrueWhenItemsCountGreaterThanZero(): void
     {
         $project = ProjectDTO::fromArray([
             'id' => '1',
             'name' => 'Project',
-            'videos_count' => 5,
+            'items_count' => 5,
             'created_at' => '2024-01-01T00:00:00Z',
             'updated_at' => '2024-01-01T00:00:00Z',
         ]);
@@ -237,12 +317,12 @@ class ProjectDTOTest extends TestCase
         $this->assertTrue($project->hasVideos());
     }
 
-    public function testHasVideosReturnsFalseWhenVideosCountIsZero(): void
+    public function testHasVideosReturnsFalseWhenItemsCountIsZero(): void
     {
         $project = ProjectDTO::fromArray([
             'id' => '1',
             'name' => 'Project',
-            'videos_count' => 0,
+            'items_count' => 0,
             'created_at' => '2024-01-01T00:00:00Z',
             'updated_at' => '2024-01-01T00:00:00Z',
         ]);
@@ -250,12 +330,16 @@ class ProjectDTOTest extends TestCase
         $this->assertFalse($project->hasVideos());
     }
 
-    public function testHasFoldersReturnsTrueWhenFoldersCountGreaterThanZero(): void
+    public function testHasFoldersReturnsTrueWhenFoldersArePresent(): void
     {
         $project = ProjectDTO::fromArray([
             'id' => '1',
             'name' => 'Project',
-            'folders_count' => 3,
+            'folders' => [
+                ['id' => 'folder-1'],
+                ['id' => 'folder-2'],
+                ['id' => 'folder-3'],
+            ],
             'created_at' => '2024-01-01T00:00:00Z',
             'updated_at' => '2024-01-01T00:00:00Z',
         ]);
@@ -263,12 +347,12 @@ class ProjectDTOTest extends TestCase
         $this->assertTrue($project->hasFolders());
     }
 
-    public function testHasFoldersReturnsFalseWhenFoldersCountIsZero(): void
+    public function testHasFoldersReturnsFalseWhenFoldersAreEmpty(): void
     {
         $project = ProjectDTO::fromArray([
             'id' => '1',
             'name' => 'Project',
-            'folders_count' => 0,
+            'folders' => [],
             'created_at' => '2024-01-01T00:00:00Z',
             'updated_at' => '2024-01-01T00:00:00Z',
         ]);
@@ -276,20 +360,20 @@ class ProjectDTOTest extends TestCase
         $this->assertFalse($project->hasFolders());
     }
 
-    public function testGetHumanStorageUsedReturnsFormattedString(): void
+    public function testGetHumanSizeReturnsFormattedString(): void
     {
         $project = ProjectDTO::fromArray([
             'id' => '1',
             'name' => 'Project',
-            'storage_used' => 1073741824,
+            'size' => 1073741824,
             'created_at' => '2024-01-01T00:00:00Z',
             'updated_at' => '2024-01-01T00:00:00Z',
         ]);
 
-        $this->assertEquals('1.00 GB', $project->getHumanStorageUsed());
+        $this->assertEquals('1.00 GB', $project->getHumanSize());
     }
 
-    public function testGetHumanStorageUsedReturnsNullWhenNotSet(): void
+    public function testGetHumanSizeReturnsNullWhenNotSet(): void
     {
         $project = ProjectDTO::fromArray([
             'id' => '1',
@@ -298,35 +382,7 @@ class ProjectDTOTest extends TestCase
             'updated_at' => '2024-01-01T00:00:00Z',
         ]);
 
-        $this->assertNull($project->getHumanStorageUsed());
-    }
-
-    public function testGetSettingReturnsValue(): void
-    {
-        $project = ProjectDTO::fromArray([
-            'id' => '1',
-            'name' => 'Project',
-            'settings' => ['key1' => 'value1', 'key2' => 42],
-            'created_at' => '2024-01-01T00:00:00Z',
-            'updated_at' => '2024-01-01T00:00:00Z',
-        ]);
-
-        $this->assertEquals('value1', $project->getSetting('key1'));
-        $this->assertEquals(42, $project->getSetting('key2'));
-    }
-
-    public function testGetSettingReturnsDefaultWhenNotFound(): void
-    {
-        $project = ProjectDTO::fromArray([
-            'id' => '1',
-            'name' => 'Project',
-            'settings' => [],
-            'created_at' => '2024-01-01T00:00:00Z',
-            'updated_at' => '2024-01-01T00:00:00Z',
-        ]);
-
-        $this->assertNull($project->getSetting('missing'));
-        $this->assertEquals('default', $project->getSetting('missing', 'default'));
+        $this->assertNull($project->getHumanSize());
     }
 
     public function testUnknownPrivacyTypeIsPreservedInRaw(): void

@@ -4,9 +4,15 @@ declare(strict_types=1);
 
 namespace Kinescope\Infrastructure\Console;
 
-use Kinescope\Infrastructure\Console\Command\BrowseCommand;
-use Kinescope\Infrastructure\Console\Command\VideoInfoCommand;
+use Kinescope\Infrastructure\Console\Command\FolderListCommand;
+use Kinescope\Infrastructure\Console\Command\FolderShowCommand;
+use Kinescope\Infrastructure\Console\Command\ProjectListCommand;
+use Kinescope\Infrastructure\Console\Command\ProjectShowCommand;
+use Kinescope\Infrastructure\Console\Command\VideoAssetListCommand;
+use Kinescope\Infrastructure\Console\Command\VideoListCommand;
+use Kinescope\Infrastructure\Console\Command\VideoShowCommand;
 use Symfony\Component\Console\Application as BaseApplication;
+use Symfony\Component\Console\Command\Command;
 
 final class Application extends BaseApplication
 {
@@ -19,14 +25,18 @@ final class Application extends BaseApplication
 
         $container = ContainerFactory::build();
 
-        $videoInfoCommand = $container->get(VideoInfoCommand::class);
-        assert($videoInfoCommand instanceof VideoInfoCommand);
-        $this->addCommand($videoInfoCommand);
-
-        $browseCommand = $container->get(BrowseCommand::class);
-        assert($browseCommand instanceof BrowseCommand);
-        $this->addCommand($browseCommand);
-
-        $this->setDefaultCommand('video:info');
+        foreach ([
+            ProjectListCommand::class,
+            ProjectShowCommand::class,
+            FolderListCommand::class,
+            FolderShowCommand::class,
+            VideoListCommand::class,
+            VideoShowCommand::class,
+            VideoAssetListCommand::class,
+        ] as $commandClass) {
+            $command = $container->get($commandClass);
+            assert($command instanceof Command);
+            $this->addCommand($command);
+        }
     }
 }

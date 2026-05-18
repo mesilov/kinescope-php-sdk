@@ -57,46 +57,43 @@ $statistics = $factory->statistics()->forAccount();
 The package ships a standalone Symfony Console entry point:
 
 ```bash
-vendor/bin/console list
+vendor/bin/kinescope list
 ```
 
 Credentials are resolved from `KINESCOPE_API_KEY` or `--api-key` / `-k`.
 
-Fetch one video as JSON:
+Read-only commands use singular resources and explicit actions:
 
 ```bash
-vendor/bin/console video:info <video-id> --api-key=<api-key>
-```
+# List projects or show one project
+vendor/bin/kinescope kinescope:project:list --format=table
+vendor/bin/kinescope kinescope:project:show 00000000-0000-0000-0000-000000000000
 
-Browse Kinescope account structure without mutating remote state:
-
-```bash
-# List projects
-vendor/bin/console kinescope:browse projects --format=table
-
-# List folders for a project
-vendor/bin/console kinescope:browse folders \
+# List folders for a project or show one folder
+vendor/bin/kinescope kinescope:folder:list \
   --project-id=00000000-0000-0000-0000-000000000000 \
   --format=json
+vendor/bin/kinescope kinescope:folder:show 11111111-1111-1111-1111-111111111111 \
+  --project-id=00000000-0000-0000-0000-000000000000
 
-# List videos for a project or folder
-vendor/bin/console kinescope:browse videos \
+# List videos for a project or folder, or show one video
+vendor/bin/kinescope kinescope:video:list \
   --project-id=00000000-0000-0000-0000-000000000000 \
   --folder-id=11111111-1111-1111-1111-111111111111 \
   --format=json
+vendor/bin/kinescope kinescope:video:show 22222222-2222-2222-2222-222222222222
 
 # Include sanitized asset summaries in video rows
-vendor/bin/console kinescope:browse videos \
+vendor/bin/kinescope kinescope:video:list \
   --project-id=00000000-0000-0000-0000-000000000000 \
   --include-assets \
   --format=json
 
 # Inspect sanitized assets for one video
-vendor/bin/console kinescope:browse assets \
-  --video-id=22222222-2222-2222-2222-222222222222
+vendor/bin/kinescope kinescope:video:asset:list 22222222-2222-2222-2222-222222222222
 ```
 
-`kinescope:browse` supports `projects`, `folders`, `videos`, and `assets` resources with `table` or deterministic `json` output. Asset output exposes booleans such as `hasUrl`, `hasDownloadLink`, and `downloadable`; raw signed CDN URLs and download links are not printed by default.
+List commands support `table` or deterministic `json` output. Show commands print pretty JSON. Asset output exposes booleans such as `hasUrl`, `hasDownloadLink`, and `downloadable`; raw signed CDN URLs and download links are not printed by default.
 
 ## Statistics
 

@@ -9,11 +9,19 @@ use PHPUnit\Framework\TestCase;
 
 final class ApplicationTest extends TestCase
 {
-    public function testRegistersBrowseCommandWithoutRemovingVideoInfo(): void
+    public function testRegistersResourceActionCommandsOnly(): void
     {
         $application = new Application();
 
-        self::assertTrue($application->has('kinescope:browse'));
-        self::assertTrue($application->has('video:info'));
+        self::assertTrue($application->has('kinescope:project:list'));
+        self::assertTrue($application->has('kinescope:project:show'));
+        self::assertTrue($application->has('kinescope:folder:list'));
+        self::assertTrue($application->has('kinescope:folder:show'));
+        self::assertTrue($application->has('kinescope:video:list'));
+        self::assertTrue($application->has('kinescope:video:show'));
+        self::assertTrue($application->has('kinescope:video:asset:list'));
+
+        self::assertFalse($application->has('video:info'));
+        self::assertFalse($application->has('kinescope:browse'));
     }
 }

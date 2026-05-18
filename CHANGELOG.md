@@ -6,12 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## 0.5.0 — UNRELEASED
 
+### Breaking changes
+- SDK CLI now exports `bin/kinescope` / `vendor/bin/kinescope` instead of the generic `bin/console` / `vendor/bin/console`.
+- CLI commands now use singular resource/action names, and no compatibility aliases are kept for the old command names:
+  - `video:info <video-id>` -> `kinescope:video:show <video-id>`
+  - `kinescope:browse projects` -> `kinescope:project:list`
+  - `kinescope:browse folders --project-id=<project-id>` -> `kinescope:folder:list --project-id=<project-id>`
+  - `kinescope:browse videos --project-id=<project-id> [--folder-id=<folder-id>]` -> `kinescope:video:list --project-id=<project-id> [--folder-id=<folder-id>]`
+  - `kinescope:browse assets --video-id=<video-id>` -> `kinescope:video:asset:list <video-id>`
+- `ProjectDTO` now follows the raw Kinescope project API field names: use `itemsCount`, `folders`, `size`, `privacyDomains`, `privacyEmailDomains`, `privacyShare`, `playerId`, `favorite`, and `encrypted` instead of the removed aliases `videosCount`, `foldersCount`, `storageUsed`, `allowedDomains`, `isDefault`, and `settings`.
+  - `ProjectListResult::getTotalVideosCount()` is replaced by `getTotalItemsCount()`.
+  - `ProjectListResult::getTotalStorageUsed()` is replaced by `getTotalSize()`.
+
 ### Added
-- Command `kinescope:browse <projects|folders|videos|assets>` for read-only Kinescope account inspection from the SDK CLI.
-  - Supports `table` and deterministic `json` output.
-  - Resolves credentials via `KINESCOPE_API_KEY` or `--api-key` / `-k`, consistently with `video:info`.
-  - Validates resource-specific UUID selectors before API reads.
-  - Sanitizes asset output by exposing `hasUrl`, `hasDownloadLink`, and `downloadable` booleans instead of raw signed CDN URLs.
+- Commands `kinescope:project:list`, `kinescope:project:show`, `kinescope:folder:list`, `kinescope:folder:show`, `kinescope:video:list`, `kinescope:video:show`, and `kinescope:video:asset:list` for read-only Kinescope account inspection from the SDK CLI.
+  - List commands support `table` and deterministic `json` output.
+  - Show commands output pretty JSON.
+  - All commands resolve credentials via `KINESCOPE_API_KEY` or `--api-key` / `-k`.
+  - Resource identifiers are validated locally before API reads.
+  - Asset output is sanitized by exposing `hasUrl`, `hasDownloadLink`, and `downloadable` booleans instead of raw signed CDN URLs.
 
 ## 0.4.0 — 2026-05-14
 
