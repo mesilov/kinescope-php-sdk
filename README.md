@@ -37,7 +37,7 @@ $factory = ServiceFactory::fromEnvironment();
 // Use services
 $videos = $factory->videos()->list();
 $projects = $factory->projects()->list();
-$folders = $factory->folders()->list();
+$folders = $factory->folders()->list('project-id');
 $playlists = $factory->playlists()->list();
 $statistics = $factory->statistics()->forAccount();
 ```
@@ -51,6 +51,59 @@ $statistics = $factory->statistics()->forAccount();
 | Folders | `$factory->folders()` | Folder listing and tree navigation |
 | Playlists | `$factory->playlists()` | Playlist and playlist-entities listing |
 | Statistics | `$factory->statistics()` | Done-video count and total duration aggregation |
+
+## CLI
+
+The package ships a standalone Symfony Console entry point:
+
+```bash
+vendor/bin/kinescope list
+```
+
+Credentials are resolved from `KINESCOPE_API_KEY` or `--api-key` / `-k`.
+
+Read-only commands use singular resources and explicit actions:
+
+```bash
+# List projects or show one project
+vendor/bin/kinescope kinescope:project:list --format=table
+vendor/bin/kinescope kinescope:project:show 00000000-0000-0000-0000-000000000000
+
+# List folders for a project or show one folder
+vendor/bin/kinescope kinescope:folder:list \
+  --project-id=00000000-0000-0000-0000-000000000000 \
+  --format=json
+vendor/bin/kinescope kinescope:folder:show 11111111-1111-1111-1111-111111111111 \
+  --project-id=00000000-0000-0000-0000-000000000000
+
+# List videos for a project or folder, or show one video
+vendor/bin/kinescope kinescope:video:list \
+  --project-id=00000000-0000-0000-0000-000000000000 \
+  --folder-id=11111111-1111-1111-1111-111111111111 \
+  --format=json
+vendor/bin/kinescope kinescope:video:show 22222222-2222-2222-2222-222222222222
+
+# Include sanitized asset summaries in video rows
+vendor/bin/kinescope kinescope:video:list \
+  --project-id=00000000-0000-0000-0000-000000000000 \
+  --include-assets \
+  --format=json
+
+# Inspect sanitized assets for one video
+vendor/bin/kinescope kinescope:video:asset:list 22222222-2222-2222-2222-222222222222
+
+# Show account, project, or folder statistics
+vendor/bin/kinescope kinescope:statistics:show
+vendor/bin/kinescope kinescope:statistics:show \
+  --project-id=00000000-0000-0000-0000-000000000000 \
+  --format=json
+vendor/bin/kinescope kinescope:statistics:show \
+  --folder-id=11111111-1111-1111-1111-111111111111
+```
+
+List commands support `table` or deterministic `json` output. Resource show commands print pretty JSON. `kinescope:statistics:show` supports `table` and `json`; without a selector it reports account-wide statistics, or it can be scoped with exactly one of `--project-id` or `--folder-id`. Asset output exposes booleans such as `has_url`, `has_download_link`, and `downloadable`; raw signed CDN URLs and download links are not printed by default.
+
+DTO timestamp properties such as `createdAt`, `updatedAt`, `deletedAt`, and `generatedAt` are `Carbon\CarbonImmutable` instances. `toArray()` keeps API field names such as `created_at` and serializes date values as ISO JSON strings.
 
 ## Statistics
 

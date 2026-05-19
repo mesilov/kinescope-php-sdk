@@ -29,25 +29,13 @@ final readonly class ProjectListResult extends PaginatedResponse
         if (isset($response['data']) && is_array($response['data'])) {
             $data = array_map(
                 ProjectDTO::fromArray(...),
-                $response['data']
+                array_values(array_filter($response['data'], is_array(...)))
             );
         }
 
         $meta = MetaDTO::fromArray($response['meta'] ?? []);
 
         return new self($data, $meta);
-    }
-
-    /**
-     * Get default project.
-     *
-     * @return ProjectDTO|null
-     */
-    public function getDefault(): ?ProjectDTO
-    {
-        return $this->find(
-            static fn (ProjectDTO $project): bool => $project->isDefault
-        );
     }
 
     /**
@@ -154,31 +142,31 @@ final readonly class ProjectListResult extends PaginatedResponse
     }
 
     /**
-     * Get total video count across all projects.
+     * Get total item count across all projects.
      *
      * @return int
      */
-    public function getTotalVideosCount(): int
+    public function getTotalItemsCount(): int
     {
         return array_reduce(
             $this->data,
             static fn (int $total, ProjectDTO $project): int =>
-                $total + $project->videosCount,
+                $total + $project->itemsCount,
             0
         );
     }
 
     /**
-     * Get total storage used across all projects in bytes.
+     * Get total size across all projects in bytes.
      *
      * @return int
      */
-    public function getTotalStorageUsed(): int
+    public function getTotalSize(): int
     {
         return array_reduce(
             $this->data,
             static fn (int $total, ProjectDTO $project): int =>
-                $total + ($project->storageUsed ?? 0),
+                $total + $project->size,
             0
         );
     }

@@ -13,6 +13,7 @@ use Kinescope\DTO\Video\VideoListResult;
 use Kinescope\Enum\VideoStatus;
 use Kinescope\Exception\NotFoundException;
 use Kinescope\Services\Videos\Videos;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -22,9 +23,8 @@ use PHPUnit\Framework\TestCase;
  * against the real Kinescope API using read-only operations.
  *
  * Assumes the account has at least one video.
- *
- * @group integration
  */
+#[Group('integration')]
 class VideosTest extends TestCase
 {
     private Videos $service;

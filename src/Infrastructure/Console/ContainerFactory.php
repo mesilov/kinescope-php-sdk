@@ -5,7 +5,14 @@ declare(strict_types=1);
 namespace Kinescope\Infrastructure\Console;
 
 use Kinescope\Core\ApiClientFactory;
-use Kinescope\Infrastructure\Console\Command\VideoInfoCommand;
+use Kinescope\Infrastructure\Console\Command\FolderListCommand;
+use Kinescope\Infrastructure\Console\Command\FolderShowCommand;
+use Kinescope\Infrastructure\Console\Command\ProjectListCommand;
+use Kinescope\Infrastructure\Console\Command\ProjectShowCommand;
+use Kinescope\Infrastructure\Console\Command\StatisticsShowCommand;
+use Kinescope\Infrastructure\Console\Command\VideoAssetListCommand;
+use Kinescope\Infrastructure\Console\Command\VideoListCommand;
+use Kinescope\Infrastructure\Console\Command\VideoShowCommand;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -25,10 +32,21 @@ final class ContainerFactory
             ->setFactory([self::class, 'buildApiClientFactory'])
             ->addArgument(new Reference(LoggerInterface::class));
 
-        $container->register(VideoInfoCommand::class)
-            ->setPublic(true)
-            ->addArgument(new Reference(ApiClientFactory::class))
-            ->addArgument(new Reference(LoggerInterface::class));
+        foreach ([
+            ProjectListCommand::class,
+            ProjectShowCommand::class,
+            FolderListCommand::class,
+            FolderShowCommand::class,
+            VideoListCommand::class,
+            VideoShowCommand::class,
+            VideoAssetListCommand::class,
+            StatisticsShowCommand::class,
+        ] as $commandClass) {
+            $container->register($commandClass)
+                ->setPublic(true)
+                ->addArgument(new Reference(ApiClientFactory::class))
+                ->addArgument(new Reference(LoggerInterface::class));
+        }
 
         $container->compile();
 

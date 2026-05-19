@@ -204,14 +204,15 @@ final class AssetSelectorTest extends TestCase
         return new AssetDTO(
             id: $id,
             videoId: 'video-test',
+            originalName: null,
+            fileSize: $fileSize,
+            md5: null,
+            filetype: 'mp4',
             quality: null,
             resolution: $resolution,
-            bitrate: null,
-            fileSize: $fileSize,
-            codec: null,
+            createdAt: null,
             url: null,
             downloadLink: $downloadLink,
-            createdAt: null,
         );
     }
 }

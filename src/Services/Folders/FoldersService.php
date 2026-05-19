@@ -175,7 +175,7 @@ final class FoldersService extends AbstractService
         $allFolders = $this->getAll($projectId);
 
         $result = new FolderListResult(
-            $allFolders,
+            array_values($allFolders),
             new MetaDTO(
                 total: count($allFolders),
                 pagination: new Pagination(perPage: max(1, min(count($allFolders), Pagination::MAX_PER_PAGE))),

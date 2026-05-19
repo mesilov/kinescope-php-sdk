@@ -4,180 +4,130 @@ declare(strict_types=1);
 
 namespace Kinescope\DTO\Playlist;
 
-use DateTimeImmutable;
-use DateTimeInterface;
+use Kinescope\Enum\PrivacyType;
 
 /**
  * Playlist data transfer object.
  *
- * Represents a playlist containing multiple videos.
+ * Mirrors the current Kinescope playlist payload.
  */
 final readonly class PlaylistDTO
 {
     /**
-     * Create a new PlaylistDTO instance.
-     *
-     * @param string $id Playlist unique identifier (UUID)
-     * @param string $title Playlist title
-     * @param string|null $description Playlist description
-     * @param string|null $projectId Associated project ID
-     * @param int $itemsCount Number of items in playlist
-     * @param int $totalDuration Total duration of all items in seconds
-     * @param string|null $posterUrl Playlist poster/thumbnail URL
-     * @param string|null $embedCode HTML embed code
-     * @param bool $isPublic Whether playlist is publicly accessible
-     * @param array<string, mixed> $settings Playlist settings
-     * @param DateTimeImmutable $createdAt Creation timestamp
-     * @param DateTimeImmutable $updatedAt Last update timestamp
+     * @param list<string> $privacyDomains
+     * @param list<string> $privacyEmailDomains
+     * @param array<string, mixed> $privacyShare
+     * @param list<array<string, mixed>> $tags
+     * @param array<string, mixed> $settings
+     * @param array<string, mixed> $additionalData
      */
     public function __construct(
         public string $id,
-        public string $title,
+        public ?string $workspaceId,
+        public ?string $playerId,
+        public ?string $parentId,
+        public string $name,
         public ?string $description,
-        public ?string $projectId,
-        public int $itemsCount,
-        public int $totalDuration,
-        public ?string $posterUrl,
-        public ?string $embedCode,
-        public bool $isPublic,
+        public ?PrivacyType $privacyType,
+        public ?string $privacyTypeRaw,
+        public array $privacyDomains,
+        public array $privacyEmailDomains,
+        public array $privacyShare,
+        public bool $uniqueCodesEnabled,
+        public array $tags,
         public array $settings,
-        public DateTimeImmutable $createdAt,
-        public DateTimeImmutable $updatedAt,
+        public ?string $playLink,
+        public ?string $embedLink,
+        public array $additionalData = [],
     ) {
     }
 
     /**
-     * Create a PlaylistDTO from API response array.
-     *
      * @param array<string, mixed> $data Raw API response data
-     *
-     * @return self
      */
     public static function fromArray(array $data): self
     {
+        $privacyTypeRaw = isset($data['privacy_type']) ? (string) $data['privacy_type'] : null;
+        $knownFields = [
+            'id', 'workspace_id', 'player_id', 'parent_id', 'name', 'description',
+            'privacy_type', 'privacy_domains', 'privacy_email_domains',
+            'privacy_share', 'unique_codes_enabled', 'tags', 'settings',
+            'play_link', 'embed_link',
+        ];
+
         return new self(
             id: (string) $data['id'],
-            title: (string) ($data['title'] ?? ''),
+            workspaceId: isset($data['workspace_id']) ? (string) $data['workspace_id'] : null,
+            playerId: isset($data['player_id']) ? (string) $data['player_id'] : null,
+            parentId: isset($data['parent_id']) ? (string) $data['parent_id'] : null,
+            name: (string) ($data['name'] ?? ''),
             description: isset($data['description']) ? (string) $data['description'] : null,
-            projectId: isset($data['project_id']) ? (string) $data['project_id'] : null,
-            itemsCount: (int) ($data['items_count'] ?? 0),
-            totalDuration: (int) ($data['total_duration'] ?? 0),
-            posterUrl: isset($data['poster_url']) ? (string) $data['poster_url'] : null,
-            embedCode: isset($data['embed_code']) ? (string) $data['embed_code'] : null,
-            isPublic: (bool) ($data['is_public'] ?? false),
-            settings: isset($data['settings']) && is_array($data['settings'])
-                ? $data['settings']
+            privacyType: $privacyTypeRaw !== null ? PrivacyType::tryFrom($privacyTypeRaw) : null,
+            privacyTypeRaw: $privacyTypeRaw,
+            privacyDomains: isset($data['privacy_domains']) && is_array($data['privacy_domains'])
+                ? array_values(array_map(strval(...), $data['privacy_domains']))
                 : [],
-            createdAt: new DateTimeImmutable($data['created_at'] ?? 'now'),
-            updatedAt: new DateTimeImmutable($data['updated_at'] ?? 'now'),
+            privacyEmailDomains: isset($data['privacy_email_domains']) && is_array($data['privacy_email_domains'])
+                ? array_values(array_map(strval(...), $data['privacy_email_domains']))
+                : [],
+            privacyShare: isset($data['privacy_share']) && is_array($data['privacy_share']) ? $data['privacy_share'] : [],
+            uniqueCodesEnabled: (bool) ($data['unique_codes_enabled'] ?? false),
+            tags: isset($data['tags']) && is_array($data['tags'])
+                ? array_values(array_filter($data['tags'], is_array(...)))
+                : [],
+            settings: isset($data['settings']) && is_array($data['settings']) ? $data['settings'] : [],
+            playLink: isset($data['play_link']) ? (string) $data['play_link'] : null,
+            embedLink: isset($data['embed_link']) ? (string) $data['embed_link'] : null,
+            additionalData: array_diff_key($data, array_flip($knownFields)),
         );
     }
 
-    /**
-     * Check if playlist has any items.
-     *
-     * @return bool
-     */
-    public function hasItems(): bool
+    public function isPublic(): bool
     {
-        return $this->itemsCount > 0;
+        return $this->privacyType?->isPublic() ?? false;
     }
 
-    /**
-     * Check if playlist is empty.
-     *
-     * @return bool
-     */
-    public function isEmpty(): bool
+    public function hasDomainRestrictions(): bool
     {
-        return $this->itemsCount === 0;
+        return $this->privacyType?->hasDomainRestrictions() ?? false;
     }
 
-    /**
-     * Get total duration formatted as HH:MM:SS.
-     *
-     * @return string
-     */
-    public function getFormattedDuration(): string
+    public function hasEmbedLink(): bool
     {
-        $hours = (int) floor($this->totalDuration / 3600);
-        $minutes = (int) floor(($this->totalDuration % 3600) / 60);
-        $seconds = $this->totalDuration % 60;
-
-        if ($hours > 0) {
-            return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
-        }
-
-        return sprintf('%02d:%02d', $minutes, $seconds);
+        return $this->embedLink !== null && $this->embedLink !== '';
     }
 
-    /**
-     * Get average item duration.
-     *
-     * @return int Duration in seconds (0 if empty)
-     */
-    public function getAverageItemDuration(): int
+    public function hasPlayLink(): bool
     {
-        if ($this->itemsCount === 0) {
-            return 0;
-        }
-
-        return (int) round($this->totalDuration / $this->itemsCount);
+        return $this->playLink !== null && $this->playLink !== '';
     }
 
-    /**
-     * Check if playlist has an embed code.
-     *
-     * @return bool
-     */
-    public function hasEmbedCode(): bool
-    {
-        return $this->embedCode !== null && $this->embedCode !== '';
-    }
-
-    /**
-     * Check if playlist has a poster.
-     *
-     * @return bool
-     */
-    public function hasPoster(): bool
-    {
-        return $this->posterUrl !== null && $this->posterUrl !== '';
-    }
-
-    /**
-     * Get a setting value by key.
-     *
-     * @param string $key Setting key
-     * @param mixed $default Default value if key not found
-     *
-     * @return mixed
-     */
     public function getSetting(string $key, mixed $default = null): mixed
     {
         return $this->settings[$key] ?? $default;
     }
 
     /**
-     * Convert to array representation.
-     *
      * @return array<string, mixed>
      */
     public function toArray(): array
     {
-        return [
+        return array_merge([
             'id' => $this->id,
-            'title' => $this->title,
+            'workspace_id' => $this->workspaceId,
+            'player_id' => $this->playerId,
+            'parent_id' => $this->parentId,
+            'name' => $this->name,
             'description' => $this->description,
-            'project_id' => $this->projectId,
-            'items_count' => $this->itemsCount,
-            'total_duration' => $this->totalDuration,
-            'poster_url' => $this->posterUrl,
-            'embed_code' => $this->embedCode,
-            'is_public' => $this->isPublic,
+            'privacy_type' => $this->privacyType !== null ? $this->privacyType->value : $this->privacyTypeRaw,
+            'privacy_domains' => $this->privacyDomains,
+            'privacy_email_domains' => $this->privacyEmailDomains,
+            'privacy_share' => $this->privacyShare === [] ? (object) [] : $this->privacyShare,
+            'unique_codes_enabled' => $this->uniqueCodesEnabled,
+            'tags' => $this->tags,
             'settings' => $this->settings,
-            'created_at' => $this->createdAt->format(DateTimeInterface::ATOM),
-            'updated_at' => $this->updatedAt->format(DateTimeInterface::ATOM),
-        ];
+            'play_link' => $this->playLink,
+            'embed_link' => $this->embedLink,
+        ], $this->additionalData);
     }
 }

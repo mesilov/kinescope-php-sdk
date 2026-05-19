@@ -4,8 +4,16 @@ declare(strict_types=1);
 
 namespace Kinescope\Infrastructure\Console;
 
-use Kinescope\Infrastructure\Console\Command\VideoInfoCommand;
+use Kinescope\Infrastructure\Console\Command\FolderListCommand;
+use Kinescope\Infrastructure\Console\Command\FolderShowCommand;
+use Kinescope\Infrastructure\Console\Command\ProjectListCommand;
+use Kinescope\Infrastructure\Console\Command\ProjectShowCommand;
+use Kinescope\Infrastructure\Console\Command\StatisticsShowCommand;
+use Kinescope\Infrastructure\Console\Command\VideoAssetListCommand;
+use Kinescope\Infrastructure\Console\Command\VideoListCommand;
+use Kinescope\Infrastructure\Console\Command\VideoShowCommand;
 use Symfony\Component\Console\Application as BaseApplication;
+use Symfony\Component\Console\Command\Command;
 
 final class Application extends BaseApplication
 {
@@ -18,9 +26,19 @@ final class Application extends BaseApplication
 
         $container = ContainerFactory::build();
 
-        $command = $container->get(VideoInfoCommand::class);
-        assert($command instanceof VideoInfoCommand);
-        $this->addCommand($command);
-        $this->setDefaultCommand('video:info');
+        foreach ([
+            ProjectListCommand::class,
+            ProjectShowCommand::class,
+            FolderListCommand::class,
+            FolderShowCommand::class,
+            VideoListCommand::class,
+            VideoShowCommand::class,
+            VideoAssetListCommand::class,
+            StatisticsShowCommand::class,
+        ] as $commandClass) {
+            $command = $container->get($commandClass);
+            assert($command instanceof Command);
+            $this->addCommand($command);
+        }
     }
 }

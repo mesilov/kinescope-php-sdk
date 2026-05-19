@@ -22,7 +22,7 @@ use Kinescope\Services\AbstractService;
  * // List all playlists
  * $result = $factory->playlists()->list();
  * foreach ($result->getData() as $playlist) {
- *     echo $playlist->title;
+ *     echo $playlist->name;
  * }
  *
  * // Get a specific playlist
@@ -43,7 +43,6 @@ final class PlaylistsService extends AbstractService
      *
      * @param int $page Page number (1-indexed)
      * @param int $perPage Number of items per page (max 100)
-     * @param string|null $projectId Filter by project ID
      * @param Sort|null $sort Sorting parameters
      *
      * @throws \Kinescope\Exception\KinescopeException On API errors
@@ -53,15 +52,11 @@ final class PlaylistsService extends AbstractService
     public function list(
         int $page = 1,
         int $perPage = 20,
-        ?string $projectId = null,
         ?Sort $sort = null
     ): PlaylistListResult {
         $query = $this->mergeQueries(
             $this->buildPaginationQuery($page, $perPage),
-            $sort?->toQueryParams() ?? [],
-            $this->buildFilterQuery([
-                'project_id' => $projectId,
-            ])
+            $sort?->toQueryParams() ?? []
         );
 
         $response = $this->apiClient->get(self::ENDPOINT, $query);
@@ -94,25 +89,20 @@ final class PlaylistsService extends AbstractService
      * Get entities (items) in a playlist.
      *
      * @param string $playlistId Playlist UUID
-     * @param int $page Page number (1-indexed)
-     * @param int $perPage Number of items per page
      *
      * @throws \Kinescope\Exception\NotFoundException If playlist not found
      * @throws \Kinescope\Exception\KinescopeException On API errors
      *
-     * @return PlaylistEntityListResult Paginated list of playlist entities
+     * @return PlaylistEntityListResult Unpaginated list of playlist entities
      */
     public function entities(
-        string $playlistId,
-        int $page = 1,
-        int $perPage = 20
+        string $playlistId
     ): PlaylistEntityListResult {
         $endpoint = $this->buildEndpoint(self::ENDPOINT . '/{playlist_id}/entities', [
             'playlist_id' => $playlistId,
         ]);
 
-        $query = $this->buildPaginationQuery($page, $perPage);
-        $response = $this->apiClient->get($endpoint, $query);
+        $response = $this->apiClient->get($endpoint);
 
         return PlaylistEntityListResult::fromArray($response);
     }
@@ -128,17 +118,7 @@ final class PlaylistsService extends AbstractService
      */
     public function getAllEntities(string $playlistId): array
     {
-        $allEntities = [];
-        $page = 1;
-        $perPage = 100;
-
-        do {
-            $result = $this->entities($playlistId, $page, $perPage);
-            $allEntities = array_merge($allEntities, $result->getData());
-            $page++;
-        } while ($result->hasNextPage());
-
-        return $allEntities;
+        return $this->entities($playlistId)->getData();
     }
 
     /**
@@ -165,29 +145,6 @@ final class PlaylistsService extends AbstractService
     }
 
     /**
-     * Get playlists by project.
-     *
-     * @param string $projectId Project UUID
-     * @param int $page Page number
-     * @param int $perPage Items per page
-     *
-     * @throws \Kinescope\Exception\KinescopeException On API errors
-     *
-     * @return PlaylistListResult Playlists in project
-     */
-    public function listByProject(
-        string $projectId,
-        int $page = 1,
-        int $perPage = 20
-    ): PlaylistListResult {
-        return $this->list(
-            page: $page,
-            perPage: $perPage,
-            projectId: $projectId
-        );
-    }
-
-    /**
      * Get public playlists.
      *
      * @param int $page Page number
@@ -207,18 +164,18 @@ final class PlaylistsService extends AbstractService
     }
 
     /**
-     * Find playlist by title.
+     * Find playlist by name.
      *
-     * @param string $title Playlist title
+     * @param string $name Playlist name
      *
      * @throws \Kinescope\Exception\KinescopeException On API errors
      *
      * @return PlaylistDTO|null The playlist or null if not found
      */
-    public function findByTitle(string $title): ?PlaylistDTO
+    public function findByName(string $name): ?PlaylistDTO
     {
         foreach ($this->getAll() as $playlist) {
-            if ($playlist->title === $title) {
+            if ($playlist->name === $name) {
                 return $playlist;
             }
         }

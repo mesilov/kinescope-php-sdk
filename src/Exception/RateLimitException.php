@@ -62,6 +62,32 @@ class RateLimitException extends KinescopeException
     }
 
     /**
+     * Create a rate limit exception with response and retry information.
+     *
+     * @param int $retryAfter Seconds until rate limit resets
+     * @param string $message Error message
+     * @param int $code HTTP status code
+     * @param string|null $responseBody Raw response body
+     * @param array<string, string|array<string>> $responseHeaders Response headers
+     * @param Throwable|null $previous Previous exception
+     *
+     * @return static
+     */
+    public static function withResponseAndRetryAfter(
+        int $retryAfter,
+        string $message = 'Too Many Requests',
+        int $code = self::STATUS_CODE,
+        ?string $responseBody = null,
+        array $responseHeaders = [],
+        ?Throwable $previous = null
+    ): static {
+        $exception = static::withResponse($message, $code, $responseBody, $responseHeaders, $previous);
+        $exception->retryAfter = $retryAfter;
+
+        return $exception;
+    }
+
+    /**
      * Get retry-after value in seconds.
      */
     public function getRetryAfter(): ?int

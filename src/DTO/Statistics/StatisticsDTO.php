@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace Kinescope\DTO\Statistics;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
-use DateTimeImmutable;
-use DateTimeInterface;
 
 final readonly class StatisticsDTO
 {
     public function __construct(
         public int $videosCount,
         public CarbonInterval $totalDuration,
-        public DateTimeImmutable $generatedAt,
+        public CarbonImmutable $generatedAt,
     ) {
     }
 
@@ -53,7 +52,7 @@ final readonly class StatisticsDTO
             'total_duration_seconds' => $this->getTotalSeconds(),
             'total_minutes' => $this->getTotalMinutes(),
             'total_hours' => $this->getTotalHours(),
-            'generated_at' => $this->generatedAt->format(DateTimeInterface::ATOM),
+            'generated_at' => $this->generatedAt->toJSON(),
         ];
     }
 }

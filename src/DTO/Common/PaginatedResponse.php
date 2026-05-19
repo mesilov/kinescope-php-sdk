@@ -24,7 +24,7 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
     /**
      * Create a new paginated response.
      *
-     * @param array<T> $data The items on the current page
+     * @param list<T> $data The items on the current page
      * @param MetaDTO $meta Pagination metadata
      */
     public function __construct(
@@ -36,7 +36,7 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
     /**
      * Get all items on the current page.
      *
-     * @return array<T>
+     * @return list<T>
      */
     public function getData(): array
     {
@@ -184,11 +184,11 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
      *
      * @param callable(T): TResult $callback
      *
-     * @return array<TResult>
+     * @return list<TResult>
      */
     public function map(callable $callback): array
     {
-        return array_map($callback, $this->data);
+        return array_values(array_map($callback, $this->data));
     }
 
     /**
@@ -196,7 +196,7 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
      *
      * @param callable(T): bool $callback
      *
-     * @return array<T>
+     * @return list<T>
      */
     public function filter(callable $callback): array
     {
@@ -236,13 +236,28 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
     /**
      * Convert to array representation.
      *
-     * @return array{data: array<T>, meta: array{total: int, page: int, per_page: int, last_page: int}}
+     * @return array{data: list<mixed>, meta: array<string, mixed>}
      */
     public function toArray(): array
     {
         return [
-            'data' => $this->data,
+            'data' => array_values(array_map(
+                self::normalizeItem(...),
+                $this->data,
+            )),
             'meta' => $this->meta->toArray(),
         ];
+    }
+
+    private static function normalizeItem(mixed $item): mixed
+    {
+        if (! is_object($item) || ! is_callable([$item, 'toArray'])) {
+            return $item;
+        }
+
+        /** @var callable(): mixed $toArray */
+        $toArray = [$item, 'toArray'];
+
+        return $toArray();
     }
 }

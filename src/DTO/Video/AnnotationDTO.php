@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Kinescope\DTO\Video;
 
-use DateTimeImmutable;
-use DateTimeInterface;
+use Carbon\CarbonImmutable;
+use Kinescope\DTO\Common\ApiDate;
 
 /**
  * Video annotation data transfer object.
@@ -26,8 +26,9 @@ final readonly class AnnotationDTO
      * @param string|null $type Annotation type (marker, chapter, etc.)
      * @param string|null $url URL associated with annotation
      * @param array<string, mixed> $metadata Additional metadata
-     * @param DateTimeImmutable|null $createdAt Creation timestamp
-     * @param DateTimeImmutable|null $updatedAt Last update timestamp
+     * @param array<string, mixed> $additionalData Additional raw API fields
+     * @param CarbonImmutable|null $createdAt Creation timestamp
+     * @param CarbonImmutable|null $updatedAt Last update timestamp
      */
     public function __construct(
         public string $id,
@@ -39,8 +40,9 @@ final readonly class AnnotationDTO
         public ?string $type,
         public ?string $url,
         public array $metadata,
-        public ?DateTimeImmutable $createdAt,
-        public ?DateTimeImmutable $updatedAt,
+        public ?CarbonImmutable $createdAt,
+        public ?CarbonImmutable $updatedAt,
+        public array $additionalData = [],
     ) {
     }
 
@@ -53,6 +55,11 @@ final readonly class AnnotationDTO
      */
     public static function fromArray(array $data): self
     {
+        $knownFields = [
+            'id', 'video_id', 'title', 'description', 'time', 'duration',
+            'type', 'url', 'metadata', 'created_at', 'updated_at',
+        ];
+
         return new self(
             id: (string) $data['id'],
             videoId: (string) ($data['video_id'] ?? ''),
@@ -65,12 +72,9 @@ final readonly class AnnotationDTO
             metadata: isset($data['metadata']) && is_array($data['metadata'])
                 ? $data['metadata']
                 : [],
-            createdAt: isset($data['created_at'])
-                ? new DateTimeImmutable($data['created_at'])
-                : null,
-            updatedAt: isset($data['updated_at'])
-                ? new DateTimeImmutable($data['updated_at'])
-                : null,
+            createdAt: ApiDate::from($data['created_at'] ?? null),
+            updatedAt: ApiDate::from($data['updated_at'] ?? null),
+            additionalData: array_diff_key($data, array_flip($knownFields)),
         );
     }
 
@@ -176,7 +180,7 @@ final readonly class AnnotationDTO
      */
     public function toArray(): array
     {
-        return [
+        return array_merge([
             'id' => $this->id,
             'video_id' => $this->videoId,
             'title' => $this->title,
@@ -186,8 +190,8 @@ final readonly class AnnotationDTO
             'type' => $this->type,
             'url' => $this->url,
             'metadata' => $this->metadata,
-            'created_at' => $this->createdAt?->format(DateTimeInterface::ATOM),
-            'updated_at' => $this->updatedAt?->format(DateTimeInterface::ATOM),
-        ];
+            'created_at' => ApiDate::toString($this->createdAt),
+            'updated_at' => ApiDate::toString($this->updatedAt),
+        ], $this->additionalData);
     }
 }

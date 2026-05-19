@@ -10,11 +10,10 @@ use Kinescope\Core\Pagination;
 use Kinescope\Enum\VideoStatus;
 use Kinescope\Services\Statistics\Statistics;
 use Kinescope\Services\Videos\Videos;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @group integration
- */
+#[Group('integration')]
 final class StatisticsIntegrationTest extends TestCase
 {
     private Videos $videos;
