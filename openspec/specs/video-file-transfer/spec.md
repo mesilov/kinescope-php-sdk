@@ -2,9 +2,7 @@
 
 ## Purpose
 Defines the video download file-transfer boundary, default direct-to-file transfer behavior, downloader integration, progress mapping, validation, `.part` handling, and optional custom transfer implementations.
-
 ## Requirements
-
 ### Requirement: Transfer selected video files through a dedicated file-transfer boundary
 The SDK SHALL separate video metadata and asset selection from the transfer of selected video bytes into a local file.
 
@@ -82,7 +80,7 @@ The SDK SHALL allow consumers to inject a custom file-transfer implementation fo
 
 #### Scenario: Custom transfer receives selected asset metadata
 - **WHEN** `VideoDownloader` invokes a custom transfer implementation
-- **THEN** the transfer request includes the selected asset download URL, temporary output path, and selected asset file size as the expected byte count
+- **THEN** the transfer request includes the selected asset download URL, temporary output path, and selected asset video stream size as the expected byte-count hint
 
 #### Scenario: Transfer exceptions propagate through the downloader workflow
 - **WHEN** a custom transfer implementation fails with an exception
@@ -138,25 +136,30 @@ The SDK SHALL translate file-transfer progress into the existing download progre
 - **THEN** `VideoDownloader` dispatches the download-completed event with the final file path and completed file size
 
 ### Requirement: Validate completed transfers
-The SDK SHALL validate completed video file transfers in `VideoDownloader` before reporting download completion, using the transfer-reported byte count when available and the selected asset file size as a fallback.
+The SDK SHALL validate completed video file transfers in `VideoDownloader` before reporting download completion, using the transfer-reported byte count when available and the selected asset video stream size only as a fallback metadata hint.
 
-#### Scenario: Transfer request includes selected asset size
+#### Scenario: Transfer request includes selected asset stream size
 - **WHEN** `VideoDownloader` creates a file-transfer request for a selected asset
-- **THEN** it sets the request expected byte count to the selected asset `fileSize`
+- **THEN** it sets the request expected byte count to the selected asset `videoStreamSize`
 
 #### Scenario: Successful transfer matches validation byte count
 - **WHEN** the transfer result reports a completed byte count
 - **THEN** `VideoDownloader` uses that transfer-reported byte count as the validation byte count
-- **AND** when the transfer result does not report a completed byte count, `VideoDownloader` uses the selected asset `fileSize` as the validation byte count
+- **AND** when the transfer result does not report a completed byte count, `VideoDownloader` uses the selected asset `videoStreamSize` as the validation byte count fallback
 - **AND** when written bytes match the validation byte count
 - **THEN** `VideoDownloader` renames the `.part` file to the final destination path and completes successfully
+
+#### Scenario: Stream metadata differs from transfer size
+- **WHEN** the transfer result reports a completed byte count that differs from the selected asset `videoStreamSize`
+- **AND** written bytes match the transfer-reported byte count
+- **THEN** `VideoDownloader` completes successfully and does not treat the stream metadata mismatch as a failed download
 
 #### Scenario: Incomplete transfer fails
 - **WHEN** the transfer result reports fewer or more written bytes than the validation byte count
 - **THEN** the download fails with a `KinescopeException`
 
 #### Scenario: Custom transfer cannot bypass completed-size validation
-- **WHEN** a custom transfer implementation returns a successful result with a written byte count that differs from its reported completed byte count or, when absent, from the selected asset `fileSize`
+- **WHEN** a custom transfer implementation returns a successful result with a written byte count that differs from its reported completed byte count or, when absent, from the selected asset `videoStreamSize`
 - **THEN** `VideoDownloader` fails the download with a `KinescopeException`
 
 #### Scenario: Failed transfer does not report completion
@@ -203,3 +206,4 @@ The SDK SHALL include a synthetic regression test that demonstrates the disk-foo
 #### Scenario: Direct transfer avoids extra response-body footprint
 - **WHEN** the synthetic test runs the default direct transfer strategy against the same fixed-size payload
 - **THEN** the measured footprint includes only the in-progress `.part` file and no separate same-sized response-body temp file
+

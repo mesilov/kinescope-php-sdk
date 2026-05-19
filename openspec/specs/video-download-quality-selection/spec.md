@@ -2,7 +2,6 @@
 
 ## Purpose
 Defines how the SDK selects downloadable video assets for quality preferences, including size-first `WORST` selection, height-first `BEST` selection, and handling of missing resolution metadata.
-
 ## Requirements
 ### Requirement: Select downloadable assets by requested quality preference
 The SDK SHALL select a downloadable video asset according to the requested `QualityPreference` after excluding assets without a `downloadLink`.
@@ -11,13 +10,13 @@ The SDK SHALL select a downloadable video asset according to the requested `Qual
 - **WHEN** a video has multiple downloadable assets with known heights
 - **THEN** `VideoDownloader` selects the downloadable asset with the greatest height for `QualityPreference::BEST`
 
-#### Scenario: WORST prefers smallest file
-- **WHEN** a video has multiple downloadable assets with different `fileSize` values
-- **THEN** `VideoDownloader` selects the downloadable asset with the smallest `fileSize` for `QualityPreference::WORST`
+#### Scenario: WORST prefers smallest stream
+- **WHEN** a video has multiple downloadable assets with different `videoStreamSize` values
+- **THEN** `VideoDownloader` selects the downloadable asset with the smallest `videoStreamSize` for `QualityPreference::WORST`
 
 #### Scenario: WORST does not prefer original when heights are missing
-- **WHEN** a video has multiple downloadable assets whose heights are missing and the first downloadable asset is `original` with a larger `fileSize`
-- **THEN** `VideoDownloader` selects the downloadable asset with the smallest `fileSize` for `QualityPreference::WORST`
+- **WHEN** a video has multiple downloadable assets whose heights are missing and the first downloadable asset is `original` with a larger `videoStreamSize`
+- **THEN** `VideoDownloader` selects the downloadable asset with the smallest `videoStreamSize` for `QualityPreference::WORST`
 
 #### Scenario: Assets without download links are ignored
 - **WHEN** a video has assets with and without `downloadLink`
@@ -30,8 +29,8 @@ The SDK SHALL select a downloadable video asset according to the requested `Qual
 ### Requirement: Treat missing height as unknown metadata
 The SDK SHALL NOT interpret a missing asset height as resolution `0` for quality selection.
 
-#### Scenario: WORST uses height only after file size
-- **WHEN** multiple downloadable assets have the same `fileSize` and known heights
+#### Scenario: WORST uses height only after stream size
+- **WHEN** multiple downloadable assets have the same `videoStreamSize` and known heights
 - **THEN** `VideoDownloader` may use the lower known height as a tie-breaker for `QualityPreference::WORST`
 
 #### Scenario: Missing height is not automatically lowest quality
@@ -51,4 +50,5 @@ The SDK SHALL keep the existing public downloader API and event workflow while c
 
 #### Scenario: Selected asset metadata is still emitted
 - **WHEN** `VideoDownloader` dispatches the download-started event
-- **THEN** the event reflects the selected asset URL, selected file size, requested quality preference, and selected height when available
+- **THEN** the event reflects the selected asset URL, selected stream-size metadata, requested quality preference, and selected height when available
+
