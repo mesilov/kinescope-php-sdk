@@ -20,6 +20,7 @@ final class ApplicationTest extends TestCase
         self::assertTrue($application->has('kinescope:video:list'));
         self::assertTrue($application->has('kinescope:video:show'));
         self::assertTrue($application->has('kinescope:video:asset:list'));
+        self::assertTrue($application->has('kinescope:statistics:show'));
 
         self::assertFalse($application->has('video:info'));
         self::assertFalse($application->has('kinescope:browse'));

@@ -29,9 +29,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `PlaylistsService::listByProject()` is removed because the live API does not support that filter reliably; `findByTitle()` is replaced by `findByName()`.
 
 ### Added
-- Commands `kinescope:project:list`, `kinescope:project:show`, `kinescope:folder:list`, `kinescope:folder:show`, `kinescope:video:list`, `kinescope:video:show`, and `kinescope:video:asset:list` for read-only Kinescope account inspection from the SDK CLI.
+- Commands `kinescope:project:list`, `kinescope:project:show`, `kinescope:folder:list`, `kinescope:folder:show`, `kinescope:video:list`, `kinescope:video:show`, `kinescope:video:asset:list`, and `kinescope:statistics:show` for read-only Kinescope account inspection from the SDK CLI.
   - List commands support `table` and deterministic `json` output.
   - Show commands output pretty JSON.
+  - `kinescope:statistics:show` supports account, project, and folder scopes with `table` or `json` output.
   - All commands resolve credentials via `KINESCOPE_API_KEY` or `--api-key` / `-k`.
   - Resource identifiers are validated locally before API reads.
   - Asset output is sanitized by exposing `has_url`, `has_download_link`, and `downloadable` booleans instead of raw signed CDN URLs.

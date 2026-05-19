@@ -8,6 +8,7 @@ use Kinescope\Infrastructure\Console\Command\FolderListCommand;
 use Kinescope\Infrastructure\Console\Command\FolderShowCommand;
 use Kinescope\Infrastructure\Console\Command\ProjectListCommand;
 use Kinescope\Infrastructure\Console\Command\ProjectShowCommand;
+use Kinescope\Infrastructure\Console\Command\StatisticsShowCommand;
 use Kinescope\Infrastructure\Console\Command\VideoAssetListCommand;
 use Kinescope\Infrastructure\Console\Command\VideoListCommand;
 use Kinescope\Infrastructure\Console\Command\VideoShowCommand;
@@ -33,6 +34,7 @@ final class Application extends BaseApplication
             VideoListCommand::class,
             VideoShowCommand::class,
             VideoAssetListCommand::class,
+            StatisticsShowCommand::class,
         ] as $commandClass) {
             $command = $container->get($commandClass);
             assert($command instanceof Command);

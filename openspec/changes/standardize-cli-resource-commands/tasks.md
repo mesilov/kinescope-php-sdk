@@ -9,6 +9,7 @@
 - [x] 1.7 Add command tests for `kinescope:video:show <video-id>` covering the old `video:info` success/error behavior under the new command name plus UUID validation.
 - [x] 1.8 Add command tests for `kinescope:video:asset:list <video-id>` covering JSON/table output, asset sorting, signed URL sanitization, and video not found handling.
 - [x] 1.9 Add entrypoint/composer metadata tests or assertions proving `composer.json` exports `bin/kinescope` and no longer exports `bin/console`.
+- [x] 1.10 Add command tests for `kinescope:statistics:show` covering account/project/folder scopes, table/JSON output, selector validation, and invalid `--format`.
 
 ## 2. CLI Entry Point
 
@@ -28,12 +29,14 @@
 - [x] 3.7 Implement `kinescope:video:asset:list`.
 - [x] 3.8 Preserve sanitized asset output: expose presence booleans and do not print raw signed URLs or download links by default.
 - [x] 3.9 Preserve deterministic list behavior: full pagination where previously supported, stable sorting, and `table` default for list commands.
+- [x] 3.10 Implement `kinescope:statistics:show` using the existing `Statistics` service.
 
 ## 4. Documentation
 
 - [x] 4.1 Update `README.md` with the new `vendor/bin/kinescope` entry point and resource/action command examples.
 - [x] 4.2 Add `CHANGELOG.md` breaking-change notes that map every removed command to its replacement.
 - [x] 4.3 Document that no aliases are kept for `video:info` or `kinescope:browse`.
+- [x] 4.4 Document the `kinescope:statistics:show` CLI command and Make wrapper.
 
 ## 5. Validation
 
@@ -42,3 +45,4 @@
 - [x] 5.3 Run `make test-unit`.
 - [x] 5.4 Run `make lint-all`.
 - [x] 5.5 Run relevant live/manual read-only CLI checks when `KINESCOPE_API_KEY` is available; otherwise document why live API verification was skipped.
+- [x] 5.6 Re-run focused console tests, `make test-unit`, `make lint-all`, and `make openspec-validate` after adding statistics CLI.

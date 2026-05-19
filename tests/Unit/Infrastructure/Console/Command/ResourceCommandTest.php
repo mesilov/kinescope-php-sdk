@@ -9,6 +9,7 @@ use Kinescope\Infrastructure\Console\Command\FolderListCommand;
 use Kinescope\Infrastructure\Console\Command\FolderShowCommand;
 use Kinescope\Infrastructure\Console\Command\ProjectListCommand;
 use Kinescope\Infrastructure\Console\Command\ProjectShowCommand;
+use Kinescope\Infrastructure\Console\Command\StatisticsShowCommand;
 use Kinescope\Infrastructure\Console\Command\VideoAssetListCommand;
 use Kinescope\Infrastructure\Console\Command\VideoListCommand;
 use Kinescope\Infrastructure\Console\Command\VideoShowCommand;
@@ -16,6 +17,7 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
@@ -421,6 +423,123 @@ final class ResourceCommandTest extends TestCase
         self::assertStringNotContainsString('cdn.example.test', $tester->getDisplay());
     }
 
+    public function testStatisticsShowRejectsInvalidFormat(): void
+    {
+        $tester = $this->commandTester('kinescope:statistics:show', $this->createMock(ClientInterface::class));
+
+        $exitCode = $tester->execute(['--format' => 'xml', '--api-key' => 'test-key']);
+
+        self::assertSame(Command::INVALID, $exitCode);
+        self::assertStringContainsString('format must be one of: table, json.', $tester->getDisplay());
+    }
+
+    public function testStatisticsShowRejectsMalformedProjectId(): void
+    {
+        $tester = $this->commandTester('kinescope:statistics:show', $this->createMock(ClientInterface::class));
+
+        $exitCode = $tester->execute(['--project-id' => 'not-a-uuid', '--api-key' => 'test-key']);
+
+        self::assertSame(Command::INVALID, $exitCode);
+        self::assertStringContainsString('project-id must be a valid UUID.', $tester->getDisplay());
+    }
+
+    public function testStatisticsShowRejectsAmbiguousScopeSelectors(): void
+    {
+        $tester = $this->commandTester('kinescope:statistics:show', $this->createMock(ClientInterface::class));
+
+        $exitCode = $tester->execute([
+            '--project-id' => self::PROJECT_ID,
+            '--folder-id' => self::FOLDER_ID,
+            '--api-key' => 'test-key',
+        ]);
+
+        self::assertSame(Command::INVALID, $exitCode);
+        self::assertStringContainsString('statistics:show accepts either --project-id or --folder-id, not both.', $tester->getDisplay());
+    }
+
+    public function testStatisticsShowAccountTableOutput(): void
+    {
+        $httpClient = $this->httpClientReturning([
+            $this->jsonResponse($this->paginatedResponse([
+                $this->videoPayload(id: self::VIDEO_ID, title: 'Video A'),
+            ])),
+        ]);
+
+        $tester = $this->commandTester('kinescope:statistics:show', $httpClient);
+        $exitCode = $tester->execute(['--api-key' => 'test-key']);
+
+        self::assertSame(Command::SUCCESS, $exitCode);
+        self::assertStringContainsString('scope', $tester->getDisplay());
+        self::assertStringContainsString('account', $tester->getDisplay());
+        self::assertStringContainsString('videos_count', $tester->getDisplay());
+        self::assertStringContainsString('total_duration_seconds', $tester->getDisplay());
+        self::assertStringContainsString('120', $tester->getDisplay());
+    }
+
+    public function testStatisticsShowProjectJsonOutputUsesProjectScope(): void
+    {
+        $requests = [];
+        $httpClient = $this->httpClientReturningAndCapturingRequests([
+            $this->jsonResponse($this->paginatedResponse([
+                $this->videoPayload(id: self::VIDEO_ID, title: 'Video A', projectId: self::PROJECT_ID),
+                $this->videoPayload(id: '44444444-4444-4444-8444-444444444444', title: 'Video B', projectId: self::PROJECT_ID),
+            ])),
+        ], $requests);
+
+        $tester = $this->commandTester('kinescope:statistics:show', $httpClient);
+        $exitCode = $tester->execute([
+            '--project-id' => self::PROJECT_ID,
+            '--format' => 'json',
+            '--api-key' => 'test-key',
+        ]);
+
+        self::assertSame(Command::SUCCESS, $exitCode);
+
+        $decoded = $this->decodeDisplayJson($tester);
+        self::assertSame('statistics', $decoded['resource']);
+        self::assertSame('project', $decoded['scope']);
+        self::assertSame(self::PROJECT_ID, $decoded['projectId']);
+        self::assertSame(2, $decoded['statistics']['videos_count']);
+        self::assertSame(240, $decoded['statistics']['total_duration_seconds']);
+        self::assertArrayHasKey('generated_at', $decoded['statistics']);
+
+        self::assertCount(1, $requests);
+        $query = $requests[0]->getUri()->getQuery();
+        self::assertStringContainsString('project_id=' . self::PROJECT_ID, $query);
+        self::assertStringContainsString('status%5B%5D=done', $query);
+    }
+
+    public function testStatisticsShowFolderJsonOutputUsesFolderScope(): void
+    {
+        $requests = [];
+        $httpClient = $this->httpClientReturningAndCapturingRequests([
+            $this->jsonResponse($this->paginatedResponse([
+                $this->videoPayload(id: self::VIDEO_ID, title: 'Video A', folderId: self::FOLDER_ID),
+            ])),
+        ], $requests);
+
+        $tester = $this->commandTester('kinescope:statistics:show', $httpClient);
+        $exitCode = $tester->execute([
+            '--folder-id' => self::FOLDER_ID,
+            '--format' => 'json',
+            '--api-key' => 'test-key',
+        ]);
+
+        self::assertSame(Command::SUCCESS, $exitCode);
+
+        $decoded = $this->decodeDisplayJson($tester);
+        self::assertSame('statistics', $decoded['resource']);
+        self::assertSame('folder', $decoded['scope']);
+        self::assertSame(self::FOLDER_ID, $decoded['folderId']);
+        self::assertSame(1, $decoded['statistics']['videos_count']);
+        self::assertSame(120, $decoded['statistics']['total_duration_seconds']);
+
+        self::assertCount(1, $requests);
+        $query = $requests[0]->getUri()->getQuery();
+        self::assertStringContainsString('folder_id=' . self::FOLDER_ID, $query);
+        self::assertStringContainsString('status%5B%5D=done', $query);
+    }
+
     private function commandTester(string $commandName, ClientInterface $httpClient): CommandTester
     {
         $app = new Application('test', '1.0.0');
@@ -452,6 +571,7 @@ final class ResourceCommandTest extends TestCase
             new VideoListCommand($apiClientFactory, $logger),
             new VideoShowCommand($apiClientFactory, $logger),
             new VideoAssetListCommand($apiClientFactory, $logger),
+            new StatisticsShowCommand($apiClientFactory, $logger),
         ];
     }
 
@@ -462,6 +582,27 @@ final class ResourceCommandTest extends TestCase
     {
         $httpClient = $this->createMock(ClientInterface::class);
         $httpClient->method('sendRequest')->willReturnOnConsecutiveCalls(...$responses);
+
+        return $httpClient;
+    }
+
+    /**
+     * @param list<Response> $responses
+     * @param list<RequestInterface> $requests
+     */
+    private function httpClientReturningAndCapturingRequests(array $responses, array &$requests): ClientInterface
+    {
+        $httpClient = $this->createMock(ClientInterface::class);
+        $httpClient
+            ->method('sendRequest')
+            ->willReturnCallback(static function (RequestInterface $request) use (&$responses, &$requests): Response {
+                $requests[] = $request;
+                $response = array_shift($responses);
+
+                self::assertInstanceOf(Response::class, $response);
+
+                return $response;
+            });
 
         return $httpClient;
     }

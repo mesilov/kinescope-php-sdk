@@ -9,6 +9,7 @@ use Kinescope\Infrastructure\Console\Command\FolderListCommand;
 use Kinescope\Infrastructure\Console\Command\FolderShowCommand;
 use Kinescope\Infrastructure\Console\Command\ProjectListCommand;
 use Kinescope\Infrastructure\Console\Command\ProjectShowCommand;
+use Kinescope\Infrastructure\Console\Command\StatisticsShowCommand;
 use Kinescope\Infrastructure\Console\Command\VideoAssetListCommand;
 use Kinescope\Infrastructure\Console\Command\VideoListCommand;
 use Kinescope\Infrastructure\Console\Command\VideoShowCommand;
@@ -39,6 +40,7 @@ final class ContainerFactory
             VideoListCommand::class,
             VideoShowCommand::class,
             VideoAssetListCommand::class,
+            StatisticsShowCommand::class,
         ] as $commandClass) {
             $container->register($commandClass)
                 ->setPublic(true)

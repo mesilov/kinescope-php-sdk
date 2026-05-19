@@ -17,6 +17,7 @@ This change makes the CLI intentionally breaking and standardizes it around one 
   - `kinescope:video:list --project-id=<project-id> [--folder-id=<folder-id>]`
   - `kinescope:video:show <video-id>`
   - `kinescope:video:asset:list <video-id>`
+  - `kinescope:statistics:show [--project-id=<project-id>|--folder-id=<folder-id>]`
 - Keep all commands read-only.
 - Keep credential resolution consistent: `--api-key` / `-k`, falling back to `KINESCOPE_API_KEY`.
 - Keep deterministic `table` and `json` output for list-style commands, and JSON output for show-style commands.

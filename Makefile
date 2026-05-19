@@ -4,7 +4,7 @@
         composer-install composer-update composer-dumpautoload composer \
         lint-all lint-cs-fixer lint-cs-fixer-fix lint-phpstan lint-rector lint-rector-fix \
         test-unit test-integration test-integration-fast test-integration-download openspec openspec-init openspec-list openspec-list-specs openspec-validate \
-        kinescope kinescope-project-list kinescope-project-show kinescope-folder-list kinescope-folder-show kinescope-video-list kinescope-video-show kinescope-video-asset-list \
+        kinescope kinescope-project-list kinescope-project-show kinescope-folder-list kinescope-folder-show kinescope-video-list kinescope-video-show kinescope-video-asset-list kinescope-statistics-show \
         php-cli-bash php-cli-root clear-cache show-env
 
 # =============================================================================
@@ -168,6 +168,10 @@ kinescope-video-show:
 kinescope-video-asset-list:
 	docker compose exec php-cli php bin/kinescope kinescope:video:asset:list $(args)
 
+## Show Kinescope done-video statistics (usage: make kinescope-statistics-show args="--project-id=<project-id> --format=json")
+kinescope-statistics-show:
+	docker compose exec php-cli php bin/kinescope kinescope:statistics:show $(args)
+
 # =============================================================================
 # Utility commands
 # =============================================================================
@@ -237,6 +241,7 @@ help:
 	@echo "  make kinescope-video-list args=...   - List videos"
 	@echo "  make kinescope-video-show args=...   - Show one video"
 	@echo "  make kinescope-video-asset-list args=... - List video assets"
+	@echo "  make kinescope-statistics-show args=... - Show statistics"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make php-cli-bash      - Access PHP container shell"

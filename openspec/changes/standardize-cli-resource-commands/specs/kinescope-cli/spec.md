@@ -17,7 +17,7 @@ The SDK CLI SHALL name read-only commands as `kinescope:<singular-resource>:<act
 
 #### Scenario: Commands are listed
 - **WHEN** a user lists SDK CLI commands
-- **THEN** the read-only command list includes `kinescope:project:list`, `kinescope:project:show`, `kinescope:folder:list`, `kinescope:folder:show`, `kinescope:video:list`, `kinescope:video:show`, and `kinescope:video:asset:list`
+- **THEN** the read-only command list includes `kinescope:project:list`, `kinescope:project:show`, `kinescope:folder:list`, `kinescope:folder:show`, `kinescope:video:list`, `kinescope:video:show`, `kinescope:video:asset:list`, and `kinescope:statistics:show`
 
 #### Scenario: Legacy commands are removed
 - **WHEN** a user lists SDK CLI commands
@@ -135,6 +135,27 @@ The CLI SHALL list sanitized asset metadata for one video through `kinescope:vid
 - **WHEN** an asset contains `url` or `download_link`
 - **THEN** asset output includes presence booleans such as `has_url`, `has_download_link`, and `downloadable`
 - **AND** asset output does not include the raw signed link values
+
+### Requirement: Show statistics
+The CLI SHALL show done-video statistics through `kinescope:statistics:show`.
+
+#### Scenario: Account statistics table output
+- **WHEN** a user runs `kinescope:statistics:show`
+- **THEN** the command prints a deterministic table containing the `account` scope, video count, total duration seconds, rounded total minutes, rounded total hours, and generation timestamp
+
+#### Scenario: Project statistics JSON output
+- **WHEN** a user runs `kinescope:statistics:show --project-id=<project-id> --format=json`
+- **THEN** the command validates the project identifier locally
+- **AND** the command prints JSON with `resource` set to `statistics`, `scope` set to `project`, `projectId` set to the selected project, and a `statistics` object using SDK statistics field names such as `videos_count`, `total_duration_seconds`, `total_minutes`, `total_hours`, and `generated_at`
+
+#### Scenario: Folder statistics JSON output
+- **WHEN** a user runs `kinescope:statistics:show --folder-id=<folder-id> --format=json`
+- **THEN** the command validates the folder identifier locally
+- **AND** the command prints JSON with `resource` set to `statistics`, `scope` set to `folder`, `folderId` set to the selected folder, and a `statistics` object using SDK statistics field names
+
+#### Scenario: Statistics scope is ambiguous
+- **WHEN** a user runs `kinescope:statistics:show --project-id=<project-id> --folder-id=<folder-id>`
+- **THEN** the command exits with `Command::INVALID` and reports that only one statistics scope selector may be provided
 
 ### Requirement: Report API failures clearly
 The SDK CLI SHALL report SDK/API failures on STDERR and return a non-zero exit code.

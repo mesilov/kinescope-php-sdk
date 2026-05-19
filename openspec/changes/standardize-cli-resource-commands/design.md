@@ -40,6 +40,7 @@ The chosen direction is intentionally breaking: expose the package as a Kinescop
 - Use `list` for collections and `show` for single-resource reads.
   - Rationale: this is compact, common CLI vocabulary and leaves room for later verbs such as `download`, `upload`, `create`, or `delete` if the CLI grows beyond read-only operations.
   - Alternative considered: keep `info` for video details. Rejected because `show` pairs better with `list` and does not encode an arbitrary detail level.
+  - Statistics exception: `kinescope:statistics:show` uses `show` even without a positional resource id because the command returns one aggregate read model for the selected account/project/folder scope rather than a list of statistics resources.
 
 - Use positional arguments for the primary resource being shown and options for filters/selectors.
   - Rationale: `kinescope:video:show <video-id>` reads naturally, while list commands can accept optional or required filters such as `--project-id` and `--folder-id`.
@@ -66,6 +67,9 @@ bin/kinescope kinescope:video:list --project-id=<project-id>
 bin/kinescope kinescope:video:list --project-id=<project-id> --folder-id=<folder-id>
 bin/kinescope kinescope:video:show <video-id>
 bin/kinescope kinescope:video:asset:list <video-id>
+bin/kinescope kinescope:statistics:show
+bin/kinescope kinescope:statistics:show --project-id=<project-id>
+bin/kinescope kinescope:statistics:show --folder-id=<folder-id>
 ```
 
 Composer package usage:
@@ -82,6 +86,12 @@ All commands accept:
 List commands accept:
 
 - `--format=table|json`, defaulting to `table`.
+
+Statistics command accepts:
+
+- `--format=table|json`, defaulting to `table`.
+- At most one scope selector: `--project-id=<project-id>` or `--folder-id=<folder-id>`.
+- No selector means account-wide statistics.
 
 Show commands:
 
