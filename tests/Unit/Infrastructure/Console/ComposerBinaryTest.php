@@ -21,4 +21,16 @@ final class ComposerBinaryTest extends TestCase
         self::assertFileExists($rootDir . '/bin/kinescope');
         self::assertFileDoesNotExist($rootDir . '/bin/console');
     }
+
+    public function testComposerRequiresMbstringExtension(): void
+    {
+        $rootDir = dirname(__DIR__, 4);
+        $composerJson = json_decode(
+            (string) file_get_contents($rootDir . '/composer.json'),
+            true,
+            flags: JSON_THROW_ON_ERROR
+        );
+
+        self::assertSame('*', $composerJson['require']['ext-mbstring'] ?? null);
+    }
 }
