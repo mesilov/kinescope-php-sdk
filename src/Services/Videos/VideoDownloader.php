@@ -149,7 +149,9 @@ final readonly class VideoDownloader
                         $nextProgressReportAt += self::PROGRESS_REPORT_INTERVAL_BYTES;
                     }
 
-                    $progressTotalBytes = $progress->totalBytes ?? $streamSizeBytes;
+                    $progressTotalBytes = $progress->totalBytes !== null && $progress->totalBytes > 0
+                        ? $progress->totalBytes
+                        : $streamSizeBytes;
                     $percent = $progress->percent() ?? round($progress->bytesWritten / $progressTotalBytes * 100, 1);
 
                     $this->logger->debug('Download progress', [

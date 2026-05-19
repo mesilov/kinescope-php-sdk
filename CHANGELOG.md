@@ -40,6 +40,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 - `Retry-After` HTTP-date parsing now uses `Carbon\CarbonImmutable`, and 429 errors keep retry metadata on `RateLimitException`.
+- `VideoDownloader` progress reporting now treats zero or negative transfer totals as unknown and falls back to the selected asset stream size, preventing division-by-zero errors.
 
 ## 0.4.0 — 2026-05-14
 
