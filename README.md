@@ -52,6 +52,36 @@ $statistics = $factory->statistics()->forAccount();
 | Playlists | `$factory->playlists()` | Playlist and playlist-entities listing |
 | Statistics | `$factory->statistics()` | Done-video count and total duration aggregation |
 
+## In-memory Video Search
+
+Use `InMemoryVideoSearch` when videos are already loaded and you need to map an external embed URL or lesson title back to a `VideoDTO` / video ID without another API request:
+
+```php
+use Kinescope\Core\Pagination;
+use Kinescope\Services\Videos\InMemoryVideoSearch;
+
+$videoPage = $factory->videos()->list(
+    pagination: new Pagination(perPage: Pagination::MAX_PER_PAGE),
+    projectId: 'project-id',
+);
+
+$videos = $videoPage->getData();
+$search = new InMemoryVideoSearch();
+
+$video = $search->byEmbedLink(
+    $videos,
+    'https://kinescope.io/embed/oDko3nwPjHwpzmqUgxJmKB',
+);
+
+$videoId = $video?->id;
+
+$matches = $search->byName($videos, '1.3 Сегментация и ёмкость рынка');
+```
+
+`byEmbedLink()` accepts only the canonical `https://kinescope.io/embed/{slug}` form. URLs with query strings, fragments, trailing slashes, iframe HTML, and non-embed Kinescope links return `null`.
+
+`byName()` uses deterministic normalized substring matching: trim, multibyte lowercase, `ё`/`е` equivalence, whitespace collapsing, and one leading lesson-number prefix removal. It is not BM25, fuzzy search, stemming, or ranked full-text search.
+
 ## CLI
 
 The package ships a standalone Symfony Console entry point:
