@@ -40,6 +40,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `Kinescope\Services\Videos\InMemoryVideoSearch` for local reverse lookup over already loaded `VideoDTO` arrays by canonical embed URL or normalized title.
   - `byEmbedLink()` accepts only `https://kinescope.io/embed/{slug}` input and matches loaded DTOs through `VideoSlugExtractor`.
   - `byName()` uses deterministic normalized substring matching, not BM25, fuzzy search, stemming, or ranked full-text search.
+- `skills/kinescope-cli` AI agent skill distributed through `llm/skills` Composer metadata for agents that need to inspect Kinescope projects, folders, videos, assets, and statistics through the SDK CLI.
+  - Added `llm/skills` as a development dependency for local validation of the Composer skill distribution workflow.
 
 ### Fixed
 - `Retry-After` HTTP-date parsing now uses `Carbon\CarbonImmutable`, and 429 errors keep retry metadata on `RateLimitException`.

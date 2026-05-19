@@ -33,6 +33,7 @@
         "fakerphp/faker": "^1.20",
         "friendsofphp/php-cs-fixer": "^3.0",
         "guzzlehttp/guzzle": "^7.10",
+        "llm/skills": "^1.1",
         "monolog/monolog": "^3.0",
         "nyholm/psr7": "^1.5",
         "php-http/mock-client": "^1.5",
@@ -58,10 +59,16 @@
         }
     },
     "bin": ["bin/kinescope"],
+    "extra": {
+        "skills": {
+            "source": "skills"
+        }
+    },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "llm/skills": true
         }
     },
     "minimum-stability": "stable"
