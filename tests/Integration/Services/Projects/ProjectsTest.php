@@ -11,6 +11,7 @@ use Kinescope\DTO\Project\ProjectListResult;
 use Kinescope\Exception\NotFoundException;
 use Kinescope\Services\Projects\Projects;
 use Kinescope\Services\ServiceFactory;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -20,9 +21,8 @@ use PHPUnit\Framework\TestCase;
  * against the real Kinescope API using read-only operations.
  *
  * Assumes the account has at least one project (including a default project).
- *
- * @group integration
  */
+#[Group('integration')]
 class ProjectsTest extends TestCase
 {
     private Projects $service;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kinescope\Core;
 
+use Carbon\CarbonImmutable;
 use Kinescope\Exception\AuthenticationException;
 use Kinescope\Exception\BadRequestException;
 use Kinescope\Exception\ForbiddenException;
@@ -13,6 +14,7 @@ use Kinescope\Exception\PaymentRequiredException;
 use Kinescope\Exception\RateLimitException;
 use Kinescope\Exception\ValidationException;
 use Psr\Http\Message\ResponseInterface;
+use Throwable;
 
 /**
  * Handles API responses and maps errors to appropriate exceptions.
@@ -204,9 +206,7 @@ final readonly class ResponseHandler
         $retryAfter = $this->extractRetryAfter($response);
 
         if ($retryAfter !== null) {
-            $exception = RateLimitException::withRetryAfter($retryAfter, $message, $statusCode);
-        } else {
-            $exception = new RateLimitException($message, $statusCode);
+            return RateLimitException::withResponseAndRetryAfter($retryAfter, $message, $statusCode, $body, $headers);
         }
 
         return RateLimitException::withResponse($message, $statusCode, $body, $headers);
@@ -232,16 +232,14 @@ final readonly class ResponseHandler
             return (int) $value;
         }
 
-        // Try to parse as HTTP date
-        $timestamp = strtotime($value);
-
-        if ($timestamp !== false) {
-            $seconds = $timestamp - time();
+        try {
+            $retryAt = CarbonImmutable::parse($value, 'UTC');
+            $seconds = $retryAt->getTimestamp() - CarbonImmutable::now('UTC')->getTimestamp();
 
             return max(0, $seconds);
+        } catch (Throwable) {
+            return null;
         }
-
-        return null;
     }
 
     /**

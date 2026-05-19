@@ -8,255 +8,74 @@ use Kinescope\DTO\Playlist\PlaylistEntityDTO;
 use Kinescope\DTO\Playlist\PlaylistEntityListResult;
 use PHPUnit\Framework\TestCase;
 
-class PlaylistEntityListResultTest extends TestCase
+final class PlaylistEntityListResultTest extends TestCase
 {
-    public function testFromArrayCreatesValidPlaylistEntityListResult(): void
+    public function testFromArrayCreatesUnpaginatedCollection(): void
     {
-        $data = [
-            'data' => [
-                [
-                    'id' => '1',
-                    'playlist_id' => 'playlist-uuid',
-                    'video_id' => 'video-1',
-                    'position' => 0,
-                    'title' => 'Video 1',
-                ],
-                [
-                    'id' => '2',
-                    'playlist_id' => 'playlist-uuid',
-                    'video_id' => 'video-2',
-                    'position' => 1,
-                    'title' => 'Video 2',
-                ],
-            ],
-            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
-        ];
+        $result = PlaylistEntityListResult::fromArray($this->response());
 
-        $result = PlaylistEntityListResult::fromArray($data);
-
-        $this->assertCount(2, $result->getData());
-        $this->assertContainsOnlyInstancesOf(PlaylistEntityDTO::class, $result->getData());
-        $this->assertEquals(2, $result->getMeta()->total);
+        self::assertCount(3, $result);
+        self::assertContainsOnlyInstancesOf(PlaylistEntityDTO::class, $result->getData());
+        self::assertSame('entity-a', $result->first()?->id);
     }
 
-    public function testGetSortedByPositionReturnsSortedEntities(): void
+    public function testCurrentCollectionHelpers(): void
     {
-        $data = [
-            'data' => [
-                ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 2, 'title' => 'Third'],
-                ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 0, 'title' => 'First'],
-                ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'v3', 'position' => 1, 'title' => 'Second'],
-            ],
-            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
-        ];
+        $result = PlaylistEntityListResult::fromArray($this->response());
 
-        $result = PlaylistEntityListResult::fromArray($data);
-        $sorted = $result->getSortedByPosition();
-
-        $this->assertEquals('First', $sorted[0]->title);
-        $this->assertEquals('Second', $sorted[1]->title);
-        $this->assertEquals('Third', $sorted[2]->title);
+        self::assertCount(1, $result->getReady());
+        self::assertCount(1, $result->getProcessing());
+        self::assertCount(1, $result->getWithErrors());
+        self::assertSame('entity-b', $result->getAtPosition(2)?->id);
+        self::assertSame('Beta', $result->findById('entity-b')?->title);
+        self::assertSame(60.5 + 30.0 + 15.0, $result->getTotalDuration());
+        self::assertSame(['entity-a', 'entity-b', 'entity-c'], $result->getIds());
     }
 
-    public function testGetAtPositionFindsCorrectEntity(): void
+    public function testSortingByPosition(): void
     {
-        $data = [
+        $result = PlaylistEntityListResult::fromArray([
             'data' => [
-                ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 0, 'title' => 'First'],
-                ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1, 'title' => 'Second'],
-                ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'v3', 'position' => 2, 'title' => 'Third'],
+                $this->entity('entity-c', 'Gamma', 3, 'error', 15.0),
+                $this->entity('entity-a', 'Alpha', 1, 'done', 60.5),
+                $this->entity('entity-b', 'Beta', 2, 'processing', 30.0),
             ],
-            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
-        ];
+        ]);
 
-        $result = PlaylistEntityListResult::fromArray($data);
-        $entity = $result->getAtPosition(1);
-
-        $this->assertNotNull($entity);
-        $this->assertEquals('Second', $entity->title);
+        self::assertSame(['entity-a', 'entity-b', 'entity-c'], array_map(
+            static fn (PlaylistEntityDTO $entity): string => $entity->id,
+            $result->getSortedByPosition(),
+        ));
     }
 
-    public function testGetAtPositionReturnsNullWhenNotFound(): void
+    /**
+     * @return array<string, mixed>
+     */
+    private function response(): array
     {
-        $data = [
+        return [
             'data' => [
-                ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 0, 'title' => 'First'],
+                $this->entity('entity-a', 'Alpha', 1, 'done', 60.5),
+                $this->entity('entity-b', 'Beta', 2, 'processing', 30.0),
+                $this->entity('entity-c', 'Gamma', 3, 'error', 15.0),
             ],
-            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
         ];
-
-        $result = PlaylistEntityListResult::fromArray($data);
-
-        $this->assertNull($result->getAtPosition(99));
     }
 
-    public function testGetReadyReturnsOnlyReadyEntities(): void
+    /**
+     * @return array<string, mixed>
+     */
+    private function entity(string $id, string $title, int $position, string $status, float $duration): array
     {
-        $data = [
-            'data' => [
-                ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 0, 'video_status' => 'done'],
-                ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1, 'video_status' => 'processing'],
-                ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'v3', 'position' => 2, 'video_status' => 'done'],
-            ],
-            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
+        return [
+            'id' => $id,
+            'position' => $position,
+            'status' => $status,
+            'title' => $title,
+            'description' => '',
+            'duration' => $duration,
+            'created_at' => '2025-06-30T07:28:27.96749Z',
+            'updated_at' => '2025-06-30T07:42:48.908293Z',
         ];
-
-        $result = PlaylistEntityListResult::fromArray($data);
-        $ready = $result->getReady();
-
-        $this->assertCount(2, $ready);
-
-        foreach ($ready as $entity) {
-            $this->assertTrue($entity->isVideoReady());
-        }
-    }
-
-    public function testGetProcessingReturnsOnlyProcessingEntities(): void
-    {
-        $data = [
-            'data' => [
-                ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 0, 'video_status' => 'done'],
-                ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1, 'video_status' => 'processing'],
-                ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'v3', 'position' => 2, 'video_status' => 'processing'],
-            ],
-            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
-        ];
-
-        $result = PlaylistEntityListResult::fromArray($data);
-        $processing = $result->getProcessing();
-
-        $this->assertCount(2, $processing);
-
-        foreach ($processing as $entity) {
-            $this->assertTrue($entity->isVideoProcessing());
-        }
-    }
-
-    public function testGetWithErrorsReturnsOnlyErrorEntities(): void
-    {
-        $data = [
-            'data' => [
-                ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 0, 'video_status' => 'done'],
-                ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1, 'video_status' => 'error'],
-            ],
-            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
-        ];
-
-        $result = PlaylistEntityListResult::fromArray($data);
-        $errors = $result->getWithErrors();
-
-        $this->assertCount(1, $errors);
-        $this->assertTrue($errors[0]->hasVideoError());
-    }
-
-    public function testFindByIdFindsCorrectEntity(): void
-    {
-        $data = [
-            'data' => [
-                ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 0],
-                ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1],
-            ],
-            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
-        ];
-
-        $result = PlaylistEntityListResult::fromArray($data);
-        $entity = $result->findById('2');
-
-        $this->assertNotNull($entity);
-        $this->assertEquals('2', $entity->id);
-    }
-
-    public function testFindByIdReturnsNullWhenNotFound(): void
-    {
-        $data = [
-            'data' => [
-                ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 0],
-            ],
-            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
-        ];
-
-        $result = PlaylistEntityListResult::fromArray($data);
-
-        $this->assertNull($result->findById('999'));
-    }
-
-    public function testFindByVideoIdFindsCorrectEntity(): void
-    {
-        $data = [
-            'data' => [
-                ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'video-aaa', 'position' => 0],
-                ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'video-bbb', 'position' => 1],
-            ],
-            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
-        ];
-
-        $result = PlaylistEntityListResult::fromArray($data);
-        $entity = $result->findByVideoId('video-bbb');
-
-        $this->assertNotNull($entity);
-        $this->assertEquals('2', $entity->id);
-    }
-
-    public function testFindByVideoIdReturnsNullWhenNotFound(): void
-    {
-        $data = [
-            'data' => [
-                ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'video-aaa', 'position' => 0],
-            ],
-            'meta' => ['pagination' => ['total' => 1, 'page' => 1, 'per_page' => 20]],
-        ];
-
-        $result = PlaylistEntityListResult::fromArray($data);
-
-        $this->assertNull($result->findByVideoId('non-existent'));
-    }
-
-    public function testGetTotalDurationCalculatesSum(): void
-    {
-        $data = [
-            'data' => [
-                ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 0, 'duration' => 100],
-                ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1, 'duration' => 200],
-                ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'v3', 'position' => 2, 'duration' => 150],
-            ],
-            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
-        ];
-
-        $result = PlaylistEntityListResult::fromArray($data);
-
-        $this->assertEquals(450, $result->getTotalDuration());
-    }
-
-    public function testGetTotalDurationWithZeroDurations(): void
-    {
-        $data = [
-            'data' => [
-                ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'v1', 'position' => 0, 'duration' => 100],
-                ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'v2', 'position' => 1, 'duration' => 0],
-                ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'v3', 'position' => 2, 'duration' => 150],
-            ],
-            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
-        ];
-
-        $result = PlaylistEntityListResult::fromArray($data);
-
-        $this->assertEquals(250, $result->getTotalDuration());
-    }
-
-    public function testGetVideoIdsReturnsAllVideoIds(): void
-    {
-        $data = [
-            'data' => [
-                ['id' => '1', 'playlist_id' => 'p', 'video_id' => 'video-aaa', 'position' => 0],
-                ['id' => '2', 'playlist_id' => 'p', 'video_id' => 'video-bbb', 'position' => 1],
-                ['id' => '3', 'playlist_id' => 'p', 'video_id' => 'video-ccc', 'position' => 2],
-            ],
-            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
-        ];
-
-        $result = PlaylistEntityListResult::fromArray($data);
-        $videoIds = $result->getVideoIds();
-
-        $this->assertEquals(['video-aaa', 'video-bbb', 'video-ccc'], $videoIds);
     }
 }

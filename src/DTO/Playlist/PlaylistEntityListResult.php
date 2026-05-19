@@ -4,22 +4,17 @@ declare(strict_types=1);
 
 namespace Kinescope\DTO\Playlist;
 
-use Kinescope\DTO\Common\MetaDTO;
-use Kinescope\DTO\Common\PaginatedResponse;
+use Kinescope\DTO\Common\CollectionResponse;
 
 /**
- * Paginated list of playlist entities.
+ * Unpaginated list of playlist entities.
  *
- * @extends PaginatedResponse<PlaylistEntityDTO>
+ * @extends CollectionResponse<PlaylistEntityDTO>
  */
-final readonly class PlaylistEntityListResult extends PaginatedResponse
+final readonly class PlaylistEntityListResult extends CollectionResponse
 {
     /**
-     * Create a PlaylistEntityListResult from API response array.
-     *
      * @param array<string, mixed> $response Raw API response
-     *
-     * @return self
      */
     public static function fromArray(array $response): self
     {
@@ -28,19 +23,15 @@ final readonly class PlaylistEntityListResult extends PaginatedResponse
         if (isset($response['data']) && is_array($response['data'])) {
             $data = array_map(
                 PlaylistEntityDTO::fromArray(...),
-                $response['data']
+                array_values(array_filter($response['data'], is_array(...))),
             );
         }
 
-        $meta = MetaDTO::fromArray($response['meta'] ?? []);
-
-        return new self($data, $meta);
+        return new self($data);
     }
 
     /**
-     * Get entities sorted by position.
-     *
-     * @return array<PlaylistEntityDTO>
+     * @return list<PlaylistEntityDTO>
      */
     public function getSortedByPosition(): array
     {
@@ -48,117 +39,72 @@ final readonly class PlaylistEntityListResult extends PaginatedResponse
 
         usort(
             $sorted,
-            static fn (PlaylistEntityDTO $a, PlaylistEntityDTO $b): int =>
-            $a->position <=> $b->position
+            static fn (PlaylistEntityDTO $a, PlaylistEntityDTO $b): int => $a->position <=> $b->position,
         );
 
         return $sorted;
     }
 
-    /**
-     * Get entity at a specific position.
-     *
-     * @param int $position Position (0-indexed)
-     *
-     * @return PlaylistEntityDTO|null
-     */
     public function getAtPosition(int $position): ?PlaylistEntityDTO
     {
         return $this->find(
-            static fn (PlaylistEntityDTO $entity): bool =>
-                $entity->position === $position
+            static fn (PlaylistEntityDTO $entity): bool => $entity->position === $position,
         );
     }
 
     /**
-     * Get entities with ready videos.
-     *
-     * @return array<PlaylistEntityDTO>
+     * @return list<PlaylistEntityDTO>
      */
     public function getReady(): array
     {
         return $this->filter(
-            static fn (PlaylistEntityDTO $entity): bool => $entity->isVideoReady()
+            static fn (PlaylistEntityDTO $entity): bool => $entity->isReady(),
         );
     }
 
     /**
-     * Get entities with processing videos.
-     *
-     * @return array<PlaylistEntityDTO>
+     * @return list<PlaylistEntityDTO>
      */
     public function getProcessing(): array
     {
         return $this->filter(
-            static fn (PlaylistEntityDTO $entity): bool => $entity->isVideoProcessing()
+            static fn (PlaylistEntityDTO $entity): bool => $entity->isProcessing(),
         );
     }
 
     /**
-     * Get entities with error videos.
-     *
-     * @return array<PlaylistEntityDTO>
+     * @return list<PlaylistEntityDTO>
      */
     public function getWithErrors(): array
     {
         return $this->filter(
-            static fn (PlaylistEntityDTO $entity): bool => $entity->hasVideoError()
+            static fn (PlaylistEntityDTO $entity): bool => $entity->hasError(),
         );
     }
 
-    /**
-     * Find entity by ID.
-     *
-     * @param string $id Entity identifier
-     *
-     * @return PlaylistEntityDTO|null
-     */
     public function findById(string $id): ?PlaylistEntityDTO
     {
         return $this->find(
-            static fn (PlaylistEntityDTO $entity): bool => $entity->id === $id
+            static fn (PlaylistEntityDTO $entity): bool => $entity->id === $id,
         );
     }
 
-    /**
-     * Find entity by video ID.
-     *
-     * @param string $videoId Video identifier
-     *
-     * @return PlaylistEntityDTO|null
-     */
-    public function findByVideoId(string $videoId): ?PlaylistEntityDTO
-    {
-        return $this->find(
-            static fn (PlaylistEntityDTO $entity): bool =>
-                $entity->videoId === $videoId
-        );
-    }
-
-    /**
-     * Get total duration of all entities in seconds.
-     *
-     * @return int
-     */
-    public function getTotalDuration(): int
+    public function getTotalDuration(): float
     {
         return array_reduce(
             $this->data,
-            static fn (int $total, PlaylistEntityDTO $entity): int =>
-                $total + $entity->duration,
-            0
+            static fn (float $total, PlaylistEntityDTO $entity): float => $total + $entity->duration,
+            0.0,
         );
     }
 
     /**
-     * Get video IDs of all entities.
-     *
-     * @return array<string>
+     * @return list<string>
      */
-    public function getVideoIds(): array
+    public function getIds(): array
     {
         return $this->map(
-            static fn (PlaylistEntityDTO $entity): string => $entity->videoId
+            static fn (PlaylistEntityDTO $entity): string => $entity->id,
         );
     }
 }

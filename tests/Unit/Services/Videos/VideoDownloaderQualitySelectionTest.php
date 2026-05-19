@@ -20,50 +20,50 @@ final class VideoDownloaderQualitySelectionTest extends TestCase
      *     quality: QualityPreference,
      *     assets: list<array<string, mixed>>,
      *     expectedUrl: string,
-     *     expectedSize: int,
+     *     expectedStreamSize: int,
      * }>
      */
     public static function assetSelectionCases(): iterable
     {
-        yield 'worst selects smallest file when heights are missing' => [
+        yield 'worst selects smallest stream when heights are missing' => [
             'quality' => QualityPreference::WORST,
             'assets' => [
-                self::asset(id: 'asset-original', quality: 'original', fileSize: 100, downloadLink: 'https://example.test/original.mp4'),
-                self::asset(id: 'asset-360p', quality: '360p', fileSize: 10, downloadLink: 'https://example.test/360p.mp4'),
+                self::asset(id: 'asset-original', quality: 'original', videoStreamSize: 100, downloadLink: 'https://example.test/original.mp4'),
+                self::asset(id: 'asset-360p', quality: '360p', videoStreamSize: 10, downloadLink: 'https://example.test/360p.mp4'),
             ],
             'expectedUrl' => 'https://example.test/360p.mp4',
-            'expectedSize' => 10,
+            'expectedStreamSize' => 10,
         ];
 
         yield 'best selects highest known height' => [
             'quality' => QualityPreference::BEST,
             'assets' => [
-                self::asset(id: 'asset-720p', quality: '720p', height: 720, fileSize: 30, downloadLink: 'https://example.test/720p.mp4'),
-                self::asset(id: 'asset-1080p', quality: '1080p', height: 1080, fileSize: 60, downloadLink: 'https://example.test/1080p.mp4'),
-                self::asset(id: 'asset-360p', quality: '360p', height: 360, fileSize: 10, downloadLink: 'https://example.test/360p.mp4'),
+                self::asset(id: 'asset-720p', quality: '720p', height: 720, videoStreamSize: 30, downloadLink: 'https://example.test/720p.mp4'),
+                self::asset(id: 'asset-1080p', quality: '1080p', height: 1080, videoStreamSize: 60, downloadLink: 'https://example.test/1080p.mp4'),
+                self::asset(id: 'asset-360p', quality: '360p', height: 360, videoStreamSize: 10, downloadLink: 'https://example.test/360p.mp4'),
             ],
             'expectedUrl' => 'https://example.test/1080p.mp4',
-            'expectedSize' => 60,
+            'expectedStreamSize' => 60,
         ];
 
-        yield 'worst uses lower known height when file sizes tie' => [
+        yield 'worst uses lower known height when stream sizes tie' => [
             'quality' => QualityPreference::WORST,
             'assets' => [
-                self::asset(id: 'asset-1080p', quality: '1080p', height: 1080, fileSize: 10, downloadLink: 'https://example.test/1080p.mp4'),
-                self::asset(id: 'asset-360p', quality: '360p', height: 360, fileSize: 10, downloadLink: 'https://example.test/360p.mp4'),
+                self::asset(id: 'asset-1080p', quality: '1080p', height: 1080, videoStreamSize: 10, downloadLink: 'https://example.test/1080p.mp4'),
+                self::asset(id: 'asset-360p', quality: '360p', height: 360, videoStreamSize: 10, downloadLink: 'https://example.test/360p.mp4'),
             ],
             'expectedUrl' => 'https://example.test/360p.mp4',
-            'expectedSize' => 10,
+            'expectedStreamSize' => 10,
         ];
 
         yield 'assets without download links are ignored' => [
             'quality' => QualityPreference::WORST,
             'assets' => [
-                self::asset(id: 'asset-undownloadable', quality: '360p', height: 360, fileSize: 1, downloadLink: null),
-                self::asset(id: 'asset-downloadable', quality: '720p', height: 720, fileSize: 10, downloadLink: 'https://example.test/720p.mp4'),
+                self::asset(id: 'asset-undownloadable', quality: '360p', height: 360, videoStreamSize: 1, downloadLink: null),
+                self::asset(id: 'asset-downloadable', quality: '720p', height: 720, videoStreamSize: 10, downloadLink: 'https://example.test/720p.mp4'),
             ],
             'expectedUrl' => 'https://example.test/720p.mp4',
-            'expectedSize' => 10,
+            'expectedStreamSize' => 10,
         ];
     }
 
@@ -75,7 +75,7 @@ final class VideoDownloaderQualitySelectionTest extends TestCase
         QualityPreference $quality,
         array $assets,
         string $expectedUrl,
-        int $expectedSize,
+        int $expectedStreamSize,
     ): void {
         $videoId = 'video-quality-selection';
         $destinationDir = sys_get_temp_dir() . '/kinescope-sdk-unit-' . uniqid('', true);
@@ -98,7 +98,7 @@ final class VideoDownloaderQualitySelectionTest extends TestCase
 
         $this->assertSame($expectedUrl, $request->url);
         $this->assertSame($destinationDir . '/' . $videoId . '.mp4.part', $request->outputPath);
-        $this->assertSame($expectedSize, $request->expectedBytes);
+        $this->assertSame($expectedStreamSize, $request->expectedBytes);
         $this->assertSame([], $request->headers);
     }
 
@@ -111,7 +111,7 @@ final class VideoDownloaderQualitySelectionTest extends TestCase
 
         $downloader = new VideoDownloader(
             videos: new Videos($this->createApiClient([
-                self::asset(id: 'asset-undownloadable', quality: '360p', height: 360, fileSize: 10, downloadLink: null),
+                self::asset(id: 'asset-undownloadable', quality: '360p', height: 360, videoStreamSize: 10, downloadLink: null),
             ])),
             filesystem: $filesystem,
             fileTransfer: $fileTransfer,
@@ -142,7 +142,7 @@ final class VideoDownloaderQualitySelectionTest extends TestCase
     private static function asset(
         string $id,
         string $quality,
-        int $fileSize,
+        int $videoStreamSize,
         ?string $downloadLink,
         ?int $height = null,
     ): array {
@@ -151,7 +151,7 @@ final class VideoDownloaderQualitySelectionTest extends TestCase
             'video_id' => 'video-quality-selection',
             'quality' => $quality,
             'resolution' => $height === null ? null : sprintf('1920x%d', $height),
-            'file_size' => $fileSize,
+            'file_size' => $videoStreamSize,
             'download_link' => $downloadLink,
         ];
     }

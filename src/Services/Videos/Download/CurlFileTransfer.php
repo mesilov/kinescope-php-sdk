@@ -45,8 +45,6 @@ final readonly class CurlFileTransfer implements FileTransferInterface
                 CurlHandle $curlHandle,
                 string $chunk,
             ) use ($fileHandle, $request, $onProgress, &$bytesWritten, &$writeFailure): int {
-                unset($curlHandle);
-
                 $chunkLength = strlen($chunk);
                 $written = @fwrite($fileHandle, $chunk);
 
@@ -64,9 +62,14 @@ final readonly class CurlFileTransfer implements FileTransferInterface
                 $bytesWritten += $written;
 
                 if ($onProgress !== null) {
+                    $reportedBytes = curl_getinfo($curlHandle, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T);
+                    $totalBytes = is_int($reportedBytes) && $reportedBytes >= 0
+                        ? $reportedBytes
+                        : $request->expectedBytes;
+
                     $onProgress(new FileTransferProgress(
                         bytesWritten: $bytesWritten,
-                        totalBytes: $request->expectedBytes,
+                        totalBytes: $totalBytes,
                     ));
                 }
 

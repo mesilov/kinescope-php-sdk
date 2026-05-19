@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Kinescope\Tests\Unit\Services\Statistics;
 
-use DateTimeImmutable;
+use Carbon\CarbonImmutable;
 use InvalidArgumentException;
 use Kinescope\Exception\RateLimitException;
 use Kinescope\Services\Statistics\Statistics;
@@ -101,9 +101,9 @@ final class StatisticsTest extends TestCase
         $apiClient = new FakeApiClient()->queueResponse($this->videoListResponse(0, 1, 100, []));
         $statistics = $this->statistics($apiClient);
 
-        $before = new DateTimeImmutable();
+        $before = CarbonImmutable::now('UTC');
         $dto = $statistics->forAccount();
-        $after = new DateTimeImmutable();
+        $after = CarbonImmutable::now('UTC');
 
         $this->assertGreaterThanOrEqual($before, $dto->generatedAt);
         $this->assertLessThanOrEqual($after, $dto->generatedAt);

@@ -81,7 +81,7 @@ class VideoSlugExtractorTest extends TestCase
             'title' => 'Test',
             'status' => 'done',
             'duration' => 0,
-            'embed_code' => '<iframe src="https://kinescope.io/embed/embedSlug123" allowfullscreen></iframe>',
+            'embed_link' => 'https://kinescope.io/embed/embedSlug123',
             'created_at' => '2024-01-01T00:00:00Z',
             'updated_at' => '2024-01-01T00:00:00Z',
         ]);
@@ -99,7 +99,7 @@ class VideoSlugExtractorTest extends TestCase
             'status' => 'done',
             'duration' => 0,
             'hls_link' => 'https://kinescope.io/hlsSlug456/master.m3u8',
-            'embed_code' => '<iframe src="https://kinescope.io/embed/embedSlug789" allowfullscreen></iframe>',
+            'embed_link' => 'https://kinescope.io/embed/embedSlug789',
             'created_at' => '2024-01-01T00:00:00Z',
             'updated_at' => '2024-01-01T00:00:00Z',
         ]);

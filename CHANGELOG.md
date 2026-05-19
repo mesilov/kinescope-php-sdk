@@ -4,7 +4,48 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.5.0 — UNRELEASED
+## 0.5.0 — 20.05.2026
+
+### Breaking changes
+- SDK CLI now exports `bin/kinescope` / `vendor/bin/kinescope` instead of the generic `bin/console` / `vendor/bin/console`.
+- CLI commands now use singular resource/action names, and no compatibility aliases are kept for the old command names:
+  - `video:info <video-id>` -> `kinescope:video:show <video-id>`
+  - `kinescope:browse projects` -> `kinescope:project:list`
+  - `kinescope:browse folders --project-id=<project-id>` -> `kinescope:folder:list --project-id=<project-id>`
+  - `kinescope:browse videos --project-id=<project-id> [--folder-id=<folder-id>]` -> `kinescope:video:list --project-id=<project-id> [--folder-id=<folder-id>]`
+  - `kinescope:browse assets --video-id=<video-id>` -> `kinescope:video:asset:list <video-id>`
+- `ProjectDTO` now follows the raw Kinescope project API field names: use `itemsCount`, `folders`, `size`, `privacyDomains`, `privacyEmailDomains`, `privacyShare`, `playerId`, `favorite`, and `encrypted` instead of the removed aliases `videosCount`, `foldersCount`, `storageUsed`, `allowedDomains`, `isDefault`, and `settings`.
+  - `ProjectListResult::getTotalVideosCount()` is replaced by `getTotalItemsCount()`.
+  - `ProjectListResult::getTotalStorageUsed()` is replaced by `getTotalSize()`.
+- Resource DTOs now follow current raw API fields instead of legacy SDK aliases:
+  - `FolderDTO` uses `size`, `itemsCount`, and `deletedAt`; removed legacy `videosCount`, `description`, `depth`, `path`, and `position`.
+  - `VideoDTO` uses current raw video fields such as `title`, `projectId`, `folderId`, `playerId`, `version`, `progress`, `poster`, `playLink`, `embedLink`, `subtitles`, `chapters`, `audioTracks`, and `meta`; removed unavailable aliases such as `embedCode`, `dashLink`, `posterUrl`, `thumbnailUrl`, `viewsCount`, and `playsCount`.
+  - `VideoDTO::$duration` and `PlaylistEntityDTO::$duration` now preserve API fractional seconds as `float`.
+  - `AssetDTO` uses `originalName`, `videoStreamSize`, `filetype`, and `md5`; removed legacy `bitrate` and `codec`.
+  - `AssetDTO::$fileSize` is renamed to `videoStreamSize`, and `AssetDTO::toArray()` / CLI asset output now use `video_stream_size` instead of `file_size`. The value still maps raw API `assets[].file_size`, but it is stream metadata, not a guaranteed downloaded file size on disk. For file operations use HTTP `Content-Length`, transfer-reported bytes, bytes written, or final `filesize()`.
+  - `PlaylistDTO` uses `name`, `workspaceId`, `parentId`, `playerId`, `privacy*`, `settings`, `playLink`, and `embedLink`; removed legacy `title`, `projectId`, `itemsCount`, `totalDuration`, `posterUrl`, `embedCode`, and `isPublic`.
+- Timestamp fields in SDK DTOs are now `Carbon\CarbonImmutable`: `createdAt`, `updatedAt`, `deletedAt`, and `generatedAt` no longer expose raw strings or `DateTimeImmutable`.
+- `PlaylistEntityListResult`, `SubtitleListResult`, and `AnnotationListResult` now parse unpaginated `data` responses without synthetic `MetaDTO` pagination.
+- `MetaDTO::toArray()` now exports raw-shaped `pagination` and `order` keys.
+- `PlaylistsService::listByProject()` is removed because the live API does not support that filter reliably; `findByTitle()` is replaced by `findByName()`.
+
+### Added
+- Commands `kinescope:project:list`, `kinescope:project:show`, `kinescope:folder:list`, `kinescope:folder:show`, `kinescope:video:list`, `kinescope:video:show`, `kinescope:video:asset:list`, and `kinescope:statistics:show` for read-only Kinescope account inspection from the SDK CLI.
+  - List commands support `table` and deterministic `json` output.
+  - Show commands output pretty JSON.
+  - `kinescope:statistics:show` supports account, project, and folder scopes with `table` or `json` output.
+  - All commands resolve credentials via `KINESCOPE_API_KEY` or `--api-key` / `-k`.
+  - Resource identifiers are validated locally before API reads.
+  - Asset output is sanitized by exposing `has_url`, `has_download_link`, and `downloadable` booleans instead of raw signed CDN URLs.
+- `Kinescope\Services\Videos\InMemoryVideoSearch` for local reverse lookup over already loaded `VideoDTO` arrays by canonical embed URL or normalized title.
+  - `byEmbedLink()` accepts only `https://kinescope.io/embed/{slug}` input and matches loaded DTOs through `VideoSlugExtractor`.
+  - `byName()` uses deterministic normalized substring matching, not BM25, fuzzy search, stemming, or ranked full-text search.
+- `skills/kinescope-cli` AI agent skill distributed through `llm/skills` Composer metadata for agents that need to inspect Kinescope projects, folders, videos, assets, and statistics through the SDK CLI.
+  - Added `llm/skills` as a development dependency for local validation of the Composer skill distribution workflow.
+
+### Fixed
+- `Retry-After` HTTP-date parsing now uses `Carbon\CarbonImmutable`, and 429 errors keep retry metadata on `RateLimitException`.
+- `VideoDownloader` progress reporting now treats zero or negative transfer totals as unknown and falls back to the selected asset stream size, preventing division-by-zero errors.
 
 ## 0.4.0 — 2026-05-14
 

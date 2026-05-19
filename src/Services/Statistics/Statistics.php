@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Kinescope\Services\Statistics;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
-use DateTimeImmutable;
 use InvalidArgumentException;
 use Kinescope\Core\Pagination;
 use Kinescope\DTO\Statistics\StatisticsDTO;
@@ -44,10 +44,10 @@ final readonly class Statistics
 
     private function aggregate(?string $projectId, ?string $folderId): StatisticsDTO
     {
-        $generatedAt = new DateTimeImmutable();
+        $generatedAt = CarbonImmutable::now('UTC');
         $page = 1;
         $perPage = Pagination::MAX_PER_PAGE;
-        $totalSeconds = 0;
+        $totalSeconds = 0.0;
         $videosCount = 0;
 
         do {
@@ -71,7 +71,7 @@ final readonly class Statistics
 
         return new StatisticsDTO(
             videosCount: $videosCount,
-            totalDuration: CarbonInterval::seconds($totalSeconds),
+            totalDuration: CarbonInterval::seconds((int) round($totalSeconds)),
             generatedAt: $generatedAt,
         );
     }

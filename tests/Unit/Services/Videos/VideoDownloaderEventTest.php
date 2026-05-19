@@ -40,7 +40,7 @@ final class VideoDownloaderEventTest extends TestCase
         ]);
 
         $downloader = $this->createDownloader(
-            fileSize: $sizeBytes,
+            videoStreamSize: $sizeBytes,
             selectedHeight: 1080,
             fileTransfer: $fileTransfer,
         );
@@ -99,6 +99,45 @@ final class VideoDownloaderEventTest extends TestCase
         $this->assertGreaterThanOrEqual(0, $completedEvent->durationMs);
     }
 
+    public function testDownloadVideoFallsBackToStreamSizeWhenProgressTotalIsZero(): void
+    {
+        $videoId = 'video-1';
+        $sizeBytes = 12_000_000;
+        $destinationDir = sys_get_temp_dir() . '/kinescope-sdk-unit-' . uniqid('', true);
+        $fileTransfer = new FakeFileTransfer(
+            progressBytes: [self::PROGRESS_INTERVAL_BYTES],
+            progressTotalBytes: 0,
+        );
+
+        $downloader = $this->createDownloader(
+            videoStreamSize: $sizeBytes,
+            selectedHeight: 1080,
+            fileTransfer: $fileTransfer,
+        );
+
+        $progress = [];
+
+        $downloader->on(
+            DownloadProgressEvent::class,
+            static function (DownloadProgressEvent $event) use (&$progress): void {
+                $progress[] = $event;
+            },
+        );
+
+        try {
+            $filePath = $downloader->downloadVideo($videoId, $destinationDir, QualityPreference::BEST);
+
+            $this->assertFileExists($filePath);
+        } finally {
+            $this->filesystem->remove($destinationDir);
+        }
+
+        $this->assertCount(1, $progress);
+        $this->assertSame(self::PROGRESS_INTERVAL_BYTES, $progress[0]->bytesWritten);
+        $this->assertSame($sizeBytes, $progress[0]->sizeBytes);
+        $this->assertSame(87.4, $progress[0]->percent);
+    }
+
     public function testDownloadVideoDispatchesFailedEventWithOriginalException(): void
     {
         $videoId = 'video-2';
@@ -111,7 +150,7 @@ final class VideoDownloaderEventTest extends TestCase
         );
 
         $downloader = $this->createDownloader(
-            fileSize: $sizeBytes,
+            videoStreamSize: $sizeBytes,
             selectedHeight: 720,
             fileTransfer: $fileTransfer,
         );
@@ -148,13 +187,13 @@ final class VideoDownloaderEventTest extends TestCase
         $this->assertFileDoesNotExist($destinationDir . '/' . $videoId . '.mp4.part');
     }
 
-    private function createDownloader(int $fileSize, int $selectedHeight, FakeFileTransfer $fileTransfer): VideoDownloader
+    private function createDownloader(int $videoStreamSize, int $selectedHeight, FakeFileTransfer $fileTransfer): VideoDownloader
     {
         return new VideoDownloader(
             filesystem: $this->filesystem,
             videos: new Videos(new FakeApiClient()->queueResponse($this->videoResponse(
                 videoId: 'video-' . ($selectedHeight === 1080 ? '1' : '2'),
-                fileSize: $fileSize,
+                videoStreamSize: $videoStreamSize,
                 selectedHeight: $selectedHeight,
             ))),
             fileTransfer: $fileTransfer,
@@ -164,7 +203,7 @@ final class VideoDownloaderEventTest extends TestCase
     /**
      * @return array{data: array<string, mixed>}
      */
-    private function videoResponse(string $videoId, int $fileSize, int $selectedHeight): array
+    private function videoResponse(string $videoId, int $videoStreamSize, int $selectedHeight): array
     {
         return [
             'data' => [
@@ -177,7 +216,7 @@ final class VideoDownloaderEventTest extends TestCase
                         'id' => 'asset-1',
                         'video_id' => $videoId,
                         'resolution' => sprintf('1920x%d', $selectedHeight),
-                        'file_size' => $fileSize,
+                        'file_size' => $videoStreamSize,
                         'download_link' => 'https://example.test/videos/' . $videoId . '.mp4',
                     ],
                 ],

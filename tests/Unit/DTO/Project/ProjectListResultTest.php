@@ -40,40 +40,6 @@ class ProjectListResultTest extends TestCase
         $this->assertEquals(2, $result->getMeta()->total);
     }
 
-    public function testGetDefaultReturnsDefaultProject(): void
-    {
-        $data = [
-            'data' => [
-                ['id' => '1', 'name' => 'Project 1', 'is_default' => false, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-                ['id' => '2', 'name' => 'Default Project', 'is_default' => true, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-                ['id' => '3', 'name' => 'Project 3', 'is_default' => false, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-            ],
-            'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
-        ];
-
-        $result = ProjectListResult::fromArray($data);
-        $default = $result->getDefault();
-
-        $this->assertNotNull($default);
-        $this->assertEquals('2', $default->id);
-        $this->assertTrue($default->isDefault);
-    }
-
-    public function testGetDefaultReturnsNullWhenNoDefault(): void
-    {
-        $data = [
-            'data' => [
-                ['id' => '1', 'name' => 'Project 1', 'is_default' => false, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-                ['id' => '2', 'name' => 'Project 2', 'is_default' => false, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-            ],
-            'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
-        ];
-
-        $result = ProjectListResult::fromArray($data);
-
-        $this->assertNull($result->getDefault());
-    }
-
     public function testGetByPrivacyTypeFiltersCorrectly(): void
     {
         $data = [
@@ -158,9 +124,9 @@ class ProjectListResultTest extends TestCase
     {
         $data = [
             'data' => [
-                ['id' => '1', 'name' => 'With Videos', 'videos_count' => 10, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-                ['id' => '2', 'name' => 'Empty', 'videos_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-                ['id' => '3', 'name' => 'With Videos 2', 'videos_count' => 5, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '1', 'name' => 'With Videos', 'items_count' => 10, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '2', 'name' => 'Empty', 'items_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '3', 'name' => 'With Videos 2', 'items_count' => 5, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
             'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
@@ -179,9 +145,9 @@ class ProjectListResultTest extends TestCase
     {
         $data = [
             'data' => [
-                ['id' => '1', 'name' => 'With Videos', 'videos_count' => 10, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-                ['id' => '2', 'name' => 'Empty 1', 'videos_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-                ['id' => '3', 'name' => 'Empty 2', 'videos_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '1', 'name' => 'With Videos', 'items_count' => 10, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '2', 'name' => 'Empty 1', 'items_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '3', 'name' => 'Empty 2', 'items_count' => 0, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
             'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
@@ -262,28 +228,28 @@ class ProjectListResultTest extends TestCase
         $this->assertNull($result->findByName('NonExistent'));
     }
 
-    public function testGetTotalVideosCountReturnsSum(): void
+    public function testGetTotalItemsCountReturnsSum(): void
     {
         $data = [
             'data' => [
-                ['id' => '1', 'name' => 'Project 1', 'videos_count' => 10, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-                ['id' => '2', 'name' => 'Project 2', 'videos_count' => 20, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-                ['id' => '3', 'name' => 'Project 3', 'videos_count' => 5, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '1', 'name' => 'Project 1', 'items_count' => 10, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '2', 'name' => 'Project 2', 'items_count' => 20, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '3', 'name' => 'Project 3', 'items_count' => 5, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
             'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
         ];
 
         $result = ProjectListResult::fromArray($data);
 
-        $this->assertEquals(35, $result->getTotalVideosCount());
+        $this->assertEquals(35, $result->getTotalItemsCount());
     }
 
-    public function testGetTotalStorageUsedReturnsSum(): void
+    public function testGetTotalSizeReturnsSum(): void
     {
         $data = [
             'data' => [
-                ['id' => '1', 'name' => 'Project 1', 'storage_used' => 1000, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
-                ['id' => '2', 'name' => 'Project 2', 'storage_used' => 2000, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '1', 'name' => 'Project 1', 'size' => 1000, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
+                ['id' => '2', 'name' => 'Project 2', 'size' => 2000, 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
                 ['id' => '3', 'name' => 'Project 3', 'created_at' => '2024-01-01T00:00:00Z', 'updated_at' => '2024-01-01T00:00:00Z'],
             ],
             'meta' => ['pagination' => ['total' => 3, 'page' => 1, 'per_page' => 20]],
@@ -291,7 +257,7 @@ class ProjectListResultTest extends TestCase
 
         $result = ProjectListResult::fromArray($data);
 
-        $this->assertEquals(3000, $result->getTotalStorageUsed());
+        $this->assertEquals(3000, $result->getTotalSize());
     }
 
     public function testGetIdsReturnsAllIds(): void

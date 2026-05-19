@@ -14,6 +14,7 @@
         "php": ">=8.4",
         "ext-curl": "*",
         "ext-json": "*",
+        "ext-mbstring": "*",
         "nesbot/carbon": "^3.0",
         "php-http/discovery": "^1.14",
         "php-http/httplug": "^2.2",
@@ -32,6 +33,7 @@
         "fakerphp/faker": "^1.20",
         "friendsofphp/php-cs-fixer": "^3.0",
         "guzzlehttp/guzzle": "^7.10",
+        "llm/skills": "^1.1",
         "monolog/monolog": "^3.0",
         "nyholm/psr7": "^1.5",
         "php-http/mock-client": "^1.5",
@@ -56,11 +58,17 @@
             "Kinescope\\Tests\\": "tests/"
         }
     },
-    "bin": ["bin/console"],
+    "bin": ["bin/kinescope"],
+    "extra": {
+        "skills": {
+            "source": "skills"
+        }
+    },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "llm/skills": true
         }
     },
     "minimum-stability": "stable"

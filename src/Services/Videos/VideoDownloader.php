@@ -91,21 +91,21 @@ final readonly class VideoDownloader
 
         /** @var string $downloadLink */
         $downloadLink = $asset->downloadLink;
-        $sizeBytes = $asset->fileSize;
+        $streamSizeBytes = $asset->videoStreamSize;
         $selectedHeight = $asset->resolution === null ? 0 : $asset->resolution->height;
 
-        if ($sizeBytes <= 0) {
+        if ($streamSizeBytes <= 0) {
             throw new KinescopeException(sprintf(
-                'Selected asset has invalid file size for video "%s": %d',
+                'Selected asset has invalid video stream size for video "%s": %d',
                 $videoId,
-                $sizeBytes,
+                $streamSizeBytes,
             ));
         }
 
         $this->logger->info('Selected asset for download', [
             'videoId' => $videoId,
             'quality' => $selectedHeight,
-            'fileSize' => $sizeBytes,
+            'videoStreamSize' => $streamSizeBytes,
             'downloadLink' => $downloadLink,
         ]);
 
@@ -119,7 +119,7 @@ final readonly class VideoDownloader
         $this->eventDispatcher->dispatch(new DownloadStartedEvent(
             videoId: $videoId,
             downloadUrl: $downloadLink,
-            sizeBytes: $sizeBytes,
+            sizeBytes: $streamSizeBytes,
             qualityPreference: $quality,
             selectedHeight: $selectedHeight,
             occurredAt: $startedAt,
@@ -130,12 +130,12 @@ final readonly class VideoDownloader
                 request: new FileTransferRequest(
                     url: $downloadLink,
                     outputPath: $partPath,
-                    expectedBytes: $sizeBytes,
+                    expectedBytes: $streamSizeBytes,
                 ),
                 onProgress: function (FileTransferProgress $progress) use (
                     $videoId,
                     $filePath,
-                    $sizeBytes,
+                    $streamSizeBytes,
                     &$bytesWritten,
                     &$nextProgressReportAt,
                 ): void {
@@ -149,12 +149,15 @@ final readonly class VideoDownloader
                         $nextProgressReportAt += self::PROGRESS_REPORT_INTERVAL_BYTES;
                     }
 
-                    $percent = $progress->percent() ?? round($progress->bytesWritten / $sizeBytes * 100, 1);
+                    $progressTotalBytes = $progress->totalBytes !== null && $progress->totalBytes > 0
+                        ? $progress->totalBytes
+                        : $streamSizeBytes;
+                    $percent = $progress->percent() ?? round($progress->bytesWritten / $progressTotalBytes * 100, 1);
 
                     $this->logger->debug('Download progress', [
                         'filePath' => $filePath,
                         'bytesWritten' => $progress->bytesWritten,
-                        'totalBytes' => $sizeBytes,
+                        'totalBytes' => $progressTotalBytes,
                         'percent' => $percent,
                     ]);
 
@@ -162,7 +165,7 @@ final readonly class VideoDownloader
                         videoId: $videoId,
                         filePath: $filePath,
                         bytesWritten: $progress->bytesWritten,
-                        sizeBytes: $sizeBytes,
+                        sizeBytes: $progressTotalBytes,
                         percent: $percent,
                         occurredAt: CarbonImmutable::now('UTC'),
                     ));
@@ -170,12 +173,12 @@ final readonly class VideoDownloader
             );
 
             $bytesWritten = $result->bytesWritten;
-            $validationBytes = $result->reportedBytes ?? $sizeBytes;
+            $validationBytes = $result->reportedBytes ?? $streamSizeBytes;
 
-            if ($result->reportedBytes !== null && $result->reportedBytes !== $sizeBytes) {
-                $this->logger->warning('Transfer reported size differs from selected asset metadata', [
+            if ($result->reportedBytes !== null && $result->reportedBytes !== $streamSizeBytes) {
+                $this->logger->warning('Transfer reported size differs from selected asset stream metadata', [
                     'videoId' => $videoId,
-                    'assetFileSize' => $sizeBytes,
+                    'assetVideoStreamSize' => $streamSizeBytes,
                     'reportedBytes' => $result->reportedBytes,
                 ]);
             }
@@ -196,7 +199,7 @@ final readonly class VideoDownloader
             $this->eventDispatcher->dispatch(new DownloadFailedEvent(
                 videoId: $videoId,
                 filePath: $filePath,
-                totalBytes: $sizeBytes,
+                totalBytes: $streamSizeBytes,
                 bytesWritten: $bytesWritten,
                 exception: $exception,
                 occurredAt: CarbonImmutable::now('UTC'),

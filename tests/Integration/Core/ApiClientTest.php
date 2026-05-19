@@ -10,6 +10,7 @@ use Kinescope\Core\Credentials;
 use Kinescope\Enum\HttpMethod;
 use Kinescope\Exception\AuthenticationException;
 use Kinescope\Exception\NotFoundException;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 
@@ -18,9 +19,8 @@ use Throwable;
  *
  * These tests verify that ApiClient works correctly
  * against the real Kinescope API.
- *
- * @group integration
  */
+#[Group('integration')]
 class ApiClientTest extends TestCase
 {
     private ApiClientInterface $client;

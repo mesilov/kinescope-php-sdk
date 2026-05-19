@@ -29,7 +29,7 @@ final readonly class VideoListResult extends PaginatedResponse
         if (isset($response['data']) && is_array($response['data'])) {
             $data = array_map(
                 VideoDTO::fromArray(...),
-                $response['data']
+                array_values(array_filter($response['data'], is_array(...)))
             );
         }
 
@@ -126,15 +126,13 @@ final readonly class VideoListResult extends PaginatedResponse
 
     /**
      * Get total duration of all videos in seconds.
-     *
-     * @return int
      */
-    public function getTotalDuration(): int
+    public function getTotalDuration(): float
     {
         return array_reduce(
             $this->data,
-            static fn (int $total, VideoDTO $video): int => $total + $video->duration,
-            0
+            static fn (float $total, VideoDTO $video): float => $total + $video->duration,
+            0.0
         );
     }
 

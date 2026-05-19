@@ -47,7 +47,7 @@ final class VideoDownloaderFileTransferTest extends TestCase
         $fileTransfer = new FakeFileTransfer(byte: 's');
         $downloader = $this->createDownloader(
             videoId: 'video-success',
-            fileSize: 42,
+            videoStreamSize: 42,
             fileTransfer: $fileTransfer,
             filesystem: $filesystem,
         );
@@ -75,7 +75,7 @@ final class VideoDownloaderFileTransferTest extends TestCase
         $destinationDir = sys_get_temp_dir() . '/kinescope-sdk-unit-' . uniqid('', true);
         $downloader = $this->createDownloader(
             videoId: 'video-incomplete',
-            fileSize: 42,
+            videoStreamSize: 42,
             fileTransfer: new FakeFileTransfer(bytesWritten: 41),
             filesystem: $filesystem,
         );
@@ -92,13 +92,13 @@ final class VideoDownloaderFileTransferTest extends TestCase
         }
     }
 
-    public function testTransferReportedBytesCanOverrideStaleAssetFileSize(): void
+    public function testTransferReportedBytesCanOverrideStaleAssetVideoStreamSize(): void
     {
         $filesystem = new Filesystem();
         $destinationDir = sys_get_temp_dir() . '/kinescope-sdk-unit-' . uniqid('', true);
         $downloader = $this->createDownloader(
             videoId: 'video-stale-file-size',
-            fileSize: 42,
+            videoStreamSize: 42,
             fileTransfer: new FakeFileTransfer(bytesWritten: 50, reportedBytes: 50, byte: 'r'),
             filesystem: $filesystem,
         );
@@ -120,7 +120,7 @@ final class VideoDownloaderFileTransferTest extends TestCase
         $destinationDir = sys_get_temp_dir() . '/kinescope-sdk-unit-' . uniqid('', true);
         $downloader = $this->createDownloader(
             videoId: 'video-failure',
-            fileSize: 42,
+            videoStreamSize: 42,
             fileTransfer: new FakeFileTransfer(
                 exception: new RuntimeException('transfer exploded'),
                 partialBytesBeforeFailure: 20,
@@ -154,13 +154,13 @@ final class VideoDownloaderFileTransferTest extends TestCase
         $apiClient = new FakeApiClient()
             ->queueResponse([
                 'data' => [
-                    $this->videoPayload(videoId: 'video-1', fileSize: 10),
-                    $this->videoPayload(videoId: 'video-2', fileSize: 20),
+                    $this->videoPayload(videoId: 'video-1', videoStreamSize: 10),
+                    $this->videoPayload(videoId: 'video-2', videoStreamSize: 20),
                 ],
                 'meta' => ['pagination' => ['total' => 2, 'page' => 1, 'per_page' => 20]],
             ])
-            ->queueResponse($this->videoResponse(videoId: 'video-1', fileSize: 10))
-            ->queueResponse($this->videoResponse(videoId: 'video-2', fileSize: 20));
+            ->queueResponse($this->videoResponse(videoId: 'video-1', videoStreamSize: 10))
+            ->queueResponse($this->videoResponse(videoId: 'video-2', videoStreamSize: 20));
         $downloader = new VideoDownloader(
             videos: new Videos($apiClient),
             filesystem: $filesystem,
@@ -184,14 +184,14 @@ final class VideoDownloaderFileTransferTest extends TestCase
 
     private function createDownloader(
         string $videoId,
-        int $fileSize,
+        int $videoStreamSize,
         FakeFileTransfer $fileTransfer,
         Filesystem $filesystem,
     ): VideoDownloader {
         return new VideoDownloader(
             videos: new Videos(new FakeApiClient()->queueResponse($this->videoResponse(
                 videoId: $videoId,
-                fileSize: $fileSize,
+                videoStreamSize: $videoStreamSize,
             ))),
             filesystem: $filesystem,
             fileTransfer: $fileTransfer,
@@ -201,15 +201,15 @@ final class VideoDownloaderFileTransferTest extends TestCase
     /**
      * @return array{data: array<string, mixed>}
      */
-    private function videoResponse(string $videoId, int $fileSize): array
+    private function videoResponse(string $videoId, int $videoStreamSize): array
     {
-        return ['data' => $this->videoPayload(videoId: $videoId, fileSize: $fileSize)];
+        return ['data' => $this->videoPayload(videoId: $videoId, videoStreamSize: $videoStreamSize)];
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function videoPayload(string $videoId, int $fileSize): array
+    private function videoPayload(string $videoId, int $videoStreamSize): array
     {
         return [
             'id' => $videoId,
@@ -222,7 +222,7 @@ final class VideoDownloaderFileTransferTest extends TestCase
                     'id' => $videoId . '-asset',
                     'video_id' => $videoId,
                     'resolution' => '1920x1080',
-                    'file_size' => $fileSize,
+                    'file_size' => $videoStreamSize,
                     'download_link' => 'https://example.test/videos/' . $videoId . '.mp4',
                 ],
             ],

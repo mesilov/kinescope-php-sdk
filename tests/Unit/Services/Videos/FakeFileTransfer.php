@@ -27,6 +27,7 @@ final class FakeFileTransfer implements FileTransferInterface
         private readonly ?Throwable $exception = null,
         private readonly ?int $partialBytesBeforeFailure = null,
         private readonly array $progressBytes = [],
+        private readonly ?int $progressTotalBytes = null,
         private readonly string $byte = 'a',
     ) {
     }
@@ -39,7 +40,7 @@ final class FakeFileTransfer implements FileTransferInterface
             if ($onProgress !== null) {
                 $onProgress(new FileTransferProgress(
                     bytesWritten: $bytesWritten,
-                    totalBytes: $request->expectedBytes,
+                    totalBytes: $this->progressTotalBytes ?? $request->expectedBytes,
                 ));
             }
         }

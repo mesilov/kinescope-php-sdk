@@ -6,6 +6,7 @@ namespace Kinescope\Tests\Integration\Core;
 
 use Kinescope\Contracts\ApiClientInterface;
 use Kinescope\Core\ApiClientFactory;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -13,9 +14,8 @@ use PHPUnit\Framework\TestCase;
  *
  * These tests verify that the factory creates working clients
  * that can communicate with the real Kinescope API.
- *
- * @group integration
  */
+#[Group('integration')]
 class ApiClientFactoryTest extends TestCase
 {
     private string $apiKey;
