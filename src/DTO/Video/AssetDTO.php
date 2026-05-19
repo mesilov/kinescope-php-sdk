@@ -19,7 +19,15 @@ final readonly class AssetDTO
         public string $id,
         public string $videoId,
         public ?string $originalName,
-        public int $fileSize,
+        /**
+         * Size of the video stream reported by Kinescope metadata.
+         *
+         * This is not guaranteed to be the size of the downloadable file on disk.
+         * Downloaded MP4 files may also include audio streams and container overhead.
+         * For download validation, disk checks, and storage accounting, use the real
+         * transfer size / HTTP Content-Length / bytes written / final filesize().
+         */
+        public int $videoStreamSize,
         public ?string $md5,
         public ?string $filetype,
         public ?string $quality,
@@ -28,8 +36,8 @@ final readonly class AssetDTO
         public ?string $url,
         public ?string $downloadLink,
     ) {
-        if ($this->fileSize <= 0) {
-            throw new InvalidArgumentException('Asset "file_size" must be greater than 0.');
+        if ($this->videoStreamSize <= 0) {
+            throw new InvalidArgumentException('Asset "file_size" video stream size must be greater than 0.');
         }
     }
 
@@ -42,17 +50,17 @@ final readonly class AssetDTO
             throw new InvalidArgumentException('Asset "file_size" is required.');
         }
 
-        $fileSize = (int) $data['file_size'];
+        $videoStreamSize = (int) $data['file_size'];
 
-        if ($fileSize <= 0) {
-            throw new InvalidArgumentException('Asset "file_size" must be greater than 0.');
+        if ($videoStreamSize <= 0) {
+            throw new InvalidArgumentException('Asset "file_size" video stream size must be greater than 0.');
         }
 
         return new self(
             id: (string) $data['id'],
             videoId: (string) ($data['video_id'] ?? ''),
             originalName: isset($data['original_name']) ? (string) $data['original_name'] : null,
-            fileSize: $fileSize,
+            videoStreamSize: $videoStreamSize,
             md5: isset($data['md5']) ? (string) $data['md5'] : null,
             filetype: isset($data['filetype']) ? (string) $data['filetype'] : null,
             quality: isset($data['quality']) ? (string) $data['quality'] : null,
@@ -83,10 +91,10 @@ final readonly class AssetDTO
         return $this->resolution?->is4K() ?? false;
     }
 
-    public function getHumanFileSize(): string
+    public function getHumanVideoStreamSize(): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $size = $this->fileSize;
+        $size = $this->videoStreamSize;
         $unitIndex = 0;
 
         while ($size >= 1024 && $unitIndex < count($units) - 1) {
@@ -106,7 +114,7 @@ final readonly class AssetDTO
             'id' => $this->id,
             'video_id' => $this->videoId,
             'original_name' => $this->originalName,
-            'file_size' => $this->fileSize,
+            'video_stream_size' => $this->videoStreamSize,
             'md5' => $this->md5,
             'filetype' => $this->filetype,
             'quality' => $this->quality,

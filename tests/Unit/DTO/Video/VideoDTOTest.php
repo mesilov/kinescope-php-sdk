@@ -122,13 +122,13 @@ final class VideoDTOTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    private function asset(string $id, int $fileSize, string $resolution): array
+    private function asset(string $id, int $videoStreamSize, string $resolution): array
     {
         return [
             'id' => $id,
             'video_id' => 'video-id',
             'original_name' => $id,
-            'file_size' => $fileSize,
+            'file_size' => $videoStreamSize,
             'filetype' => 'mp4',
             'quality' => $id,
             'resolution' => $resolution,

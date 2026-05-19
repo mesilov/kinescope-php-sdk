@@ -40,7 +40,7 @@ final class VideoDownloaderEventTest extends TestCase
         ]);
 
         $downloader = $this->createDownloader(
-            fileSize: $sizeBytes,
+            videoStreamSize: $sizeBytes,
             selectedHeight: 1080,
             fileTransfer: $fileTransfer,
         );
@@ -111,7 +111,7 @@ final class VideoDownloaderEventTest extends TestCase
         );
 
         $downloader = $this->createDownloader(
-            fileSize: $sizeBytes,
+            videoStreamSize: $sizeBytes,
             selectedHeight: 720,
             fileTransfer: $fileTransfer,
         );
@@ -148,13 +148,13 @@ final class VideoDownloaderEventTest extends TestCase
         $this->assertFileDoesNotExist($destinationDir . '/' . $videoId . '.mp4.part');
     }
 
-    private function createDownloader(int $fileSize, int $selectedHeight, FakeFileTransfer $fileTransfer): VideoDownloader
+    private function createDownloader(int $videoStreamSize, int $selectedHeight, FakeFileTransfer $fileTransfer): VideoDownloader
     {
         return new VideoDownloader(
             filesystem: $this->filesystem,
             videos: new Videos(new FakeApiClient()->queueResponse($this->videoResponse(
                 videoId: 'video-' . ($selectedHeight === 1080 ? '1' : '2'),
-                fileSize: $fileSize,
+                videoStreamSize: $videoStreamSize,
                 selectedHeight: $selectedHeight,
             ))),
             fileTransfer: $fileTransfer,
@@ -164,7 +164,7 @@ final class VideoDownloaderEventTest extends TestCase
     /**
      * @return array{data: array<string, mixed>}
      */
-    private function videoResponse(string $videoId, int $fileSize, int $selectedHeight): array
+    private function videoResponse(string $videoId, int $videoStreamSize, int $selectedHeight): array
     {
         return [
             'data' => [
@@ -177,7 +177,7 @@ final class VideoDownloaderEventTest extends TestCase
                         'id' => 'asset-1',
                         'video_id' => $videoId,
                         'resolution' => sprintf('1920x%d', $selectedHeight),
-                        'file_size' => $fileSize,
+                        'file_size' => $videoStreamSize,
                         'download_link' => 'https://example.test/videos/' . $videoId . '.mp4',
                     ],
                 ],

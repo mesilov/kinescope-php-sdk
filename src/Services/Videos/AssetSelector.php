@@ -13,7 +13,7 @@ use Kinescope\Enum\QualityPreference;
  * Selection rules:
  * - assets without a `downloadLink` are ignored
  * - {@see QualityPreference::BEST} prefers the asset with the greatest known `height`
- * - {@see QualityPreference::WORST} prefers the asset with the smallest `fileSize`,
+ * - {@see QualityPreference::WORST} prefers the asset with the smallest `videoStreamSize`,
  *   using known `height` as a secondary tie-breaker
  * - a missing `height` is treated as unknown metadata, never as resolution `0`
  */
@@ -54,10 +54,10 @@ final readonly class AssetSelector
             return self::compareKnownHeightDesc($a, $b);
         }
 
-        $fileSizeComparison = $a->fileSize <=> $b->fileSize;
+        $streamSizeComparison = $a->videoStreamSize <=> $b->videoStreamSize;
 
-        if ($fileSizeComparison !== 0) {
-            return $fileSizeComparison;
+        if ($streamSizeComparison !== 0) {
+            return $streamSizeComparison;
         }
 
         return self::compareKnownHeightAsc($a, $b);

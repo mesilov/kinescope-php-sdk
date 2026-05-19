@@ -15,6 +15,7 @@ use Kinescope\DTO\Video\AssetDTO;
 use Kinescope\DTO\Video\SubtitleListResult;
 use Kinescope\DTO\Video\VideoDTO;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 final class RawApiDtoContractTest extends TestCase
 {
@@ -93,9 +94,13 @@ final class RawApiDtoContractTest extends TestCase
         $array = $asset->toArray();
 
         self::assertSame('original', $asset->originalName);
+        self::assertSame(17267227, $asset->videoStreamSize);
+        self::assertFalse(new ReflectionClass(AssetDTO::class)->hasProperty('fileSize'));
         self::assertSame('mp4', $asset->filetype);
         self::assertSame('md5-hash', $asset->md5);
         self::assertArrayHasKey('original_name', $array);
+        self::assertArrayHasKey('video_stream_size', $array);
+        self::assertArrayNotHasKey('file_size', $array);
         self::assertArrayHasKey('filetype', $array);
         self::assertArrayHasKey('md5', $array);
         self::assertArrayNotHasKey('bitrate', $array);

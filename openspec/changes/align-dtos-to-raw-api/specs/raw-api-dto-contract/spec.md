@@ -15,7 +15,8 @@ The SDK SHALL expose Kinescope resource DTO data using field names that correspo
 
 #### Scenario: Asset payload preserves current fields
 - **WHEN** an asset payload contains `original_name`, `file_size`, `md5`, `filetype`, `quality`, `resolution`, `url`, and `download_link`
-- **THEN** `AssetDTO` exposes those values and exports them with the same API keys
+- **THEN** `AssetDTO` exposes those values while mapping raw API `file_size` to SDK `videoStreamSize`
+- **AND** the exported array contains `video_stream_size` instead of ambiguous `file_size`
 - **AND** the exported array does not contain unavailable legacy `bitrate` or `codec` keys
 
 #### Scenario: Playlist payload uses current playlist fields

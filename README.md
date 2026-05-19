@@ -101,9 +101,11 @@ vendor/bin/kinescope kinescope:statistics:show \
   --folder-id=11111111-1111-1111-1111-111111111111
 ```
 
-List commands support `table` or deterministic `json` output. Resource show commands print pretty JSON. `kinescope:statistics:show` supports `table` and `json`; without a selector it reports account-wide statistics, or it can be scoped with exactly one of `--project-id` or `--folder-id`. Asset output exposes booleans such as `has_url`, `has_download_link`, and `downloadable`; raw signed CDN URLs and download links are not printed by default.
+List commands support `table` or deterministic `json` output. Resource show commands print pretty JSON. `kinescope:statistics:show` supports `table` and `json`; without a selector it reports account-wide statistics, or it can be scoped with exactly one of `--project-id` or `--folder-id`. Asset output exposes `video_stream_size`, `video_stream_size_mb`, and booleans such as `has_url`, `has_download_link`, and `downloadable`; raw signed CDN URLs and download links are not printed by default.
 
-DTO timestamp properties such as `createdAt`, `updatedAt`, `deletedAt`, and `generatedAt` are `Carbon\CarbonImmutable` instances. `toArray()` keeps API field names such as `created_at` and serializes date values as ISO JSON strings.
+DTO timestamp properties such as `createdAt`, `updatedAt`, `deletedAt`, and `generatedAt` are `Carbon\CarbonImmutable` instances. `toArray()` keeps API field names such as `created_at` and serializes date values as ISO JSON strings, except that asset stream-size metadata is exported as `video_stream_size` to avoid implying a real downloaded file size.
+
+`AssetDTO::$videoStreamSize` maps raw API `assets[].file_size`. This is Kinescope stream metadata, not a guaranteed downloaded file size on disk. For download validation, progress after HTTP metadata is available, disk checks, and storage accounting, use HTTP `Content-Length`, transfer-reported bytes, bytes written, or final `filesize()`.
 
 ## Statistics
 

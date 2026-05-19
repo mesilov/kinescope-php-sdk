@@ -276,7 +276,7 @@ final class ResourceCommandTest extends TestCase
                     assets: [
                         $this->assetPayload(
                             id: 'asset-1',
-                            fileSize: 1024,
+                            videoStreamSize: 1024,
                             url: 'https://cdn.example.test/video.mp4',
                             downloadLink: 'https://cdn.example.test/download.mp4'
                         ),
@@ -365,10 +365,10 @@ final class ResourceCommandTest extends TestCase
                     id: self::VIDEO_ID,
                     title: 'Video A',
                     assets: [
-                        $this->assetPayload(id: 'asset-small', fileSize: 1024, downloadLink: null),
+                        $this->assetPayload(id: 'asset-small', videoStreamSize: 1024, downloadLink: null),
                         $this->assetPayload(
                             id: 'asset-large',
-                            fileSize: 4096,
+                            videoStreamSize: 4096,
                             url: 'https://cdn.example.test/large.mp4',
                             downloadLink: 'https://cdn.example.test/large-download.mp4'
                         ),
@@ -391,7 +391,8 @@ final class ResourceCommandTest extends TestCase
         self::assertSame(self::VIDEO_ID, $decoded['videoId']);
         self::assertSame('Video A', $decoded['videoName']);
         self::assertSame('asset-large', $decoded['items'][0]['id']);
-        self::assertSame(4096, $decoded['items'][0]['file_size']);
+        self::assertSame(4096, $decoded['items'][0]['video_stream_size']);
+        self::assertArrayNotHasKey('file_size', $decoded['items'][0]);
         self::assertTrue($decoded['items'][0]['has_url']);
         self::assertStringNotContainsString('cdn.example.test', $tester->getDisplay());
     }
@@ -404,7 +405,7 @@ final class ResourceCommandTest extends TestCase
                     id: self::VIDEO_ID,
                     title: 'Video A',
                     assets: [
-                        $this->assetPayload(id: 'asset-1', fileSize: 1024, downloadLink: 'https://cdn.example.test/download.mp4'),
+                        $this->assetPayload(id: 'asset-1', videoStreamSize: 1024, downloadLink: 'https://cdn.example.test/download.mp4'),
                     ],
                 ),
             ]),
@@ -418,6 +419,7 @@ final class ResourceCommandTest extends TestCase
 
         self::assertSame(Command::SUCCESS, $exitCode);
         self::assertStringContainsString('Video: Video A', $tester->getDisplay());
+        self::assertStringContainsString('video_stream_size', $tester->getDisplay());
         self::assertStringContainsString('has_download_link', $tester->getDisplay());
         self::assertStringContainsString('yes', $tester->getDisplay());
         self::assertStringNotContainsString('cdn.example.test', $tester->getDisplay());
@@ -738,7 +740,7 @@ final class ResourceCommandTest extends TestCase
      */
     private function assetPayload(
         string $id,
-        int $fileSize,
+        int $videoStreamSize,
         ?string $url = null,
         ?string $downloadLink = null,
     ): array {
@@ -748,7 +750,7 @@ final class ResourceCommandTest extends TestCase
             'original_name' => $id,
             'quality' => '720p',
             'resolution' => '1280x720',
-            'file_size' => $fileSize,
+            'file_size' => $videoStreamSize,
             'filetype' => 'mp4',
             'md5' => 'md5-hash',
             'created_at' => '2024-01-01T00:00:00+00:00',

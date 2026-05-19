@@ -225,8 +225,8 @@ abstract class AbstractKinescopeCommand extends Command
             'resolution' => $asset->resolution === null ? null : (string) $asset->resolution,
             'width' => $asset->resolution?->width,
             'height' => $asset->resolution?->height,
-            'file_size' => $asset->fileSize,
-            'file_size_mb' => round($asset->fileSize / 1024 / 1024, 2),
+            'video_stream_size' => $asset->videoStreamSize,
+            'video_stream_size_mb' => round($asset->videoStreamSize / 1024 / 1024, 2),
             'has_url' => $asset->url !== null && $asset->url !== '',
             'has_download_link' => $hasDownloadLink,
             'downloadable' => $hasDownloadLink,
@@ -258,7 +258,7 @@ abstract class AbstractKinescopeCommand extends Command
         usort(
             $rows,
             static function (array $a, array $b): int {
-                $sizeComparison = (int) $b['file_size'] <=> (int) $a['file_size'];
+                $sizeComparison = (int) $b['video_stream_size'] <=> (int) $a['video_stream_size'];
 
                 return $sizeComparison !== 0
                     ? $sizeComparison

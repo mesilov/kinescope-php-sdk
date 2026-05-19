@@ -21,7 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   - `FolderDTO` uses `size`, `itemsCount`, and `deletedAt`; removed legacy `videosCount`, `description`, `depth`, `path`, and `position`.
   - `VideoDTO` uses current raw video fields such as `title`, `projectId`, `folderId`, `playerId`, `version`, `progress`, `poster`, `playLink`, `embedLink`, `subtitles`, `chapters`, `audioTracks`, and `meta`; removed unavailable aliases such as `embedCode`, `dashLink`, `posterUrl`, `thumbnailUrl`, `viewsCount`, and `playsCount`.
   - `VideoDTO::$duration` and `PlaylistEntityDTO::$duration` now preserve API fractional seconds as `float`.
-  - `AssetDTO` uses `originalName`, `filetype`, and `md5`; removed legacy `bitrate` and `codec`.
+  - `AssetDTO` uses `originalName`, `videoStreamSize`, `filetype`, and `md5`; removed legacy `bitrate` and `codec`.
+  - `AssetDTO::$fileSize` is renamed to `videoStreamSize`, and `AssetDTO::toArray()` / CLI asset output now use `video_stream_size` instead of `file_size`. The value still maps raw API `assets[].file_size`, but it is stream metadata, not a guaranteed downloaded file size on disk. For file operations use HTTP `Content-Length`, transfer-reported bytes, bytes written, or final `filesize()`.
   - `PlaylistDTO` uses `name`, `workspaceId`, `parentId`, `playerId`, `privacy*`, `settings`, `playLink`, and `embedLink`; removed legacy `title`, `projectId`, `itemsCount`, `totalDuration`, `posterUrl`, `embedCode`, and `isPublic`.
 - Timestamp fields in SDK DTOs are now `Carbon\CarbonImmutable`: `createdAt`, `updatedAt`, `deletedAt`, and `generatedAt` no longer expose raw strings or `DateTimeImmutable`.
 - `PlaylistEntityListResult`, `SubtitleListResult`, and `AnnotationListResult` now parse unpaginated `data` responses without synthetic `MetaDTO` pagination.

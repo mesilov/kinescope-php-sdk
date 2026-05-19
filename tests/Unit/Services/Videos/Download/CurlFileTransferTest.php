@@ -59,6 +59,38 @@ final class CurlFileTransferTest extends TestCase
         }
     }
 
+    public function testProgressUsesReportedContentLengthWhenExpectedBytesAreStale(): void
+    {
+        $payload = str_repeat('content-length-', 4096);
+        $server = $this->startStaticServer(['video.mp4' => $payload]);
+        $outputDir = $this->createTempDir();
+        $outputPath = $outputDir . '/video.mp4.part';
+        $progress = [];
+
+        try {
+            new CurlFileTransfer()->transfer(
+                request: new FileTransferRequest(
+                    url: $server['url'] . '/video.mp4',
+                    outputPath: $outputPath,
+                    expectedBytes: 42,
+                ),
+                onProgress: static function (FileTransferProgress $transferProgress) use (&$progress): void {
+                    $progress[] = $transferProgress;
+                },
+            );
+
+            $this->assertNotEmpty($progress);
+
+            $lastProgress = $progress[array_key_last($progress)];
+            $this->assertSame(strlen($payload), $lastProgress->bytesWritten);
+            $this->assertSame(strlen($payload), $lastProgress->totalBytes);
+            $this->assertSame(100.0, $lastProgress->percent());
+        } finally {
+            $server['stop']();
+            $this->filesystem->remove([$server['root'], $outputDir]);
+        }
+    }
+
     public function testTransferFailsOnHttpErrorStatus(): void
     {
         $server = $this->startStaticServer([]);
