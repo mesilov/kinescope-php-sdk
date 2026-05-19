@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kinescope CLI"
+  short_description: "Use the Kinescope SDK CLI for safe read-only account inspection."
+  default_prompt: "Use the Kinescope CLI skill to inspect Kinescope projects, folders, videos, assets, or statistics."

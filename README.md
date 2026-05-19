@@ -133,6 +133,42 @@ vendor/bin/kinescope kinescope:statistics:show \
 
 List commands support `table` or deterministic `json` output. Resource show commands print pretty JSON. `kinescope:statistics:show` supports `table` and `json`; without a selector it reports account-wide statistics, or it can be scoped with exactly one of `--project-id` or `--folder-id`. Asset output exposes `video_stream_size`, `video_stream_size_mb`, and booleans such as `has_url`, `has_download_link`, and `downloadable`; raw signed CDN URLs and download links are not printed by default.
 
+## AI Agent Skill
+
+The package ships a `kinescope-cli` AI skill under `skills/kinescope-cli/` and declares it through `extra.skills.source` for [`llm/skills`](https://github.com/roxblnfk/skills). The skill helps coding agents use `vendor/bin/kinescope` safely: choose the current `kinescope:*` commands, prefer JSON for machine parsing, keep `KINESCOPE_API_KEY` out of output, and avoid exposing signed asset URLs.
+
+Install the Composer skill sync plugin in the consumer project:
+
+```bash
+composer require --dev llm/skills
+```
+
+Allow the plugin and trust this SDK as a skill donor:
+
+```json
+{
+  "config": {
+    "allow-plugins": {
+      "llm/skills": true
+    }
+  },
+  "extra": {
+    "skills": {
+      "trusted": ["mesilov/kinescope-php-sdk"],
+      "aliases": [".claude/skills"]
+    }
+  }
+}
+```
+
+Then sync the skill:
+
+```bash
+composer skills:update mesilov/kinescope-php-sdk --alias=.claude/skills
+```
+
+`llm/skills` writes the real skill directory to `.agents/skills/` by default, which works for Codex-style repo skills. The `--alias=.claude/skills` option mirrors the same target for Claude Code without keeping a second copy. If you already added `mesilov/kinescope-php-sdk` to `extra.skills.trusted`, you can omit the package argument and run `composer skills:update`.
+
 DTO timestamp properties such as `createdAt`, `updatedAt`, `deletedAt`, and `generatedAt` are `Carbon\CarbonImmutable` instances. `toArray()` keeps API field names such as `created_at` and serializes date values as ISO JSON strings, except that asset stream-size metadata is exported as `video_stream_size` to avoid implying a real downloaded file size.
 
 `AssetDTO::$videoStreamSize` maps raw API `assets[].file_size`. This is Kinescope stream metadata, not a guaranteed downloaded file size on disk. For download validation, progress after HTTP metadata is available, disk checks, and storage accounting, use HTTP `Content-Length`, transfer-reported bytes, bytes written, or final `filesize()`.
