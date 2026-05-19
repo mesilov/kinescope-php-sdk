@@ -15,11 +15,7 @@ use Kinescope\DTO\Common\PaginatedResponse;
 final readonly class FolderListResult extends PaginatedResponse
 {
     /**
-     * Create a FolderListResult from API response array.
-     *
      * @param array<string, mixed> $response Raw API response
-     *
-     * @return self
      */
     public static function fromArray(array $response): self
     {
@@ -28,77 +24,35 @@ final readonly class FolderListResult extends PaginatedResponse
         if (isset($response['data']) && is_array($response['data'])) {
             $data = array_map(
                 FolderDTO::fromArray(...),
-                $response['data']
+                array_values(array_filter($response['data'], is_array(...))),
             );
         }
 
-        $meta = MetaDTO::fromArray($response['meta'] ?? []);
-
-        return new self($data, $meta);
+        return new self($data, MetaDTO::fromArray($response['meta'] ?? []));
     }
 
     /**
-     * Get root folders (no parent).
-     *
-     * @return array<FolderDTO>
+     * @return list<FolderDTO>
      */
     public function getRoots(): array
     {
         return $this->filter(
-            static fn (FolderDTO $folder): bool => $folder->isRoot()
+            static fn (FolderDTO $folder): bool => $folder->isRoot(),
         );
     }
 
     /**
-     * Get children of a specific folder.
-     *
-     * @param string $parentId Parent folder ID
-     *
-     * @return array<FolderDTO>
+     * @return list<FolderDTO>
      */
     public function getChildren(string $parentId): array
     {
         return $this->filter(
-            static fn (FolderDTO $folder): bool => $folder->isChildOf($parentId)
+            static fn (FolderDTO $folder): bool => $folder->isChildOf($parentId),
         );
     }
 
     /**
-     * Get folders at a specific depth.
-     *
-     * @param int $depth Depth level (0 = root)
-     *
-     * @return array<FolderDTO>
-     */
-    public function getAtDepth(int $depth): array
-    {
-        return $this->filter(
-            static fn (FolderDTO $folder): bool => $folder->isAtDepth($depth)
-        );
-    }
-
-    /**
-     * Get folders sorted by position.
-     *
-     * @return array<FolderDTO>
-     */
-    public function getSortedByPosition(): array
-    {
-        $sorted = $this->data;
-
-        usort(
-            $sorted,
-            static fn (FolderDTO $a, FolderDTO $b): int =>
-            $a->position <=> $b->position
-        );
-
-        return $sorted;
-    }
-
-    /**
-     * Get folders sorted by name.
-     *
-     * @return array<FolderDTO>
+     * @return list<FolderDTO>
      */
     public function getSortedByName(): array
     {
@@ -106,100 +60,66 @@ final readonly class FolderListResult extends PaginatedResponse
 
         usort(
             $sorted,
-            static fn (FolderDTO $a, FolderDTO $b): int =>
-            strcasecmp($a->name, $b->name)
+            static fn (FolderDTO $a, FolderDTO $b): int => strcasecmp($a->name, $b->name),
         );
 
         return $sorted;
     }
 
     /**
-     * Get folders with videos.
-     *
-     * @return array<FolderDTO>
+     * @return list<FolderDTO>
      */
-    public function getWithVideos(): array
+    public function getWithItems(): array
     {
         return $this->filter(
-            static fn (FolderDTO $folder): bool => $folder->hasVideos()
+            static fn (FolderDTO $folder): bool => $folder->hasItems(),
         );
     }
 
     /**
-     * Get empty folders (no videos).
-     *
-     * @return array<FolderDTO>
+     * @return list<FolderDTO>
      */
     public function getEmpty(): array
     {
         return $this->filter(
-            static fn (FolderDTO $folder): bool => $folder->isEmpty()
+            static fn (FolderDTO $folder): bool => $folder->isEmpty(),
         );
     }
 
-    /**
-     * Find folder by ID.
-     *
-     * @param string $id Folder identifier
-     *
-     * @return FolderDTO|null
-     */
     public function findById(string $id): ?FolderDTO
     {
         return $this->find(
-            static fn (FolderDTO $folder): bool => $folder->id === $id
+            static fn (FolderDTO $folder): bool => $folder->id === $id,
         );
     }
 
-    /**
-     * Find folder by name.
-     *
-     * @param string $name Folder name
-     *
-     * @return FolderDTO|null
-     */
     public function findByName(string $name): ?FolderDTO
     {
         return $this->find(
-            static fn (FolderDTO $folder): bool => $folder->name === $name
+            static fn (FolderDTO $folder): bool => $folder->name === $name,
         );
     }
 
-    /**
-     * Find folder by path.
-     *
-     * @param string $path Full path
-     *
-     * @return FolderDTO|null
-     */
-    public function findByPath(string $path): ?FolderDTO
-    {
-        return $this->find(
-            static fn (FolderDTO $folder): bool => $folder->path === $path
-        );
-    }
-
-    /**
-     * Get total video count across all folders.
-     *
-     * @return int
-     */
-    public function getTotalVideosCount(): int
+    public function getTotalItemsCount(): int
     {
         return array_reduce(
             $this->data,
-            static fn (int $total, FolderDTO $folder): int =>
-                $total + $folder->videosCount,
-            0
+            static fn (int $total, FolderDTO $folder): int => $total + $folder->itemsCount,
+            0,
+        );
+    }
+
+    public function getTotalSize(): int
+    {
+        return array_reduce(
+            $this->data,
+            static fn (int $total, FolderDTO $folder): int => $total + $folder->size,
+            0,
         );
     }
 
     /**
-     * Build a folder tree structure.
-     *
-     * Returns an array of root folders with nested children.
-     *
-     * @return array<array{folder: FolderDTO, children: array<mixed>}>
+     * @return list<array{folder: FolderDTO, children: list<mixed>}>
      */
     public function buildTree(): array
     {
@@ -213,11 +133,13 @@ final readonly class FolderListResult extends PaginatedResponse
             ];
         }
 
-        foreach ($byId as $id => &$node) {
+        foreach ($byId as &$node) {
             $folder = $node['folder'];
 
-            if ($folder->parentId !== null && isset($byId[$folder->parentId])) {
-                $byId[$folder->parentId]['children'][] = &$node;
+            $parentId = $folder->parentId;
+
+            if ($folder->hasParent() && $parentId !== null && isset($byId[$parentId])) {
+                $byId[$parentId]['children'][] = &$node;
             } else {
                 $tree[] = &$node;
             }
@@ -227,9 +149,7 @@ final readonly class FolderListResult extends PaginatedResponse
     }
 
     /**
-     * Get IDs of all folders.
-     *
-     * @return array<string>
+     * @return list<string>
      */
     public function getIds(): array
     {

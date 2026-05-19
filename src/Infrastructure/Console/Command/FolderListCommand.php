@@ -53,7 +53,7 @@ final class FolderListCommand extends AbstractKinescopeCommand
         try {
             $projects->get($projectId);
             $items = array_values(array_map($this->normalizeFolder(...), $folders->getAll($projectId)));
-            $this->sortRowsByString($items, 'path');
+            $this->sortRowsByString($items, 'name');
         } catch (NotFoundException) {
             return $this->failure($stderr, sprintf('Project "%s" not found.', $projectId));
         } catch (KinescopeException $e) {
@@ -68,7 +68,7 @@ final class FolderListCommand extends AbstractKinescopeCommand
                 'projectId' => $projectId,
                 'items' => $items,
             ],
-            tableHeaders: ['id', 'name', 'projectId', 'parentId', 'videosCount', 'path'],
+            tableHeaders: ['id', 'name', 'project_id', 'parent_id', 'items_count', 'size'],
             tableRows: $items,
         );
 

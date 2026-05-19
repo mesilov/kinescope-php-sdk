@@ -69,12 +69,12 @@ final class VideoAssetListCommand extends AbstractKinescopeCommand
 
         $output->writeln(sprintf('Video: %s', $video->title));
         $output->writeln('');
-        $this->renderTable($output, ['id', 'quality', 'size', 'hasDownloadLink'], array_map(
+        $this->renderTable($output, ['id', 'quality', 'size', 'has_download_link'], array_map(
             static fn (array $item): array => [
                 'id' => $item['id'],
                 'quality' => $item['quality'],
-                'size' => self::humanSize((int) $item['fileSize']),
-                'hasDownloadLink' => $item['hasDownloadLink'],
+                'size' => self::humanSize((int) $item['file_size']),
+                'has_download_link' => $item['has_download_link'],
             ],
             $items,
         ));

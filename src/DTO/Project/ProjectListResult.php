@@ -29,7 +29,7 @@ final readonly class ProjectListResult extends PaginatedResponse
         if (isset($response['data']) && is_array($response['data'])) {
             $data = array_map(
                 ProjectDTO::fromArray(...),
-                $response['data']
+                array_values(array_filter($response['data'], is_array(...)))
             );
         }
 

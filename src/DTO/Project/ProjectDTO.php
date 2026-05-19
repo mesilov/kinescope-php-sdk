@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Kinescope\DTO\Project;
 
-use DateTimeImmutable;
-use DateTimeInterface;
+use Carbon\CarbonImmutable;
+use Kinescope\DTO\Common\ApiDate;
 use Kinescope\Enum\PrivacyType;
 
 /**
@@ -31,8 +31,8 @@ final readonly class ProjectDTO
      * @param bool $favorite Favorite flag
      * @param int $size Project size in bytes
      * @param int $itemsCount Project item count from API
-     * @param DateTimeImmutable $createdAt Creation timestamp
-     * @param DateTimeImmutable $updatedAt Last update timestamp
+     * @param CarbonImmutable|null $createdAt Creation timestamp from API
+     * @param CarbonImmutable|null $updatedAt Last update timestamp from API
      * @param bool $encrypted Encrypted flag
      */
     public function __construct(
@@ -48,8 +48,8 @@ final readonly class ProjectDTO
         public bool $favorite,
         public int $size,
         public int $itemsCount,
-        public DateTimeImmutable $createdAt,
-        public DateTimeImmutable $updatedAt,
+        public ?CarbonImmutable $createdAt,
+        public ?CarbonImmutable $updatedAt,
         public bool $encrypted,
     ) {
     }
@@ -87,8 +87,8 @@ final readonly class ProjectDTO
             favorite: (bool) ($data['favorite'] ?? false),
             size: (int) ($data['size'] ?? 0),
             itemsCount: (int) ($data['items_count'] ?? 0),
-            createdAt: new DateTimeImmutable($data['created_at'] ?? 'now'),
-            updatedAt: new DateTimeImmutable($data['updated_at'] ?? 'now'),
+            createdAt: ApiDate::from($data['created_at'] ?? null),
+            updatedAt: ApiDate::from($data['updated_at'] ?? null),
             encrypted: (bool) ($data['encrypted'] ?? false),
         );
     }
@@ -227,8 +227,8 @@ final readonly class ProjectDTO
             'favorite' => $this->favorite,
             'size' => $this->size,
             'items_count' => $this->itemsCount,
-            'created_at' => $this->createdAt->format(DateTimeInterface::ATOM),
-            'updated_at' => $this->updatedAt->format(DateTimeInterface::ATOM),
+            'created_at' => ApiDate::toString($this->createdAt),
+            'updated_at' => ApiDate::toString($this->updatedAt),
             'encrypted' => $this->encrypted,
         ];
     }

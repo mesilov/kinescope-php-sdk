@@ -18,11 +18,15 @@ class MetaDTOTest extends TestCase
                 'page' => 2,
                 'per_page' => 20,
             ],
+            'order' => [
+                'name' => 'asc',
+            ],
         ]);
 
         $this->assertEquals(100, $meta->total);
         $this->assertEquals(2, $meta->pagination->page);
         $this->assertEquals(20, $meta->pagination->perPage);
+        $this->assertSame(['name' => 'asc'], $meta->order);
     }
 
     public function testFromArrayRejectsFlatMetadata(): void
@@ -91,10 +95,12 @@ class MetaDTOTest extends TestCase
         $array = $meta->toArray();
 
         $this->assertEquals([
-            'total' => 50,
-            'page' => 3,
-            'per_page' => 25,
-            'last_page' => 2,
+            'pagination' => [
+                'page' => 3,
+                'per_page' => 25,
+                'total' => 50,
+            ],
+            'order' => [],
         ], $array);
     }
 

@@ -197,7 +197,7 @@ final class ResourceCommandTest extends TestCase
         $httpClient = $this->httpClientReturning([
             $this->jsonResponse(['data' => $this->projectPayload(id: self::PROJECT_ID, name: 'Project A')]),
             $this->jsonResponse($this->paginatedResponse([
-                $this->folderPayload(id: self::FOLDER_ID, name: 'Child', path: 'Root / Child'),
+                $this->folderPayload(id: self::FOLDER_ID, name: 'Child', itemsCount: 3, size: 1024),
             ])),
         ]);
 
@@ -214,7 +214,8 @@ final class ResourceCommandTest extends TestCase
         self::assertSame('folder', $decoded['resource']);
         self::assertSame(self::PROJECT_ID, $decoded['projectId']);
         self::assertSame(self::FOLDER_ID, $decoded['items'][0]['id']);
-        self::assertSame('Root / Child', $decoded['items'][0]['path']);
+        self::assertSame(3, $decoded['items'][0]['items_count']);
+        self::assertSame(1024, $decoded['items'][0]['size']);
     }
 
     public function testFolderShowOutputsJson(): void
@@ -295,9 +296,9 @@ final class ResourceCommandTest extends TestCase
         $decoded = $this->decodeDisplayJson($tester);
         self::assertSame('video', $decoded['resource']);
         self::assertSame(self::PROJECT_ID, $decoded['projectId']);
-        self::assertSame('Video A', $decoded['items'][0]['name']);
-        self::assertTrue($decoded['items'][0]['assets'][0]['hasUrl']);
-        self::assertTrue($decoded['items'][0]['assets'][0]['hasDownloadLink']);
+        self::assertSame('Video A', $decoded['items'][0]['title']);
+        self::assertTrue($decoded['items'][0]['assets'][0]['has_url']);
+        self::assertTrue($decoded['items'][0]['assets'][0]['has_download_link']);
         self::assertTrue($decoded['items'][0]['assets'][0]['downloadable']);
         self::assertArrayNotHasKey('url', $decoded['items'][0]['assets'][0]);
         self::assertArrayNotHasKey('download_link', $decoded['items'][0]['assets'][0]);
@@ -325,7 +326,7 @@ final class ResourceCommandTest extends TestCase
 
         $decoded = $this->decodeDisplayJson($tester);
         self::assertSame(self::FOLDER_ID, $decoded['folderId']);
-        self::assertSame(self::FOLDER_ID, $decoded['items'][0]['folderId']);
+        self::assertSame(self::FOLDER_ID, $decoded['items'][0]['folder_id']);
     }
 
     public function testVideoShowOutputsJson(): void
@@ -388,8 +389,8 @@ final class ResourceCommandTest extends TestCase
         self::assertSame(self::VIDEO_ID, $decoded['videoId']);
         self::assertSame('Video A', $decoded['videoName']);
         self::assertSame('asset-large', $decoded['items'][0]['id']);
-        self::assertSame(4096, $decoded['items'][0]['fileSize']);
-        self::assertTrue($decoded['items'][0]['hasUrl']);
+        self::assertSame(4096, $decoded['items'][0]['file_size']);
+        self::assertTrue($decoded['items'][0]['has_url']);
         self::assertStringNotContainsString('cdn.example.test', $tester->getDisplay());
     }
 
@@ -415,7 +416,7 @@ final class ResourceCommandTest extends TestCase
 
         self::assertSame(Command::SUCCESS, $exitCode);
         self::assertStringContainsString('Video: Video A', $tester->getDisplay());
-        self::assertStringContainsString('hasDownloadLink', $tester->getDisplay());
+        self::assertStringContainsString('has_download_link', $tester->getDisplay());
         self::assertStringContainsString('yes', $tester->getDisplay());
         self::assertStringNotContainsString('cdn.example.test', $tester->getDisplay());
     }
@@ -529,17 +530,18 @@ final class ResourceCommandTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    private function folderPayload(string $id, string $name, ?string $path = null): array
+    private function folderPayload(string $id, string $name, int $itemsCount = 3, int $size = 1024): array
     {
         return [
             'id' => $id,
             'project_id' => self::PROJECT_ID,
             'name' => $name,
-            'parent_id' => null,
-            'videos_count' => 3,
-            'path' => $path,
+            'parent_id' => self::PROJECT_ID,
+            'items_count' => $itemsCount,
+            'size' => $size,
             'created_at' => '2024-01-01T00:00:00+00:00',
             'updated_at' => '2024-01-01T00:00:00+00:00',
+            'deleted_at' => null,
         ];
     }
 
@@ -562,6 +564,28 @@ final class ResourceCommandTest extends TestCase
             'duration' => 120,
             'project_id' => $projectId,
             'folder_id' => $folderId,
+            'player_id' => 'player-id',
+            'version' => 1,
+            'subtitle' => '',
+            'progress' => 0,
+            'has_audio' => true,
+            'chapters' => ['items' => [], 'enabled' => false],
+            'privacy_type' => 'anywhere',
+            'privacy_domains' => [],
+            'privacy_email_domains' => [],
+            'privacy_share' => [],
+            'tags' => [],
+            'poster' => [],
+            'additional_materials' => [],
+            'additional_materials_enabled' => false,
+            'annotation_text_enabled' => false,
+            'annotation_video_enabled' => false,
+            'play_link' => 'https://kinescope.io/video-slug',
+            'embed_link' => 'https://kinescope.io/embed/video-slug',
+            'subtitles' => [],
+            'subtitles_enabled' => false,
+            'hls_link' => 'https://kinescope.io/video-slug/master.m3u8',
+            'meta' => [],
             'assets' => $assets,
             'created_at' => '2024-01-01T00:00:00+00:00',
             'updated_at' => '2024-01-01T00:00:00+00:00',
@@ -580,11 +604,13 @@ final class ResourceCommandTest extends TestCase
         return [
             'id' => $id,
             'video_id' => self::VIDEO_ID,
+            'original_name' => $id,
             'quality' => '720p',
             'resolution' => '1280x720',
-            'bitrate' => 1500,
             'file_size' => $fileSize,
-            'codec' => 'h264',
+            'filetype' => 'mp4',
+            'md5' => 'md5-hash',
+            'created_at' => '2024-01-01T00:00:00+00:00',
             'url' => $url,
             'download_link' => $downloadLink,
         ];

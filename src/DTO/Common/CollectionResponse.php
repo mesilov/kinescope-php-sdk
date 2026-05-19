@@ -10,32 +10,23 @@ use IteratorAggregate;
 use Traversable;
 
 /**
- * Abstract base class for paginated API responses.
- *
- * Provides common functionality for list endpoints that return
- * paginated data with metadata.
+ * Base class for API responses that return a plain `data` collection without pagination metadata.
  *
  * @template T
  *
  * @implements IteratorAggregate<int, T>
  */
-abstract readonly class PaginatedResponse implements IteratorAggregate, Countable
+abstract readonly class CollectionResponse implements IteratorAggregate, Countable
 {
     /**
-     * Create a new paginated response.
-     *
-     * @param list<T> $data The items on the current page
-     * @param MetaDTO $meta Pagination metadata
+     * @param list<T> $data
      */
     public function __construct(
         protected array $data,
-        protected MetaDTO $meta,
     ) {
     }
 
     /**
-     * Get all items on the current page.
-     *
      * @return list<T>
      */
     public function getData(): array
@@ -44,18 +35,6 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
     }
 
     /**
-     * Get the pagination metadata.
-     *
-     * @return MetaDTO
-     */
-    public function getMeta(): MetaDTO
-    {
-        return $this->meta;
-    }
-
-    /**
-     * Get the first item or null if empty.
-     *
      * @return T|null
      */
     public function first(): mixed
@@ -64,8 +43,6 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
     }
 
     /**
-     * Get the last item or null if empty.
-     *
      * @return T|null
      */
     public function last(): mixed
@@ -77,29 +54,17 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
         return $this->data[array_key_last($this->data)];
     }
 
-    /**
-     * Check if the response contains any items.
-     *
-     * @return bool
-     */
     public function isEmpty(): bool
     {
         return $this->data === [];
     }
 
-    /**
-     * Check if the response contains items.
-     *
-     * @return bool
-     */
     public function isNotEmpty(): bool
     {
         return $this->data !== [];
     }
 
     /**
-     * Get the number of items on the current page.
-     *
      * @return int<0, max>
      */
     public function count(): int
@@ -108,68 +73,6 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
     }
 
     /**
-     * Get the total number of items across all pages.
-     *
-     * @return int
-     */
-    public function getTotal(): int
-    {
-        return $this->meta->total;
-    }
-
-    /**
-     * Check if there is a next page.
-     *
-     * @return bool
-     */
-    public function hasNextPage(): bool
-    {
-        return $this->meta->hasNextPage();
-    }
-
-    /**
-     * Check if there is a previous page.
-     *
-     * @return bool
-     */
-    public function hasPreviousPage(): bool
-    {
-        return $this->meta->hasPreviousPage();
-    }
-
-    /**
-     * Get the current page number.
-     *
-     * @return int
-     */
-    public function getCurrentPage(): int
-    {
-        return $this->meta->pagination->page;
-    }
-
-    /**
-     * Get the last page number.
-     *
-     * @return int
-     */
-    public function getLastPage(): int
-    {
-        return $this->meta->getLastPage();
-    }
-
-    /**
-     * Get the number of items per page.
-     *
-     * @return int
-     */
-    public function getPerPage(): int
-    {
-        return $this->meta->pagination->perPage;
-    }
-
-    /**
-     * Get an iterator for the items.
-     *
      * @return Traversable<int, T>
      */
     public function getIterator(): Traversable
@@ -178,8 +81,6 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
     }
 
     /**
-     * Map over the items with a callback.
-     *
      * @template TResult
      *
      * @param callable(T): TResult $callback
@@ -192,8 +93,6 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
     }
 
     /**
-     * Filter items with a callback.
-     *
      * @param callable(T): bool $callback
      *
      * @return list<T>
@@ -204,8 +103,6 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
     }
 
     /**
-     * Find first item matching a callback.
-     *
      * @param callable(T): bool $callback
      *
      * @return T|null
@@ -222,11 +119,7 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
     }
 
     /**
-     * Check if any item matches the callback.
-     *
      * @param callable(T): bool $callback
-     *
-     * @return bool
      */
     public function contains(callable $callback): bool
     {
@@ -234,9 +127,7 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
     }
 
     /**
-     * Convert to array representation.
-     *
-     * @return array{data: list<mixed>, meta: array<string, mixed>}
+     * @return array{data: list<mixed>}
      */
     public function toArray(): array
     {
@@ -245,7 +136,6 @@ abstract readonly class PaginatedResponse implements IteratorAggregate, Countabl
                 self::normalizeItem(...),
                 $this->data,
             )),
-            'meta' => $this->meta->toArray(),
         ];
     }
 

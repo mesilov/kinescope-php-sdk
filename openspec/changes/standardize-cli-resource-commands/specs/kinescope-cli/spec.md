@@ -77,11 +77,11 @@ The CLI SHALL list folders for one project through `kinescope:folder:list --proj
 
 #### Scenario: Folders table output
 - **WHEN** a user runs `kinescope:folder:list --project-id=<project-id>`
-- **THEN** the command validates that the project exists and prints a deterministic table containing folder identifiers, names, parent identifiers, paths, and video counts
+- **THEN** the command validates that the project exists and prints a deterministic table containing folder identifiers, names, project identifiers, parent identifiers, item counts, and sizes
 
 #### Scenario: Folders JSON output
 - **WHEN** a user runs `kinescope:folder:list --project-id=<project-id> --format=json`
-- **THEN** the command prints JSON with `resource` set to `folder`, `projectId` set to the selected project, and an `items` array of normalized folder rows
+- **THEN** the command prints JSON with `resource` set to `folder`, `projectId` set to the selected project, and an `items` array of normalized folder rows using API field names such as `project_id`, `parent_id`, `items_count`, and `size`
 
 ### Requirement: Show one folder
 The CLI SHALL fetch one folder through `kinescope:folder:show <folder-id> --project-id=<project-id>`.
@@ -99,7 +99,7 @@ The CLI SHALL list videos for one project, optionally scoped to a folder, throug
 
 #### Scenario: Project videos table output
 - **WHEN** a user runs `kinescope:video:list --project-id=<project-id>`
-- **THEN** the command prints a deterministic table containing video identifiers, names, project identifiers, folder identifiers, durations, and statuses
+- **THEN** the command prints a deterministic table containing video identifiers, titles, project identifiers, folder identifiers, durations, and statuses
 
 #### Scenario: Folder videos JSON output
 - **WHEN** a user runs `kinescope:video:list --project-id=<project-id> --folder-id=<folder-id> --format=json`
@@ -107,7 +107,7 @@ The CLI SHALL list videos for one project, optionally scoped to a folder, throug
 
 #### Scenario: Videos include sanitized assets
 - **WHEN** a user runs `kinescope:video:list --project-id=<project-id> --include-assets --format=json`
-- **THEN** each video row includes sanitized asset summaries without raw `url` or `download_link` values
+- **THEN** each video row includes sanitized snake_case asset summaries without raw `url` or `download_link` values
 
 ### Requirement: Show one video
 The CLI SHALL fetch one video through `kinescope:video:show <video-id>`.
@@ -133,7 +133,7 @@ The CLI SHALL list sanitized asset metadata for one video through `kinescope:vid
 
 #### Scenario: Asset links are sanitized
 - **WHEN** an asset contains `url` or `download_link`
-- **THEN** asset output includes presence booleans such as `hasUrl`, `hasDownloadLink`, and `downloadable`
+- **THEN** asset output includes presence booleans such as `has_url`, `has_download_link`, and `downloadable`
 - **AND** asset output does not include the raw signed link values
 
 ### Requirement: Report API failures clearly

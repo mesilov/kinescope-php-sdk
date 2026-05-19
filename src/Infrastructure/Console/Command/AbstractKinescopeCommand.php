@@ -179,18 +179,11 @@ abstract class AbstractKinescopeCommand extends Command
     }
 
     /**
-     * @return array{id: string, name: string, projectId: string, parentId: string|null, videosCount: int, path: string}
+     * @return array<string, mixed>
      */
     protected function normalizeFolder(FolderDTO $folder): array
     {
-        return [
-            'id' => $folder->id,
-            'name' => $folder->name,
-            'projectId' => $folder->projectId,
-            'parentId' => $folder->parentId,
-            'videosCount' => $folder->videosCount,
-            'path' => $folder->getFullPath(),
-        ];
+        return $folder->toArray();
     }
 
     /**
@@ -200,9 +193,9 @@ abstract class AbstractKinescopeCommand extends Command
     {
         $row = [
             'id' => $video->id,
-            'name' => $video->title,
-            'projectId' => $video->projectId,
-            'folderId' => $video->folderId,
+            'title' => $video->title,
+            'project_id' => $video->projectId,
+            'folder_id' => $video->folderId,
             'duration' => $video->duration,
             'status' => $video->status->value,
         ];
@@ -217,7 +210,7 @@ abstract class AbstractKinescopeCommand extends Command
     }
 
     /**
-     * @return array{id: string, quality: string|null, width: int|null, height: int|null, bitrate: int|null, fileSize: int, fileSizeMb: float, codec: string|null, hasUrl: bool, hasDownloadLink: bool, downloadable: bool}
+     * @return array<string, mixed>
      */
     protected function normalizeAsset(AssetDTO $asset): array
     {
@@ -226,14 +219,16 @@ abstract class AbstractKinescopeCommand extends Command
         return [
             'id' => $asset->id,
             'quality' => $asset->quality,
+            'original_name' => $asset->originalName,
+            'filetype' => $asset->filetype,
+            'md5' => $asset->md5,
+            'resolution' => $asset->resolution === null ? null : (string) $asset->resolution,
             'width' => $asset->resolution?->width,
             'height' => $asset->resolution?->height,
-            'bitrate' => $asset->bitrate,
-            'fileSize' => $asset->fileSize,
-            'fileSizeMb' => round($asset->fileSize / 1024 / 1024, 2),
-            'codec' => $asset->codec,
-            'hasUrl' => $asset->url !== null && $asset->url !== '',
-            'hasDownloadLink' => $hasDownloadLink,
+            'file_size' => $asset->fileSize,
+            'file_size_mb' => round($asset->fileSize / 1024 / 1024, 2),
+            'has_url' => $asset->url !== null && $asset->url !== '',
+            'has_download_link' => $hasDownloadLink,
             'downloadable' => $hasDownloadLink,
         ];
     }
@@ -263,7 +258,7 @@ abstract class AbstractKinescopeCommand extends Command
         usort(
             $rows,
             static function (array $a, array $b): int {
-                $sizeComparison = (int) $b['fileSize'] <=> (int) $a['fileSize'];
+                $sizeComparison = (int) $b['file_size'] <=> (int) $a['file_size'];
 
                 return $sizeComparison !== 0
                     ? $sizeComparison

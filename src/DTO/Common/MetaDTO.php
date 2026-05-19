@@ -24,6 +24,10 @@ final readonly class MetaDTO
     public function __construct(
         public int $total,
         public Pagination $pagination,
+        /**
+         * @var array<string, mixed>
+         */
+        public array $order = [],
         public ?int $lastPage = null,
     ) {
     }
@@ -59,6 +63,7 @@ final readonly class MetaDTO
                 page: (int) $pagination['page'],
                 perPage: (int) $pagination['per_page'],
             ),
+            order: isset($data['order']) && is_array($data['order']) ? $data['order'] : [],
         );
     }
 
@@ -145,15 +150,17 @@ final readonly class MetaDTO
     /**
      * Convert to array representation.
      *
-     * @return array{total: int, page: int, per_page: int, last_page: int}
+     * @return array{pagination: array{page: int, per_page: int, total: int}, order: array<string, mixed>}
      */
     public function toArray(): array
     {
         return [
-            'total' => $this->total,
-            'page' => $this->pagination->page,
-            'per_page' => $this->pagination->perPage,
-            'last_page' => $this->getLastPage(),
+            'pagination' => [
+                'page' => $this->pagination->page,
+                'per_page' => $this->pagination->perPage,
+                'total' => $this->total,
+            ],
+            'order' => $this->order,
         ];
     }
 }

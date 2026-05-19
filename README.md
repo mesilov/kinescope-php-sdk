@@ -37,7 +37,7 @@ $factory = ServiceFactory::fromEnvironment();
 // Use services
 $videos = $factory->videos()->list();
 $projects = $factory->projects()->list();
-$folders = $factory->folders()->list();
+$folders = $factory->folders()->list('project-id');
 $playlists = $factory->playlists()->list();
 $statistics = $factory->statistics()->forAccount();
 ```
@@ -93,7 +93,9 @@ vendor/bin/kinescope kinescope:video:list \
 vendor/bin/kinescope kinescope:video:asset:list 22222222-2222-2222-2222-222222222222
 ```
 
-List commands support `table` or deterministic `json` output. Show commands print pretty JSON. Asset output exposes booleans such as `hasUrl`, `hasDownloadLink`, and `downloadable`; raw signed CDN URLs and download links are not printed by default.
+List commands support `table` or deterministic `json` output. Show commands print pretty JSON. Asset output exposes booleans such as `has_url`, `has_download_link`, and `downloadable`; raw signed CDN URLs and download links are not printed by default.
+
+DTO timestamp properties such as `createdAt`, `updatedAt`, `deletedAt`, and `generatedAt` are `Carbon\CarbonImmutable` instances. `toArray()` keeps API field names such as `created_at` and serializes date values as ISO JSON strings.
 
 ## Statistics
 

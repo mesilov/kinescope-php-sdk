@@ -6,6 +6,7 @@ namespace Kinescope\DTO\Playlist;
 
 use Kinescope\DTO\Common\MetaDTO;
 use Kinescope\DTO\Common\PaginatedResponse;
+use Kinescope\Enum\PrivacyType;
 
 /**
  * Paginated list of playlists.
@@ -15,11 +16,7 @@ use Kinescope\DTO\Common\PaginatedResponse;
 final readonly class PlaylistListResult extends PaginatedResponse
 {
     /**
-     * Create a PlaylistListResult from API response array.
-     *
      * @param array<string, mixed> $response Raw API response
-     *
-     * @return self
      */
     public static function fromArray(array $response): self
     {
@@ -28,184 +25,94 @@ final readonly class PlaylistListResult extends PaginatedResponse
         if (isset($response['data']) && is_array($response['data'])) {
             $data = array_map(
                 PlaylistDTO::fromArray(...),
-                $response['data']
+                array_values(array_filter($response['data'], is_array(...))),
             );
         }
 
-        $meta = MetaDTO::fromArray($response['meta'] ?? []);
-
-        return new self($data, $meta);
+        return new self($data, MetaDTO::fromArray($response['meta'] ?? []));
     }
 
     /**
-     * Get public playlists.
-     *
-     * @return array<PlaylistDTO>
+     * @return list<PlaylistDTO>
+     */
+    public function getByPrivacyType(PrivacyType $privacyType): array
+    {
+        return $this->filter(
+            static fn (PlaylistDTO $playlist): bool => $playlist->privacyType === $privacyType,
+        );
+    }
+
+    /**
+     * @return list<PlaylistDTO>
      */
     public function getPublic(): array
     {
         return $this->filter(
-            static fn (PlaylistDTO $playlist): bool => $playlist->isPublic
+            static fn (PlaylistDTO $playlist): bool => $playlist->isPublic(),
         );
     }
 
     /**
-     * Get private playlists.
-     *
-     * @return array<PlaylistDTO>
+     * @return list<PlaylistDTO>
      */
     public function getPrivate(): array
     {
         return $this->filter(
-            static fn (PlaylistDTO $playlist): bool => ! $playlist->isPublic
+            static fn (PlaylistDTO $playlist): bool => ! $playlist->isPublic(),
         );
     }
 
     /**
-     * Get playlists with items.
-     *
-     * @return array<PlaylistDTO>
+     * @return list<PlaylistDTO>
      */
-    public function getWithItems(): array
+    public function getWithDomainRestrictions(): array
     {
         return $this->filter(
-            static fn (PlaylistDTO $playlist): bool => $playlist->hasItems()
+            static fn (PlaylistDTO $playlist): bool => $playlist->hasDomainRestrictions(),
         );
     }
 
     /**
-     * Get empty playlists.
-     *
-     * @return array<PlaylistDTO>
+     * @return list<PlaylistDTO>
      */
-    public function getEmpty(): array
+    public function getByParentId(string $parentId): array
     {
         return $this->filter(
-            static fn (PlaylistDTO $playlist): bool => $playlist->isEmpty()
+            static fn (PlaylistDTO $playlist): bool => $playlist->parentId === $parentId,
         );
     }
 
     /**
-     * Get playlists by project.
-     *
-     * @param string $projectId Project identifier
-     *
-     * @return array<PlaylistDTO>
+     * @return list<PlaylistDTO>
      */
-    public function getByProject(string $projectId): array
-    {
-        return $this->filter(
-            static fn (PlaylistDTO $playlist): bool =>
-                $playlist->projectId === $projectId
-        );
-    }
-
-    /**
-     * Get playlists sorted by items count.
-     *
-     * @param bool $ascending Sort direction
-     *
-     * @return array<PlaylistDTO>
-     */
-    public function getSortedByItemsCount(bool $ascending = true): array
+    public function getSortedByName(): array
     {
         $sorted = $this->data;
 
         usort(
             $sorted,
-            static fn (PlaylistDTO $a, PlaylistDTO $b): int =>
-            $ascending
-                ? $a->itemsCount <=> $b->itemsCount
-                : $b->itemsCount <=> $a->itemsCount
+            static fn (PlaylistDTO $a, PlaylistDTO $b): int => strcasecmp($a->name, $b->name),
         );
 
         return $sorted;
     }
 
-    /**
-     * Get playlists sorted by total duration.
-     *
-     * @param bool $ascending Sort direction
-     *
-     * @return array<PlaylistDTO>
-     */
-    public function getSortedByDuration(bool $ascending = true): array
-    {
-        $sorted = $this->data;
-
-        usort(
-            $sorted,
-            static fn (PlaylistDTO $a, PlaylistDTO $b): int =>
-            $ascending
-                ? $a->totalDuration <=> $b->totalDuration
-                : $b->totalDuration <=> $a->totalDuration
-        );
-
-        return $sorted;
-    }
-
-    /**
-     * Find playlist by ID.
-     *
-     * @param string $id Playlist identifier
-     *
-     * @return PlaylistDTO|null
-     */
     public function findById(string $id): ?PlaylistDTO
     {
         return $this->find(
-            static fn (PlaylistDTO $playlist): bool => $playlist->id === $id
+            static fn (PlaylistDTO $playlist): bool => $playlist->id === $id,
         );
     }
 
-    /**
-     * Find playlist by title.
-     *
-     * @param string $title Playlist title
-     *
-     * @return PlaylistDTO|null
-     */
-    public function findByTitle(string $title): ?PlaylistDTO
+    public function findByName(string $name): ?PlaylistDTO
     {
         return $this->find(
-            static fn (PlaylistDTO $playlist): bool => $playlist->title === $title
+            static fn (PlaylistDTO $playlist): bool => $playlist->name === $name,
         );
     }
 
     /**
-     * Get total items count across all playlists.
-     *
-     * @return int
-     */
-    public function getTotalItemsCount(): int
-    {
-        return array_reduce(
-            $this->data,
-            static fn (int $total, PlaylistDTO $playlist): int =>
-                $total + $playlist->itemsCount,
-            0
-        );
-    }
-
-    /**
-     * Get total duration across all playlists in seconds.
-     *
-     * @return int
-     */
-    public function getTotalDuration(): int
-    {
-        return array_reduce(
-            $this->data,
-            static fn (int $total, PlaylistDTO $playlist): int =>
-                $total + $playlist->totalDuration,
-            0
-        );
-    }
-
-    /**
-     * Get IDs of all playlists.
-     *
-     * @return array<string>
+     * @return list<string>
      */
     public function getIds(): array
     {

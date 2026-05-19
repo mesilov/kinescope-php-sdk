@@ -69,7 +69,7 @@ final class VideoListCommand extends AbstractKinescopeCommand
                 fn (VideoDTO $video): array => $this->normalizeVideo($video, $includeAssets),
                 $this->collectVideos($videos, $projectId, $folderId),
             ));
-            $this->sortRowsByString($items, 'name');
+            $this->sortRowsByString($items, 'title');
         } catch (NotFoundException) {
             return $this->invalid($stderr, sprintf('Folder %s does not belong to project %s.', $folderId, $projectId));
         } catch (KinescopeException $e) {
@@ -85,7 +85,7 @@ final class VideoListCommand extends AbstractKinescopeCommand
                 'folderId' => $folderId,
                 'items' => $items,
             ],
-            tableHeaders: ['id', 'name', 'projectId', 'folderId', 'duration', 'status'],
+            tableHeaders: ['id', 'title', 'project_id', 'folder_id', 'duration', 'status'],
             tableRows: $items,
         );
 

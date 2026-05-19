@@ -9,6 +9,7 @@ use Kinescope\Core\Credentials;
 use Kinescope\Enum\QualityPreference;
 use Kinescope\Services\Videos\VideoDownloader;
 use Kinescope\Services\Videos\Videos;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -20,10 +21,9 @@ use Symfony\Component\Filesystem\Filesystem;
  *
  * Requires KINESCOPE_API_KEY, TESTS_VIDEO_DOWNLOADER_VIDEO_ID,
  * and TESTS_VIDEO_DOWNLOADER_FOLDER_ID environment variables.
- *
- * @group integration
- * @group download
  */
+#[Group('integration')]
+#[Group('download')]
 class VideoDownloaderTest extends TestCase
 {
     private VideoDownloader $downloader;

@@ -17,6 +17,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `ProjectDTO` now follows the raw Kinescope project API field names: use `itemsCount`, `folders`, `size`, `privacyDomains`, `privacyEmailDomains`, `privacyShare`, `playerId`, `favorite`, and `encrypted` instead of the removed aliases `videosCount`, `foldersCount`, `storageUsed`, `allowedDomains`, `isDefault`, and `settings`.
   - `ProjectListResult::getTotalVideosCount()` is replaced by `getTotalItemsCount()`.
   - `ProjectListResult::getTotalStorageUsed()` is replaced by `getTotalSize()`.
+- Resource DTOs now follow current raw API fields instead of legacy SDK aliases:
+  - `FolderDTO` uses `size`, `itemsCount`, and `deletedAt`; removed legacy `videosCount`, `description`, `depth`, `path`, and `position`.
+  - `VideoDTO` uses current raw video fields such as `title`, `projectId`, `folderId`, `playerId`, `version`, `progress`, `poster`, `playLink`, `embedLink`, `subtitles`, `chapters`, `audioTracks`, and `meta`; removed unavailable aliases such as `embedCode`, `dashLink`, `posterUrl`, `thumbnailUrl`, `viewsCount`, and `playsCount`.
+  - `VideoDTO::$duration` and `PlaylistEntityDTO::$duration` now preserve API fractional seconds as `float`.
+  - `AssetDTO` uses `originalName`, `filetype`, and `md5`; removed legacy `bitrate` and `codec`.
+  - `PlaylistDTO` uses `name`, `workspaceId`, `parentId`, `playerId`, `privacy*`, `settings`, `playLink`, and `embedLink`; removed legacy `title`, `projectId`, `itemsCount`, `totalDuration`, `posterUrl`, `embedCode`, and `isPublic`.
+- Timestamp fields in SDK DTOs are now `Carbon\CarbonImmutable`: `createdAt`, `updatedAt`, `deletedAt`, and `generatedAt` no longer expose raw strings or `DateTimeImmutable`.
+- `PlaylistEntityListResult`, `SubtitleListResult`, and `AnnotationListResult` now parse unpaginated `data` responses without synthetic `MetaDTO` pagination.
+- `MetaDTO::toArray()` now exports raw-shaped `pagination` and `order` keys.
+- `PlaylistsService::listByProject()` is removed because the live API does not support that filter reliably; `findByTitle()` is replaced by `findByName()`.
 
 ### Added
 - Commands `kinescope:project:list`, `kinescope:project:show`, `kinescope:folder:list`, `kinescope:folder:show`, `kinescope:video:list`, `kinescope:video:show`, and `kinescope:video:asset:list` for read-only Kinescope account inspection from the SDK CLI.
@@ -24,7 +34,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   - Show commands output pretty JSON.
   - All commands resolve credentials via `KINESCOPE_API_KEY` or `--api-key` / `-k`.
   - Resource identifiers are validated locally before API reads.
-  - Asset output is sanitized by exposing `hasUrl`, `hasDownloadLink`, and `downloadable` booleans instead of raw signed CDN URLs.
+  - Asset output is sanitized by exposing `has_url`, `has_download_link`, and `downloadable` booleans instead of raw signed CDN URLs.
+
+### Fixed
+- `Retry-After` HTTP-date parsing now uses `Carbon\CarbonImmutable`, and 429 errors keep retry metadata on `RateLimitException`.
 
 ## 0.4.0 — 2026-05-14
 
