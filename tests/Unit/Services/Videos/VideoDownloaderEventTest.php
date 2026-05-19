@@ -99,6 +99,45 @@ final class VideoDownloaderEventTest extends TestCase
         $this->assertGreaterThanOrEqual(0, $completedEvent->durationMs);
     }
 
+    public function testDownloadVideoFallsBackToStreamSizeWhenProgressTotalIsZero(): void
+    {
+        $videoId = 'video-1';
+        $sizeBytes = 12_000_000;
+        $destinationDir = sys_get_temp_dir() . '/kinescope-sdk-unit-' . uniqid('', true);
+        $fileTransfer = new FakeFileTransfer(
+            progressBytes: [self::PROGRESS_INTERVAL_BYTES],
+            progressTotalBytes: 0,
+        );
+
+        $downloader = $this->createDownloader(
+            videoStreamSize: $sizeBytes,
+            selectedHeight: 1080,
+            fileTransfer: $fileTransfer,
+        );
+
+        $progress = [];
+
+        $downloader->on(
+            DownloadProgressEvent::class,
+            static function (DownloadProgressEvent $event) use (&$progress): void {
+                $progress[] = $event;
+            },
+        );
+
+        try {
+            $filePath = $downloader->downloadVideo($videoId, $destinationDir, QualityPreference::BEST);
+
+            $this->assertFileExists($filePath);
+        } finally {
+            $this->filesystem->remove($destinationDir);
+        }
+
+        $this->assertCount(1, $progress);
+        $this->assertSame(self::PROGRESS_INTERVAL_BYTES, $progress[0]->bytesWritten);
+        $this->assertSame($sizeBytes, $progress[0]->sizeBytes);
+        $this->assertSame(87.4, $progress[0]->percent);
+    }
+
     public function testDownloadVideoDispatchesFailedEventWithOriginalException(): void
     {
         $videoId = 'video-2';
