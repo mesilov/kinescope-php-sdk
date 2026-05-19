@@ -37,6 +37,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   - All commands resolve credentials via `KINESCOPE_API_KEY` or `--api-key` / `-k`.
   - Resource identifiers are validated locally before API reads.
   - Asset output is sanitized by exposing `has_url`, `has_download_link`, and `downloadable` booleans instead of raw signed CDN URLs.
+- `Kinescope\Services\Videos\InMemoryVideoSearch` for local reverse lookup over already loaded `VideoDTO` arrays by canonical embed URL or normalized title.
+  - `byEmbedLink()` accepts only `https://kinescope.io/embed/{slug}` input and matches loaded DTOs through `VideoSlugExtractor`.
+  - `byName()` uses deterministic normalized substring matching, not BM25, fuzzy search, stemming, or ranked full-text search.
 
 ### Fixed
 - `Retry-After` HTTP-date parsing now uses `Carbon\CarbonImmutable`, and 429 errors keep retry metadata on `RateLimitException`.
